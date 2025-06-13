@@ -5,10 +5,14 @@ import kakaoImg from '/kaka.png';
 import linkLogo from '/linkLogo.png';
 import { useState } from 'react';
 import { GiHamburgerMenu } from 'react-icons/gi';
+import { useNavigate } from 'react-router-dom';
 
 export default function TopHeader() {
+  const navigate = useNavigate();
+
   const [activeIndex, setActiveIndex] = useState(0);
   const menus = ['업무추진비 맛집지도', '수의계약'];
+  const menuLinks = ['/', 'contract'];
 
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen(prev => !prev);
@@ -22,7 +26,14 @@ export default function TopHeader() {
 
       <Center>
         {menus.map((menu, i) => (
-          <MenuItem key={i} $active={activeIndex === i} onClick={() => setActiveIndex(i)}>
+          <MenuItem
+            key={i}
+            $active={activeIndex === i}
+            onClick={() => {
+              setActiveIndex(i);
+              navigate(menuLinks[i]);
+            }}
+          >
             {menu}
           </MenuItem>
         ))}

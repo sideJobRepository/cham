@@ -7,15 +7,15 @@ export const theme = {
     text: '#222',
     topLine: '#093A6E',
     kakao: '#FDDC3F',
+    liteGray: '#66696D',
   },
   sizes: {
     menu: '20px',
     small: '10px',
-    medium: '14px',
+    medium: '13px',
     large: '18px',
   },
   device: {
     mobile: '(max-width: 767px)',
-    tablet: '(max-width: 1023px)',
   },
 };
