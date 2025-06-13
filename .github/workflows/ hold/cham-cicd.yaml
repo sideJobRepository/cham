@@ -1,0 +1,117 @@
+name: cham
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'src/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+            frontend:
+              - 'cham-front/**'
+
+  build-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Create application-real.properties
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application-real.properties
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x ./gradlew
+
+      - name: gradle 빌드
+        run: ./gradlew clean build -x test
+
+      - name: jar 이름 변경
+        run: mv ./build/libs/*SNAPSHOT.jar ./project.jar
+
+      - name: scp 로 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          source: project.jar
+          target: /home/ubuntu/bgmagit-Server/tobe
+
+      - name: ssh 접속
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          script: |
+            rm -rf /home/ubuntu/bgmagit-Server/target
+            mkdir -p /home/ubuntu/bgmagit-Server/target
+            mv /home/ubuntu/bgmagit-Server/tobe/project.jar /home/ubuntu/bgmagit-Server/target
+            cd /home/ubuntu/bgmagit-Server/target
+            sudo fuser -k -n tcp 8080 || true
+            nohup java -Duser.timezone=Asia/Seoul -jar -Dspring.profiles.active=real project.jar > /dev/null 2>&1 &
+
+  build-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: npm 인스톨
+        run: cd cham-front && npm install
+
+      - name: npm 빌드
+        run: cd cham-front && npm run build
+
+      - name: scp로 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          source: cham-front/dist/*
+          target: /home/ubuntu/deploy/front-dist-temp
+
+      - name: ssh 접속
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          script: |
+            sudo rm -rf /usr/share/nginx/bgmagit-front/dist
+            sudo mv /home/ubuntu/deploy/front-dist-temp/* /usr/share/nginx/bgmagit-front/
+            sudo systemctl restart nginx
