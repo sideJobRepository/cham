@@ -79,6 +79,7 @@ const ListSection = styled.div`
 const ListContent = styled.div`
   flex: 1;
   overflow-y: auto;
+  margin-top: 20px;
 
   @media ${({ theme }) => theme.device.mobile} {
     overflow-y: visible;
@@ -89,6 +90,7 @@ const MapSection = styled.div`
   flex: 1;
   height: 100%;
   border-radius: 8px;
+  padding: 0 12px;
   @media ${({ theme }) => theme.device.mobile} {
     flex: none;
     height: 400px;

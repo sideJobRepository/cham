@@ -19,7 +19,6 @@ const Wrapper = styled.aside`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  padding: 20px 0;
 
   @media ${({ theme }) => theme.device.mobile} {
     display: flex;
