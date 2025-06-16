@@ -116,7 +116,7 @@ const DetailWrapper = styled.section`
   max-width: 1500px;
   min-width: 1024px;
   margin: 0 auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;
