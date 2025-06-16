@@ -111,6 +111,6 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: 22
           script: |
-            sudo rm -rf /usr/share/nginx/cham-front/dist
+            sudo rm -rf /usr/share/nginx/cham-front
             sudo mv /home/ubuntu/deploy/front-dist-temp/* /usr/share/nginx/cham-front/
             sudo systemctl restart nginx
