@@ -20,7 +20,11 @@ export default function TopHeader() {
 
   return (
     <Wrapper>
-      <Left>
+      <Left
+        onClick={() => {
+          navigate(menuLinks[0]);
+        }}
+      >
         <MeerkatLogo src={logo} alt="로고" />
         <img src={logo2} alt="로고" />
       </Left>
@@ -105,8 +109,6 @@ export default function TopHeader() {
 
 const Wrapper = styled.div`
   height: 100%;
-  max-width: 1500px;
-  min-width: 1280px;
   padding: 0 20px;
   margin: 0 auto;
   display: flex;
@@ -118,8 +120,6 @@ const Wrapper = styled.div`
   }
 
   @media ${({ theme }) => theme.device.mobile} {
-    max-width: 100%;
-    min-width: 100%;
     padding: 0 16px;
   }
 `;

@@ -113,13 +113,7 @@ const DetailWrapper = styled.section`
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 1500px;
-  min-width: 1280px;
   margin: 0 auto;
-  @media ${({ theme }) => theme.device.mobile} {
-    max-width: 100%;
-    min-width: 100%;
-  }
 `;
 
 const FixedTop = styled.div`

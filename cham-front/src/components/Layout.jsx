@@ -5,23 +5,35 @@ import { Outlet } from 'react-router-dom';
 export default function Layout() {
   return (
     <Wrapper>
-      <TopArea>
-        <TopHeader />
-      </TopArea>
-      <MainArea>
-        <Outlet />
-      </MainArea>
+      <Inner>
+        <TopArea>
+          <TopHeader />
+        </TopArea>
+        <MainArea>
+          <Outlet />
+        </MainArea>
+      </Inner>
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
   height: 100vh;
-  overflow: hidden;
 `;
-
+const Inner = styled.div`
+  max-width: 1500px;
+  min-width: 1280px; // 이게 기준이 되는 전체 넓이
+  height: 100%;
+  display: flex;
+  margin: 0 auto;
+  flex-direction: column;
+  @media ${({ theme }) => theme.device.mobile} {
+    max-width: 100%;
+    min-width: 100%;
+  }
+`;
 const TopArea = styled.div`
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -32,7 +44,6 @@ const TopArea = styled.div`
 
 const MainArea = styled.main`
   position: relative;
-  margin-top: 100px;
   height: calc(100vh - 100px);
   overflow-y: auto;
 `;
