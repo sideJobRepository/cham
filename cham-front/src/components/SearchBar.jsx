@@ -23,12 +23,56 @@ export default function SearchBar() {
   const [startDate, setStartDate] = useState(oneMonthAgo);
   const [endDate, setEndDate] = useState(today);
 
+  //직위
+  const roleOptions = [
+    { value: '1', label: '국회의원' },
+    { value: '2', label: '광역지자체장' },
+    { value: '3', label: '광역의회' },
+  ];
+
   //정렬
   const sortOptions = [
     { value: 'latest', label: '최신순' },
     { value: 'oldest', label: '오래된순' },
-    // 필요 시 더 추가
   ];
+
+  const searchSelect = {
+    control: provided => ({
+      ...provided,
+      width: 100,
+      height: 30,
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '13px',
+      boxShadow: 'none',
+      outline: 'none',
+      '&:hover': {
+        borderColor: '#093A6E',
+        outline: 'none',
+      },
+    }),
+    singleValue: provided => ({
+      ...provided,
+      color: 'black',
+      fontSize: '13px',
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      fontSize: '13px',
+      color: state.isSelected ? '#fff' : '#093A6E',
+      backgroundColor: state.isSelected ? '#093A6E' : '#fff',
+      cursor: 'pointer',
+    }),
+    indicatorsContainer: provided => ({
+      ...provided,
+      display: 'none',
+    }),
+    menu: provided => ({
+      ...provided,
+      width: 110,
+      zIndex: 9999,
+    }),
+  };
 
   const customSelectStyles = {
     control: (provided, state) => ({
@@ -72,14 +116,29 @@ export default function SearchBar() {
       <SearchGroup>
         <FieldsWrapper>
           <Field>
-            <label>사용자</label>
+            <label>직위</label>
+            <SortSelect>
+              <Select
+                options={roleOptions}
+                defaultValue={roleOptions[0]}
+                styles={searchSelect}
+                isSearchable={false}
+                menuPortalTarget={document.body}
+              />
+            </SortSelect>
+          </Field>
+
+          <Divider />
+
+          <Field>
+            <label>이름</label>
             <input type="text" />
           </Field>
 
           <Divider />
 
           <Field>
-            <label>금액</label>
+            <label>방문횟수</label>
             <input type="text" value={amount} onChange={handleAmountChange} />
           </Field>
 

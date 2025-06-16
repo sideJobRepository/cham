@@ -1,16 +1,20 @@
 import styled from 'styled-components';
 import test from '/test.jpg';
-import { FaUserFriends } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export default function ItemCard() {
+  const navigate = useNavigate();
+
   return (
-    <Card>
+    <Card
+      onClick={() => {
+        navigate('detail');
+      }}
+    >
       <img src={test} alt="sample" />
       <CardBody>
         <Title>시장 외 2명 방문</Title>
-        <Stats>
-          <FaUserFriends size={12} style={{ marginRight: 4 }} /> 31
-        </Stats>
+        <Stats>방문횟수 31</Stats>
         <Menu>춘추는 김치찌개</Menu>
         <Address>대전 은행동 은행사거리 고층빌딩 1층</Address>
         <Price>총 6,500,000원</Price>

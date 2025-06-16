@@ -6,6 +6,7 @@ import MainPage from './pages/MainPage.jsx';
 import ContractPage from './pages/ContractPage.jsx';
 import Layout from './components/Layout.jsx';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import DetailPage from './pages/DetailPage.jsx';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<MainPage />} />
             <Route path="/contract" element={<ContractPage />} />
+            <Route path="/detail" element={<DetailPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

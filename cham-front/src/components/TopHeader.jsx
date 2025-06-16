@@ -70,7 +70,7 @@ export default function TopHeader() {
 
 const Wrapper = styled.div`
   height: 100%;
-  max-width: 1270px;
+  max-width: 1500px;
   min-width: 1024px;
   margin: 0 auto;
   display: flex;
