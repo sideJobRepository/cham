@@ -44,7 +44,7 @@ jobs:
       - name: Create application-real.properties
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application-real.properties
+          echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application-real.yaml
 
       - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
@@ -52,18 +52,17 @@ jobs:
       - name: gradle 빌드
         run: ./gradlew clean build -x test
 
-      - name: jar 이름 변경
-        run: mv ./build/libs/*SNAPSHOT.jar ./project.jar
+      - name: 도커 빌드
+        run: docker build -t peachcoolpis/cham-server .
 
-      - name: scp 로 전송
-        uses: appleboy/scp-action@v0.1.7
+      - name: 도커 허브 로그인
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          port: 22
-          source: project.jar
-          target: /home/ubuntu/cham-Server/tobe
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: 도커 허브 푸쉬
+        run: docker push peachcoolpis/cham-server
 
       - name: ssh 접속
         uses: appleboy/ssh-action@v1.0.3
@@ -71,14 +70,13 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
+          script_stop: true
           port: 22
           script: |
-            rm -rf /home/ubuntu/cham-Server/target
-            mkdir -p /home/ubuntu/cham-Server/target
-            mv /home/ubuntu/cham-Server/tobe/project.jar /home/ubuntu/cham-Server/target
-            cd /home/ubuntu/cham-Server/target
-            sudo fuser -k -n tcp 8080 || true
-            nohup java -Duser.timezone=Asia/Seoul -jar -Dspring.profiles.active=real project.jar > /dev/null 2>&1 &
+            docker stop cham-server || true
+            docker rm cham-server || true
+            docker pull peachcoolpis/cham-server:latest
+            docker run -d --name cham-server -p 8080:8080 peachcoolpis/cham-server:latest
 
   build-frontend:
     needs: detect-changes

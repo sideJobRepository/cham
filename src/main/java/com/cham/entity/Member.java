@@ -1,7 +1,7 @@
 package com.cham.entity;
 
-import com.SocialType;
 import com.cham.entity.base.BaseData;
+import com.cham.entity.enumeration.SocialType;
 import jakarta.persistence.*;
 import lombok.Getter;
 

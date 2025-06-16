@@ -1,4 +1,4 @@
-package com;
+package com.cham.entity.enumeration;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
