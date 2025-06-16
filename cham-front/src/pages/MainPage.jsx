@@ -46,7 +46,7 @@ const MainPageWrapper = styled.div`
   height: 100%;
   padding: 20px 0;
   max-width: 1500px;
-  min-width: 1024px;
+  min-width: 1280px;
   @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;

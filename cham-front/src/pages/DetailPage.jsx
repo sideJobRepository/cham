@@ -15,7 +15,7 @@ export default function DetailPage() {
           </ImageBox>
           <InfoBox>
             <Title>하천관리사업소장 외 12명 방문</Title>
-            <SubMeta>방문횟수 31명</SubMeta>
+            <SubMeta>방문횟수 31</SubMeta>
             <MetaGroup>
               <strong>한우대잔치</strong>
               <span>대전 평동 12414번지 23-1</span>
@@ -114,7 +114,7 @@ const DetailWrapper = styled.section`
   flex-direction: column;
   height: 100%;
   max-width: 1500px;
-  min-width: 1024px;
+  min-width: 1280px;
   margin: 0 auto;
   @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;

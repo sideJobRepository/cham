@@ -3,6 +3,7 @@ import logo from '/logo.png';
 import logo2 from '/logo2.png';
 import kakaoImg from '/kaka.png';
 import linkLogo from '/linkLogo.png';
+import ddemocracy from '/ddemocracy.png';
 import { useState } from 'react';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +24,6 @@ export default function TopHeader() {
         <MeerkatLogo src={logo} alt="로고" />
         <img src={logo2} alt="로고" />
       </Left>
-
       <Center>
         {menus.map((menu, i) => (
           <MenuItem
@@ -38,30 +38,65 @@ export default function TopHeader() {
           </MenuItem>
         ))}
       </Center>
-
       <Right>
+        <LinkGroup>
+          <FieldsWrapper>
+            <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="external">
+              <img src={linkLogo} alt="링크이동" />
+            </a>
+            <Divider />
+            <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">
+              예산감시 플랫폼
+            </a>
+            <Divider />
+            <a href="https://ddemocracy.stibee.com" target="_blank" rel="external">
+              <Ddemocracy src={ddemocracy} alt="링크이동" rel="external" />
+            </a>
+            <Divider />
+            <a href="https://secure.donus.org/djcham/pay/step1" target="_blank" rel="external">
+              후원하기
+            </a>
+          </FieldsWrapper>
+        </LinkGroup>
         <KakaoButton>
           <img src={kakaoImg} alt="카카오" />
           카카오 로그인
         </KakaoButton>
-        <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="noopener noreferrer">
-          <img src={linkLogo} alt="링크이동" />
-        </a>
       </Right>
-
       <Hamburger size={24} onClick={toggleMenu} />
-
       <MobileMenu $open={isOpen}>
-        <a href="#">업무추진비 맛집지도</a>
-        <a href="#">수의계약</a>
+        <a
+          onClick={() => {
+            navigate(menuLinks[0]);
+          }}
+        >
+          업무추진비 맛집지도
+        </a>
+        <a
+          onClick={() => {
+            navigate(menuLinks[1]);
+          }}
+        >
+          수의계약
+        </a>
         <MenuButtonWrapper>
           <img src={kakaoImg} alt="카카오" />
           카카오 로그인
         </MenuButtonWrapper>
 
-        <LinkWrapper href="http://www.cham.or.kr/app/main/index" target="_blank" rel="noreferrer">
-          <img src={linkLogo} alt="링크이동" />
-          <span>바로가기</span>
+        <LinkWrapper>
+          <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="noreferrer">
+            <img src={linkLogo} alt="링크이동" />
+          </a>
+          <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">
+            예산감시 <br /> 플랫폼
+          </a>
+          <a href="https://ddemocracy.stibee.com" target="_blank" rel="external">
+            <Ddemocracy src={ddemocracy} alt="링크이동" rel="external" />
+          </a>
+          <a href="https://secure.donus.org/djcham/pay/step1" target="_blank" rel="external">
+            후원하기
+          </a>
         </LinkWrapper>
       </MobileMenu>
     </Wrapper>
@@ -71,11 +106,13 @@ export default function TopHeader() {
 const Wrapper = styled.div`
   height: 100%;
   max-width: 1500px;
-  min-width: 1024px;
+  min-width: 1280px;
+  padding: 0 20px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   img {
     cursor: pointer;
   }
@@ -94,6 +131,8 @@ const Left = styled.div`
 
 const Center = styled.div`
   display: flex;
+  align-items: center;
+  margin-top: 12px;
   gap: 80px;
   @media ${({ theme }) => theme.device.mobile} {
     display: none;
@@ -132,7 +171,7 @@ const KakaoButton = styled.button`
   border: none;
   border-radius: 50px;
   padding: 8px 16px 8px 8px;
-  margin-right: 12px;
+  margin-left: 26px;
   font-size: ${({ theme }) => theme.sizes.large};
   font-weight: bold;
   cursor: pointer;
@@ -216,18 +255,55 @@ const MenuButtonWrapper = styled.div`
   }
 `;
 
-const LinkWrapper = styled.a`
+const LinkWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 0;
-  color: ${({ theme }) => theme.colors.primary};
-  font-size: ${({ theme }) => theme.sizes.menu};
+  padding: 0;
   font-weight: bold;
   text-decoration: none;
 
-  img {
-    height: 26px;
+  a {
+    border: none;
+    font-size: ${({ theme }) => theme.sizes.medium};
   }
+
+  img {
+    height: 36px;
+  }
+`;
+
+const LinkGroup = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  margin-right: auto;
+`;
+
+const FieldsWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  color: ${({ theme }) => theme.colors.liteGray};
+  font-weight: bold;
+  padding: 0 20px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+
+  a {
+    cursor: pointer;
+  }
+`;
+
+const Divider = styled.div`
+  width: 1px;
+  height: 36px;
+  background: #ddd;
+  flex-shrink: 0;
+`;
+
+const Ddemocracy = styled.img`
+  width: 30px;
 `;
