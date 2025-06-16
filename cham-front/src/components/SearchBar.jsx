@@ -151,12 +151,14 @@ export default function SearchBar() {
                 selected={startDate}
                 onChange={date => setStartDate(date)}
                 dateFormat="yyyy.MM.dd"
+                portalId="root-portal"
               />
               <DateCenter>-</DateCenter>
               <DatePicker
                 selected={endDate}
                 onChange={date => setEndDate(date)}
                 dateFormat="yyyy.MM.dd"
+                portalId="root-portal"
               />
             </DateRange>
           </Field>
