@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ItemCard() {
   const navigate = useNavigate();
-  //ci cd 테스트 주석
 
   return (
     <Card
