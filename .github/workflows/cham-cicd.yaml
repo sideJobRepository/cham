@@ -8,9 +8,6 @@ on:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,6 +21,10 @@ jobs:
               - 'settings.gradle'
             frontend:
               - 'cham-front/**'
+
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
 
   build-backend:
     needs: detect-changes
@@ -62,7 +63,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: 22
           source: project.jar
-          target: /home/ubuntu/bgmagit-Server/tobe
+          target: /home/ubuntu/cham-Server/tobe
 
       - name: ssh 접속
         uses: appleboy/ssh-action@v1.0.3
@@ -72,10 +73,10 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: 22
           script: |
-            rm -rf /home/ubuntu/bgmagit-Server/target
-            mkdir -p /home/ubuntu/bgmagit-Server/target
-            mv /home/ubuntu/bgmagit-Server/tobe/project.jar /home/ubuntu/bgmagit-Server/target
-            cd /home/ubuntu/bgmagit-Server/target
+            rm -rf /home/ubuntu/cham-Server/target
+            mkdir -p /home/ubuntu/cham-Server/target
+            mv /home/ubuntu/cham-Server/tobe/project.jar /home/ubuntu/cham-Server/target
+            cd /home/ubuntu/cham-Server/target
             sudo fuser -k -n tcp 8080 || true
             nohup java -Duser.timezone=Asia/Seoul -jar -Dspring.profiles.active=real project.jar > /dev/null 2>&1 &
 
@@ -112,6 +113,6 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: 22
           script: |
-            sudo rm -rf /usr/share/nginx/bgmagit-front/dist
-            sudo mv /home/ubuntu/deploy/front-dist-temp/* /usr/share/nginx/bgmagit-front/
+            sudo rm -rf /usr/share/nginx/cham-front/dist
+            sudo mv /home/ubuntu/deploy/front-dist-temp/* /usr/share/nginx/cham-front/
             sudo systemctl restart nginx
