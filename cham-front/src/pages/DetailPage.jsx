@@ -116,7 +116,6 @@ const DetailWrapper = styled.section`
   max-width: 1500px;
   min-width: 1024px;
   margin: 0 auto;
-  overflow-y: auto;
   @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;
@@ -132,7 +131,6 @@ const FixedTop = styled.div`
 
 const ScrollableBottom = styled.div`
   flex: 1;
-  overflow-y: auto;
   padding: 16px;
 `;
 
