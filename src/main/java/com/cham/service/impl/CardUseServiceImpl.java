@@ -6,6 +6,7 @@ import com.cham.controller.response.CardUseGroupedResponse;
 import com.cham.controller.response.CardUseResponse;
 import com.cham.entity.CardUse;
 import com.cham.entity.CardUseAddr;
+import com.cham.entity.QCardUseAddr;
 import com.cham.entity.dto.CardOwnerPositionDto;
 import com.cham.entity.dto.CardUseAddrDto;
 import com.cham.excel.PoiUtil;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static com.cham.entity.QCardOwnerPosition.cardOwnerPosition;
 import static com.cham.entity.QCardUse.cardUse;
+import static com.cham.entity.QCardUseAddr.*;
 import static com.cham.entity.QCardUseAddr.cardUseAddr;
 
 
@@ -54,6 +56,10 @@ public class CardUseServiceImpl implements CardUseService {
         }
         if (request.getCardUseName() != null) {
             booleanBuilder.and(cardUse.cardUseName.eq(request.getCardUseName()));
+        }
+        
+        if (request.getAddrDetail() != null) {
+            booleanBuilder.and(cardUse.cardUseAddr.cardUseDetailAddr.like("%" + request.getAddrDetail() + "%"));
         }
         
         // 날짜 필터 조건 처리
@@ -98,6 +104,11 @@ public class CardUseServiceImpl implements CardUseService {
                     ? uniqueNames.iterator().next()
                     : String.format("%s 외 %d명", first.getCardUseName(), uniqueNames.size() - 1);
             
+            int totalSum = cardUseList.stream()
+                    .mapToInt(CardUse::getCardUseAmount)
+                    .sum();
+            
+            
             // 사용자별 기록 정리
             List<CardUseGroupedResponse> groupedResponses = cardUseList.stream()
                     .map(use -> new CardUseGroupedResponse(
@@ -106,7 +117,12 @@ public class CardUseServiceImpl implements CardUseService {
                             use.getCardUseTime()))
                     .collect(Collectors.toList());
             
-            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember, groupedResponses);
+            String addrDetail = cardUseList.stream()
+                    .map(item -> item.getCardUseAddr().getCardUseDetailAddr())
+                    .findFirst()
+                    .orElse("");
+            
+            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail, groupedResponses);
             resultMap.put(addrId, response);
         }
         

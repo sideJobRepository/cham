@@ -13,6 +13,7 @@ public class CardUseConditionRequest {
     private Long cardOwnerPositionId;
     private String cardUseName;
     private Integer numberOfVisits;
+    private String addrDetail;
     private LocalDate startDate;
     private LocalDate endDate;
 }
