@@ -49,6 +49,7 @@ export default function TopHeader() {
       <Left
         onClick={() => {
           navigate(menuLinks[0]);
+          setActiveIndex(0);
         }}
       >
         <MeerkatLogo src={logo} alt="로고" />
