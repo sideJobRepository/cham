@@ -30,7 +30,7 @@ const CardWrapper = styled.div`
   overflow: hidden;
   margin-bottom: 12px;
 
-  @media ${({ theme }) => theme.device.tablet} {
+  @media ${({ theme }) => theme.device.mobile} {
     flex-direction: column;
   }
 `;

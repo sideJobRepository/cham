@@ -28,7 +28,7 @@ const Inner = styled.div`
   display: flex;
   margin: 0 auto;
   flex-direction: column;
-  @media ${({ theme }) => theme.device.tablet} {
+  @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;
   }

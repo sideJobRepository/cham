@@ -145,7 +145,7 @@ const Wrapper = styled.div`
     cursor: pointer;
   }
 
-  @media ${({ theme }) => theme.device.tablet} {
+  @media ${({ theme }) => theme.device.mobile} {
     padding: 0 16px;
   }
 `;

@@ -235,7 +235,7 @@ const Field = styled.div`
     color: black;
     background: transparent;
     cursor: pointer;
-    @media ${({ theme }) => theme.device.tablet} {
+    @media ${({ theme }) => theme.device.mobile} {
       width: 80px;
     }
   }

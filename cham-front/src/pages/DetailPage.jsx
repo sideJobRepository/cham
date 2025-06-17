@@ -132,7 +132,7 @@ const TopContent = styled.div`
   display: flex;
   gap: 20px;
   height: 100%;
-  @media screen and ${({ theme }) => theme.device.tablet} {
+  @media screen and ${({ theme }) => theme.device.mobile} {
     flex-direction: column;
     height: auto;
   }
@@ -241,7 +241,7 @@ const BottomCards = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 
-  @media ${({ theme }) => theme.device.tablet} {
+  @media ${({ theme }) => theme.device.mobile} {
     display: flex;
     overflow-x: auto;
     padding: 16px 0;

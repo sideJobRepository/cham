@@ -20,7 +20,7 @@ const Wrapper = styled.aside`
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 
-  @media ${({ theme }) => theme.device.tablet} {
+  @media ${({ theme }) => theme.device.mobile} {
     display: flex;
     overflow-x: auto;
     padding: 16px 0;
