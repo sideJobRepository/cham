@@ -60,7 +60,7 @@ public class CardUseServiceImpl implements CardUseService {
             booleanBuilder.and(cardUse.cardOwnerPosition.cardOwnerPositionId.eq(request.getCardOwnerPositionId()));
         }
         if (request.getCardUseName() != null) {
-            booleanBuilder.and(cardUse.cardUseName.eq(request.getCardUseName()));
+            booleanBuilder.and(cardUse.cardUseName.like("%" + request.getCardUseName() + "%"));
         }
         
         if (request.getAddrDetail() != null) {
