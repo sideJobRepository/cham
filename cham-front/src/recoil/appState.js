@@ -2,13 +2,16 @@ import { atom } from 'recoil';
 
 export const mapState = atom({
   key: 'mapState',
-  default: false,
+  default: {
+    mapData: null,
+    mapLoading: true,
+  },
 });
 
 export const selectSearchState = atom({
   key: 'selectSearchState',
   default: {
-    data: [],
-    isLoading: true,
+    selectData: [],
+    selectLoading: true,
   },
 });

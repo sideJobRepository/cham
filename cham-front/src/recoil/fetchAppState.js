@@ -1,6 +1,6 @@
 import { useSetRecoilState } from 'recoil';
 import api from '@/utils/axiosInstance.js';
-import { selectSearchState } from './appState.js';
+import { selectSearchState, mapState } from './appState.js';
 
 export function useFetchSelectSearch() {
   const setState = useSetRecoilState(selectSearchState);
@@ -9,14 +9,35 @@ export function useFetchSelectSearch() {
     try {
       const res = await api.get('/cham/position');
       setState({
-        data: res.data,
-        isLoading: false,
+        selectData: res.data,
+        selectLoading: false,
+      });
+    } catch (e) {
+      console.error('초기 요청 실패:', e);
+      setState({
+        selectData: [],
+        selectLoading: false,
+      });
+    }
+  };
+}
+
+export function useMapSearch() {
+  const setState = useSetRecoilState(mapState);
+
+  return async (params = {}) => {
+    try {
+      const res = await api.post('/cham/cardUse', params);
+      console.log('res', res);
+      setState({
+        mapData: res.data,
+        mapLoading: false,
       });
     } catch (e) {
       console.error('초기 요청 실패:', e);
       setState({
         data: [],
-        isLoading: false,
+        mapLoading: false,
       });
     }
   };

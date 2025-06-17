@@ -1,15 +1,26 @@
 import styled from 'styled-components';
 import ItemCard from './ItemCard.jsx';
+import { useEffect } from 'react';
+import { useSearchMapState } from '@/recoil/useAppState.js';
 
 export default function Sidebar() {
-  // 더미 8개
+  const { mapData, mapLoading } = useSearchMapState();
+
+  useEffect(() => {
+    //맵데이터
+    if (!mapLoading && mapData) {
+      console.log('데이터', mapData);
+    }
+  }, [mapLoading, mapData]);
   const dummy = Array.from({ length: 20 });
 
   return (
     <Wrapper>
-      {dummy.map((_, i) => (
-        <ItemCard key={i} />
-      ))}
+      {mapData && Object.keys(mapData).length > 0 ? (
+        Object.entries(mapData).map(([key, value]) => <ItemCard key={key} data={value} />)
+      ) : (
+        <EmptyMessage>검색 결과가 없습니다.</EmptyMessage>
+      )}
     </Wrapper>
   );
 }
@@ -31,4 +42,11 @@ const Wrapper = styled.aside`
       width: calc(50% - 6px);
     }
   }
+`;
+
+const EmptyMessage = styled.div`
+  width: 100%;
+  font-weight: bold;
+  font-size: ${({ theme }) => theme.sizes.large};
+  color: ${({ theme }) => theme.colors.liteGray};
 `;

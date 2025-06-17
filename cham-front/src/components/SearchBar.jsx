@@ -4,11 +4,32 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { FiSearch } from 'react-icons/fi';
 import Select from 'react-select';
-import { useSelectSearchState } from '@/recoil/useAppState.js';
+import { useSearchMapState, useSelectSearchState } from '@/recoil/useAppState.js';
+import { useMapSearch } from '@/recoil/fetchAppState.js';
 
 export default function SearchBar() {
+  const mapSearch = useMapSearch();
+  const { mapData, mapLoading } = useSearchMapState();
+
+  const handleSearch = () => {
+    const rawAmount = amount.replace(/,/g, ''); // 콤마 제거
+    const params = {
+      cardOwnerPositionId: selectedRole?.value,
+      cardUseName: name,
+      numberOfVisits: rawAmount ? parseInt(rawAmount, 10) : null,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      sortOrder: sortValue?.value ? sortValue.value : 1,
+    };
+
+    mapSearch(params);
+  };
+
   //직위
-  const { data, isLoading } = useSelectSearchState();
+  const { selectData, selectLoading } = useSelectSearchState();
+
+  //이름
+  const [name, setName] = useState('');
 
   //금액
   const [amount, setAmount] = useState('');
@@ -31,10 +52,13 @@ export default function SearchBar() {
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleOptions, setRoleOptions] = useState([]);
 
+  //필터
+  const [sortValue, setSortValue] = useState();
+
   //정렬
   const sortOptions = [
-    { value: 'latest', label: '최신순' },
-    { value: 'oldest', label: '오래된순' },
+    { value: 1, label: '최신순' },
+    { value: 2, label: '오래된순' },
   ];
 
   const searchSelect = {
@@ -112,13 +136,27 @@ export default function SearchBar() {
     }),
   };
 
+  const sortChange = selectedOption => {
+    setSortValue(selectedOption);
+  };
+
   useEffect(() => {
     //검색조건 직위 셀렉트
-    if (!isLoading && data.length > 0) {
-      setRoleOptions(data);
-      setSelectedRole(data[0]);
+    if (!selectLoading && selectData.length > 0) {
+      const defaultOption = { label: '전체', value: null };
+      const optionsWithAll = [defaultOption, ...selectData];
+      setRoleOptions(optionsWithAll);
+      setSelectedRole(defaultOption);
+
+      handleSearch();
     }
-  }, [isLoading, data]);
+  }, [selectLoading, selectData]);
+
+  useEffect(() => {
+    if (sortValue !== undefined) {
+      handleSearch();
+    }
+  }, [sortValue]);
 
   return (
     <Wrapper>
@@ -142,7 +180,7 @@ export default function SearchBar() {
 
           <Field>
             <label>이름</label>
-            <input type="text" />
+            <input type="text" value={name} onChange={e => setName(e.target.value)} />
           </Field>
 
           <Divider />
@@ -174,7 +212,7 @@ export default function SearchBar() {
           </Field>
         </FieldsWrapper>
 
-        <SearchButton>
+        <SearchButton onClick={handleSearch}>
           <SearchIcon size={22} />
           검색
         </SearchButton>
@@ -182,14 +220,16 @@ export default function SearchBar() {
 
       <BottomRow>
         <CountText>
-          검색결과 <strong>120건</strong>
+          검색결과 <strong>{mapData ? Object.keys(mapData).length : 0} 건</strong>
         </CountText>
         <SortSelect>
           <Select
             options={sortOptions}
+            value={sortValue}
             defaultValue={sortOptions[0]}
             styles={customSelectStyles}
             isSearchable={false}
+            onChange={sortChange}
           />
         </SortSelect>
       </BottomRow>

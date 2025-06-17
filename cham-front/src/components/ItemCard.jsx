@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import test from '/test.jpg';
 import { useNavigate } from 'react-router-dom';
 
-export default function ItemCard() {
+export default function ItemCard({ data }) {
   const navigate = useNavigate();
 
   return (
@@ -13,11 +13,11 @@ export default function ItemCard() {
     >
       <img src={test} alt="sample" />
       <CardBody>
-        <Title>시장 외 2명 방문</Title>
-        <Stats>방문횟수 31</Stats>
-        <Menu>춘추는 김치찌개</Menu>
-        <Address>대전 은행동 은행사거리 고층빌딩 1층</Address>
-        <Price>총 6,500,000원</Price>
+        <Title>{data.visitMember} 방문</Title>
+        <Stats>방문횟수 {data.visits}</Stats>
+        <Menu>{data.addrName}</Menu>
+        <Address>{data.addrDetail}</Address>
+        <Price>총 {data.totalSum.toLocaleString()}원</Price>
       </CardBody>
     </Card>
   );
