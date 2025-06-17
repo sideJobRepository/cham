@@ -15,6 +15,8 @@ import com.cham.service.CardUseAddrService;
 import com.cham.service.CardUseService;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,9 @@ public class CardUseServiceImpl implements CardUseService {
     
     @Override
     public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
+        
+        OrderSpecifier<?>[] orderSpecifier = createOrderSpecifier(request);
+        
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         if (request.getCardOwnerPositionId() != null) {
             booleanBuilder.and(cardUse.cardOwnerPosition.cardOwnerPositionId.eq(request.getCardOwnerPositionId()));
@@ -75,6 +80,7 @@ public class CardUseServiceImpl implements CardUseService {
                 .selectFrom(cardUse)
                 .join(cardUse.cardUseAddr, cardUseAddr).fetchJoin()
                 .where(booleanBuilder)
+                .orderBy(orderSpecifier)
                 .fetch();
         
         Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
@@ -224,5 +230,14 @@ public class CardUseServiceImpl implements CardUseService {
             throw new RuntimeException(e);
         }
         return new ApiResponse(200 , true,"성공");
+    }
+    private OrderSpecifier<?>[] createOrderSpecifier(CardUseConditionRequest request) {
+        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+        if (1 == request.getSortOrder()) {
+            orderSpecifiers.add(new OrderSpecifier<>(Order.ASC, cardUse.cardUseDate));
+        } else {
+            orderSpecifiers.add(new OrderSpecifier<>(Order.DESC, cardUse.cardUseDate));
+        }
+        return orderSpecifiers.toArray(new OrderSpecifier[0]);
     }
 }
