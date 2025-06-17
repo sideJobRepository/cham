@@ -102,6 +102,7 @@ const MapSection = styled.div`
   @media ${({ theme }) => theme.device.mobile} {
     flex: none;
     height: 400px;
+    padding: 0;
     margin-top: 20px;
     overflow: hidden;
   }

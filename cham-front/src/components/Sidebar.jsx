@@ -27,8 +27,8 @@ const Wrapper = styled.aside`
     gap: 12px;
 
     & > * {
-      flex: 0 0 calc(50% - 4px); // 한 화면에 2개씩 보이게
-      width: calc(50% - 4px);
+      flex: 0 0 calc(50% - 6px); // 한 화면에 2개씩 보이게
+      width: calc(50% - 6px);
     }
   }
 `;

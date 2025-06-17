@@ -46,8 +46,8 @@ const CardBody = styled.div`
   position: relative;
 `;
 
-const Title = styled.h4`
-  font-size: 14px;
+const Title = styled.span`
+  font-size: ${({ theme }) => theme.sizes.large};
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primary};
   margin: 0;
@@ -55,28 +55,25 @@ const Title = styled.h4`
 
 const Stats = styled.div`
   display: flex;
-  font-size: 12px;
-  color: #666;
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  font-size: ${({ theme }) => theme.sizes.medium};
+  color: ${({ theme }) => theme.colors.liteGray};
 `;
 
 const Menu = styled.p`
-  font-size: 13px;
-  margin: 4px 0 0;
-  color: #111;
+  font-size: ${({ theme }) => theme.sizes.large};
+  margin-top: 12px;
+  color: ${({ theme }) => theme.colors.liteGray};
+  font-weight: bold;
 `;
 
 const Address = styled.p`
-  font-size: 12px;
-  color: #555;
-  margin: 0;
+  font-size: ${({ theme }) => theme.sizes.medium};
+  color: ${({ theme }) => theme.colors.liteGray};
 `;
 
 const Price = styled.p`
-  font-size: 13px;
+  font-size: ${({ theme }) => theme.sizes.large};
   font-weight: bold;
   color: black;
-  margin: 4px 0 0;
+  margin-top: 12px;
 `;
