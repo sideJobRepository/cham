@@ -1,6 +1,9 @@
 package com.cham.service.impl;
 
+import com.cham.controller.request.CardUseConditionRequest;
 import com.cham.controller.response.ApiResponse;
+import com.cham.controller.response.CardUseGroupedResponse;
+import com.cham.controller.response.CardUseResponse;
 import com.cham.entity.CardUse;
 import com.cham.entity.CardUseAddr;
 import com.cham.entity.dto.CardOwnerPositionDto;
@@ -9,6 +12,8 @@ import com.cham.excel.PoiUtil;
 import com.cham.repository.CardUseRepository;
 import com.cham.service.CardUseAddrService;
 import com.cham.service.CardUseService;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +26,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.cham.entity.QCardOwnerPosition.cardOwnerPosition;
+import static com.cham.entity.QCardUse.cardUse;
 import static com.cham.entity.QCardUseAddr.cardUseAddr;
 
 
@@ -38,6 +44,74 @@ public class CardUseServiceImpl implements CardUseService {
     private final CardUseAddrService cardUseAddrService;
     
     private final JPAQueryFactory queryFactory;
+    
+    
+    @Override
+    public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        if (request.getCardOwnerPositionId() != null) {
+            booleanBuilder.and(cardUse.cardOwnerPosition.cardOwnerPositionId.eq(request.getCardOwnerPositionId()));
+        }
+        if (request.getCardUseName() != null) {
+            booleanBuilder.and(cardUse.cardUseName.eq(request.getCardUseName()));
+        }
+        
+        // 날짜 필터 조건 처리
+        if (request.getStartDate() != null && request.getEndDate() != null) {
+            booleanBuilder.and(cardUse.cardUseDate.between(request.getStartDate(), request.getEndDate()));
+        } else if (request.getStartDate() != null) {
+            booleanBuilder.and(cardUse.cardUseDate.goe(request.getStartDate()));
+        } else if (request.getEndDate() != null) {
+            booleanBuilder.and(cardUse.cardUseDate.loe(request.getEndDate()));
+        }
+        
+        List<CardUse> cardUses = queryFactory
+                .selectFrom(cardUse)
+                .join(cardUse.cardUseAddr, cardUseAddr).fetchJoin()
+                .where(booleanBuilder)
+                .fetch();
+        
+        Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
+                .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getCardUseAddrId()));
+        
+        Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
+        
+        for (Map.Entry<Long, List<CardUse>> entry : groupedByAddrId.entrySet()) {
+            Long addrId = entry.getKey();
+            List<CardUse> cardUseList = entry.getValue();
+            
+            // 방문 횟수 조건 필터링
+            if (request.getNumberOfVisits() != null && cardUseList.size() < request.getNumberOfVisits()) {
+                continue;
+            }
+            
+            CardUse first = cardUseList.get(0);
+            String addrName = first.getCardUseAddr().getCardUseAddrName();
+            int visitCount = cardUseList.size();
+            
+            // visitMember 설정 로직
+            Set<String> uniqueNames = cardUseList.stream()
+                    .map(CardUse::getCardUseName)
+                    .collect(Collectors.toSet());
+            
+            String visitMember = uniqueNames.size() == 1
+                    ? uniqueNames.iterator().next()
+                    : String.format("%s 외 %d명", first.getCardUseName(), uniqueNames.size() - 1);
+            
+            // 사용자별 기록 정리
+            List<CardUseGroupedResponse> groupedResponses = cardUseList.stream()
+                    .map(use -> new CardUseGroupedResponse(
+                            use.getCardUseName(),
+                            use.getCardUseDate(),
+                            use.getCardUseTime()))
+                    .collect(Collectors.toList());
+            
+            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember, groupedResponses);
+            resultMap.put(addrId, response);
+        }
+        
+        return resultMap;
+    }
     
     
     @Override
