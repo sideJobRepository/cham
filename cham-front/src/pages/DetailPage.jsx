@@ -205,7 +205,7 @@ const CommentSection = styled.div`
 const CommentTitle = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.large};
   color: ${({ theme }) => theme.colors.primary};
@@ -245,7 +245,7 @@ const BottomCards = styled.div`
   @media ${({ theme }) => theme.device.mobile} {
     display: flex;
     overflow-x: auto;
-    padding: 16px 0;
+    padding-bottom: 20px;
     gap: 12px;
 
     & > * {

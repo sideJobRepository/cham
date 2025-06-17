@@ -34,20 +34,6 @@ const CardWrapper = styled.div`
   }
 `;
 
-const Thumb = styled.div`
-  width: 120px;
-  height: 100px;
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
 const CardContent = styled.div`
   flex: 1;
   display: flex;
