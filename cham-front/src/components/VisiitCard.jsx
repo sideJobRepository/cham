@@ -13,7 +13,6 @@ export default function VisitCard() {
         <CardPrice>계좌 150,000원 사용</CardPrice>
         <CardDesc>1인당 15,000원 이용</CardDesc>
         <CardText>
-          <strong>목적 : </strong>
           간담회로 인한 식사 했고, 맛있게 식사 햇습니다. 간담회로 인한 식사 했고, 맛있게 식사
           햇습니다. 간담회로 인한 식사 했고, 맛있게 식사 햇습니다.
         </CardText>
@@ -81,7 +80,7 @@ const CardMeta = styled.p`
 
 const CardPrice = styled.div`
   display: flex;
-  margin-top: 4px;
+  margin-top: 12px;
   font-size: ${({ theme }) => theme.sizes.large};
   color: ${({ theme }) => theme.colors.primary};
   font-weight: bold;
@@ -94,7 +93,7 @@ const CardDesc = styled.p`
 `;
 
 const CardText = styled.p`
-  margin-top: 8px;
+  margin-top: 12px;
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.medium};
   color: ${({ theme }) => theme.colors.liteGray};

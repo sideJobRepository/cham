@@ -4,19 +4,45 @@ import logo2 from '/logo2.png';
 import kakaoImg from '/kaka.png';
 import linkLogo from '/linkLogo.png';
 import ddemocracy from '/ddemocracy.png';
-import { useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
 
 export default function TopHeader() {
   const navigate = useNavigate();
 
+  const menuRef = useRef(null);
+  const hamburgerRef = useRef(null);
+
   const [activeIndex, setActiveIndex] = useState(0);
+
   const menus = ['업무추진비 맛집지도', '수의계약'];
   const menuLinks = ['/', 'contract'];
 
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen(prev => !prev);
+
+  //메뉴바 닫기
+  useEffect(() => {
+    const handleClickOutside = e => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        hamburgerRef.current &&
+        !hamburgerRef.current.contains(e.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   return (
     <Wrapper>
@@ -67,22 +93,21 @@ export default function TopHeader() {
           카카오 로그인
         </KakaoButton>
       </Right>
-      <Hamburger size={24} onClick={toggleMenu} />
-      <MobileMenu $open={isOpen}>
-        <a
-          onClick={() => {
-            navigate(menuLinks[0]);
-          }}
-        >
-          업무추진비 맛집지도
-        </a>
-        <a
-          onClick={() => {
-            navigate(menuLinks[1]);
-          }}
-        >
-          수의계약
-        </a>
+      <Hamburger size={24} onClick={toggleMenu} ref={hamburgerRef} />
+      <MobileMenu ref={menuRef} $open={isOpen}>
+        {menus.map((menu, i) => (
+          <MenuItemMobile
+            key={i}
+            $active={activeIndex === i}
+            onClick={() => {
+              setActiveIndex(i);
+              navigate(menuLinks[i]);
+              setIsOpen(false); // 메뉴 닫기까지 같이
+            }}
+          >
+            {menu}
+          </MenuItemMobile>
+        ))}
         <MenuButtonWrapper>
           <img src={kakaoImg} alt="카카오" />
           카카오 로그인
@@ -212,7 +237,6 @@ const MobileMenu = styled.div`
   top: 90px;
   right: 0;
   width: 100%;
-  border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 
@@ -237,6 +261,27 @@ const MobileMenu = styled.div`
   img {
     height: 26px;
   }
+`;
+
+const MenuItemMobile = styled.a`
+  padding: 12px 20px;
+  color: ${({ $active, theme }) =>
+    $active ? 'white !important' : `${theme.colors.primary} !important`};
+  background-color: ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
+  font-size: ${({ theme }) => theme.sizes.menu};
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  cursor: pointer;
 `;
 
 const MenuButtonWrapper = styled.div`
