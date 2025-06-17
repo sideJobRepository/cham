@@ -9,7 +9,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   height: calc(100vh - 100px); /* 전체화면에서 Header 높이 제외 */
 
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     height: auto;
-   } 
+  }
 `;

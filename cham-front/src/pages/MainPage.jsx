@@ -10,17 +10,17 @@ export default function MainPage() {
 
   useEffect(() => {
     const checkMobile = () => {
-      const result = window.matchMedia(theme.device.mobile).matches;
+      const result = window.matchMedia(theme.device.tablet).matches;
       setIsMobile(result);
     };
 
-    checkMobile(); // 초기 실행
+    checkMobile();
     window.addEventListener('resize', checkMobile);
 
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, [theme.device.mobile]);
+  }, [theme.device.tablet]);
 
   return (
     <MainPageWrapper>
@@ -66,7 +66,7 @@ const ContentSection = styled.div`
   height: 100%;
   flex: 1;
   overflow: hidden;
-  @media screen and ${({ theme }) => theme.device.mobile} {
+  @media screen and ${({ theme }) => theme.device.tablet} {
     flex-direction: column;
     height: auto;
   }
@@ -78,7 +78,7 @@ const ListSection = styled.div`
   width: 50%;
   height: 100%;
   padding: 10px;
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     width: 100%;
     height: auto;
   }
@@ -89,7 +89,7 @@ const ListContent = styled.div`
   overflow-y: auto;
   margin-top: 20px;
 
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     overflow-y: visible;
   }
 `;
@@ -99,7 +99,7 @@ const MapSection = styled.div`
   height: 100%;
   border-radius: 8px;
   padding: 0 12px;
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     flex: none;
     height: 400px;
     margin-top: 20px;
