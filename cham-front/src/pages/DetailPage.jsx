@@ -27,10 +27,10 @@ export default function DetailPage() {
               <CommentTitle>
                 <FaCommentDots style={{ marginRight: '4px' }} />
                 댓글 <span>3건</span>
-                <SearchButton>
+                <WriteButton>
                   <PenIcon size={12} />
                   작성
-                </SearchButton>
+                </WriteButton>
               </CommentTitle>
               <CommentItemSection>
                 <CommentItem>
@@ -212,7 +212,7 @@ const CommentTitle = styled.div`
   }
 `;
 
-const SearchButton = styled.button`
+const WriteButton = styled.button`
   display: flex;
   align-items: center;
   background: ${({ theme }) => theme.colors.primary};
@@ -221,6 +221,7 @@ const SearchButton = styled.button`
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.small};
   padding: 6px 10px;
+  margin-left: 8px;
   border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
