@@ -1,6 +1,3 @@
-
-CREATE DATABASE CHAM;
-
 -- 테이블 순서는 관계를 고려하여 한 번에 실행해도 에러가 발생하지 않게 정렬되었습니다.
 
 -- CARD_OWNER_POSITION Table Create SQL
@@ -55,6 +52,8 @@ CREATE TABLE CHAM.CARD_USE
     `CARD_USE_PURPOSE`    VARCHAR(4000)    NULL        COMMENT '카드 사용 목적',
     `CARD_USE_PERSONNEL`  VARCHAR(1000)    NULL        COMMENT '카드 사용 인원',
     `CARD_USE_AMOUNT`     INT              NULL        COMMENT '카드 사용 금액',
+    `CARD_USE_METHOD`     VARCHAR(100)     NULL        COMMENT '카드 사용 방법',
+    `CARD_USE_REMARK`     VARCHAR(100)     NULL        COMMENT '카드 사용 비고',
     `REGIST_DATE`         DATETIME         NULL        COMMENT '생성 일시',
     `MODIFY_DATE`         DATETIME         NULL        COMMENT '수정 일시',
     PRIMARY KEY (CARD_USE_ID)
