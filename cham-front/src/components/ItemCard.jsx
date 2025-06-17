@@ -60,7 +60,7 @@ const Stats = styled.div`
 `;
 
 const Menu = styled.p`
-  font-size: ${({ theme }) => theme.sizes.large};
+  font-size: ${({ theme }) => theme.sizes.medium};
   margin-top: 12px;
   color: ${({ theme }) => theme.colors.liteGray};
   font-weight: bold;

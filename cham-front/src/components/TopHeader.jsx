@@ -94,7 +94,7 @@ export default function TopHeader() {
           카카오 로그인
         </KakaoButton>
       </Right>
-      <Hamburger size={24} onClick={toggleMenu} ref={hamburgerRef} />
+      <Hamburger size={24} onClick={toggleMenu} />
       <MobileMenu ref={menuRef} $open={isOpen}>
         {menus.map((menu, i) => (
           <MenuItemMobile

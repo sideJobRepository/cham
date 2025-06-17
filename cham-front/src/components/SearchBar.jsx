@@ -1,11 +1,15 @@
 import styled from 'styled-components';
-import { useState, forwardRef } from 'react';
+import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { FiSearch } from 'react-icons/fi';
 import Select from 'react-select';
+import { useSelectSearchState } from '@/recoil/useAppState.js';
 
 export default function SearchBar() {
+  //직위
+  const { data, isLoading } = useSelectSearchState();
+
   //금액
   const [amount, setAmount] = useState('');
 
@@ -24,11 +28,8 @@ export default function SearchBar() {
   const [endDate, setEndDate] = useState(today);
 
   //직위
-  const roleOptions = [
-    { value: '1', label: '국회의원' },
-    { value: '2', label: '광역지자체장' },
-    { value: '3', label: '광역의회' },
-  ];
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [roleOptions, setRoleOptions] = useState([]);
 
   //정렬
   const sortOptions = [
@@ -111,6 +112,14 @@ export default function SearchBar() {
     }),
   };
 
+  useEffect(() => {
+    //검색조건 직위 셀렉트
+    if (!isLoading && data.length > 0) {
+      setRoleOptions(data);
+      setSelectedRole(data[0]);
+    }
+  }, [isLoading, data]);
+
   return (
     <Wrapper>
       <SearchGroup>
@@ -119,8 +128,9 @@ export default function SearchBar() {
             <label>직위</label>
             <SortSelect>
               <Select
+                value={selectedRole}
                 options={roleOptions}
-                defaultValue={roleOptions[0]}
+                onChange={setSelectedRole}
                 styles={searchSelect}
                 isSearchable={false}
                 menuPortalTarget={document.body}

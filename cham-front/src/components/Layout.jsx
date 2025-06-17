@@ -1,8 +1,16 @@
 import styled from 'styled-components';
 import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useFetchSelectSearch } from '@/recoil/fetchAppState.js';
 
 export default function Layout() {
+  const fetchSelect = useFetchSelectSearch();
+
+  useEffect(() => {
+    fetchSelect(); // 서버에서 최초 한 번 불러오기
+  }, []);
+
   return (
     <Wrapper>
       <Inner>
