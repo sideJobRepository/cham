@@ -28,7 +28,6 @@ const CardWrapper = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border || '#ddd'};
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 12px;
 
   @media ${({ theme }) => theme.device.mobile} {
     flex-direction: column;

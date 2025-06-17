@@ -114,18 +114,24 @@ const DetailWrapper = styled.section`
   flex-direction: column;
   height: 100%;
   margin: 0 auto;
+  overflow-y: hidden;
+  @media screen and ${({ theme }) => theme.device.mobile} {
+    overflow-y: unset;
+  }
 `;
 
 const FixedTop = styled.div`
   flex-shrink: 0;
   padding: 20px;
-  background: white;
-  border-bottom: 1px solid #ccc;
 `;
 
 const ScrollableBottom = styled.div`
   flex: 1;
-  padding: 16px;
+  padding: 0 20px;
+  overflow-y: auto;
+  @media screen and ${({ theme }) => theme.device.mobile} {
+    overflow-y: unset;
+  }
 `;
 
 const TopContent = styled.div`
@@ -231,15 +237,10 @@ const PenIcon = styled(FaPen)`
   margin-right: 6px;
 `;
 
-const Comment = styled.p`
-  margin: 0 0 4px;
-  line-height: 1.4;
-`;
-
 const BottomCards = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 12px;
 
   @media ${({ theme }) => theme.device.mobile} {
     display: flex;
