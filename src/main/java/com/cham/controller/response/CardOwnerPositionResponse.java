@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CardOwnerPositionResponse {
-    private Long cardOwnerPositionId;
-    private String cardOwnerPositionName;
+    private Long value;
+    private String label;
 }
