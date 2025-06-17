@@ -1,12 +1,11 @@
 package com.cham.service;
 
-
 import com.cham.controller.response.ApiResponse;
-import com.cham.entity.CardOwner;
+import com.cham.entity.CardUseAddr;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface CardOwnerService {
 
+public interface CardUseAddrService {
     
-    ApiResponse insertCardOwner(MultipartFile multipartFile);
+    CardUseAddr insertCardUseAddr(CardUseAddr cardUseAddr);
 }

@@ -1,27 +1,21 @@
 package com.cham.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
-import com.cham.repository.CardOwnerRepository;
-import com.cham.service.CardOwnerService;
+import com.cham.service.CardUseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class CardOwnerServiceImplTest extends RepositoryAndServiceTestSupport {
 
-    @Autowired
-    private CardOwnerService cardOwnerService;
+
     
     @Autowired
-    private CardOwnerRepository cardOwnerRepository;
-    
+    private CardUseService cardUseService;
     
     
     @DisplayName("엑셀파일 업로드")
@@ -37,7 +31,7 @@ class CardOwnerServiceImplTest extends RepositoryAndServiceTestSupport {
                     file
             );
             
-            cardOwnerService.insertCardOwner(mockMultipartFile);
+            cardUseService.insertCardUse(mockMultipartFile);
         }
     }
 }

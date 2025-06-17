@@ -5,6 +5,8 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 
+import java.time.LocalTime;
+
 public class PoiUtil {
     
     
@@ -33,5 +35,16 @@ public class PoiUtil {
             }
             default -> "";
         };
+    }
+    public static LocalTime getLocalTimeFromCell(Cell cell) {
+        switch (cell.getCellType()) {
+            case STRING:
+                return LocalTime.parse(cell.getStringCellValue()); // "12:30" 같은 텍스트
+            case NUMERIC:
+                double value = cell.getNumericCellValue();         // 0.52 같이 실수
+                return LocalTime.ofSecondOfDay((int) (value * 86400)); // 하루 86400초
+            default:
+                throw new IllegalArgumentException("지원하지 않는 셀 타입입니다: " + cell.getCellType());
+        }
     }
 }

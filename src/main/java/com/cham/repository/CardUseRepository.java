@@ -1,7 +1,8 @@
 package com.cham.repository;
 
 import com.cham.entity.CardOwnerPosition;
+import com.cham.entity.CardUse;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CardUseRepository extends JpaRepository<CardOwnerPosition, Long> {
+public interface CardUseRepository extends JpaRepository<CardUse, Long> {
 }
