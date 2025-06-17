@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -59,11 +60,11 @@ public class CardUseServiceImpl implements CardUseService {
         if (request.getCardOwnerPositionId() != null) {
             booleanBuilder.and(cardUse.cardOwnerPosition.cardOwnerPositionId.eq(request.getCardOwnerPositionId()));
         }
-        if (request.getCardUseName() != null) {
+        if (StringUtils.hasText(request.getCardUseName())) {
             booleanBuilder.and(cardUse.cardUseName.like("%" + request.getCardUseName() + "%"));
         }
         
-        if (request.getAddrDetail() != null) {
+        if (StringUtils.hasText(request.getAddrDetail())) {
             booleanBuilder.and(cardUse.cardUseAddr.cardUseDetailAddr.like("%" + request.getAddrDetail() + "%"));
         }
         
