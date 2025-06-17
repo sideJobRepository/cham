@@ -2,11 +2,25 @@ import styled, { useTheme } from 'styled-components';
 import SearchBar from '../components/SearchBar';
 import Sidebar from '../components/Sidebar';
 import MapPanel from '../components/MapPanel';
+import { useState, useEffect } from 'react';
 
 export default function MainPage() {
   const theme = useTheme();
-  const isMobile = typeof window !== 'undefined' && window.matchMedia(theme.device.mobile).matches;
-  console.log('iis', isMobile);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const result = window.matchMedia(theme.device.mobile).matches;
+      setIsMobile(result);
+    };
+
+    checkMobile(); // 초기 실행
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [theme.device.mobile]);
 
   return (
     <MainPageWrapper>
