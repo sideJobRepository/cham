@@ -22,7 +22,7 @@ const Wrapper = styled.div`
 `;
 const Inner = styled.div`
   max-width: 1500px;
-  min-width: 1280px; // 이게 기준이 되는 전체 넓이
+  min-width: 1023px;
   height: 100%;
   display: flex;
   margin: 0 auto;

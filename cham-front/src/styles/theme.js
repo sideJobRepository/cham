@@ -17,5 +17,6 @@ export const theme = {
   },
   device: {
     mobile: '(max-width: 767px)',
+    tablet: '(max-width: 1280px)',
   },
 };

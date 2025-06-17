@@ -134,7 +134,7 @@ const Center = styled.div`
   align-items: center;
   margin-top: 12px;
   gap: 80px;
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     display: none;
   }
 `;
@@ -159,7 +159,7 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     display: none;
   }
 `;
@@ -187,7 +187,7 @@ const Hamburger = styled(GiHamburgerMenu)`
   display: none;
   cursor: pointer;
 
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     color: ${({ theme }) => theme.colors.primary};
     display: block;
   }
