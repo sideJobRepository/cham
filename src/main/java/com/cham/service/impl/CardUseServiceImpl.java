@@ -133,16 +133,14 @@ public class CardUseServiceImpl implements CardUseService {
             CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,addrId,userData, groupedResponses);
             resultMap.put(addrId, response);
         }
-        Integer sortOrder = request.getSortOrder();
         Comparator<LocalDate> dateComparator = Comparator.nullsLast(Comparator.naturalOrder());
-        
-        Map<Long, CardUseResponse> sortMap = resultMap.entrySet()
+        return resultMap.entrySet()
                 .stream()
                 .sorted((item1, item2) -> {
                     LocalDate d1 = item1.getValue().getUseDate();
                     LocalDate d2 = item2.getValue().getUseDate();
                     int compare = dateComparator.compare(d1, d2);
-                    return sortOrder == 1 ? compare : -compare;
+                    return -compare;
                 })
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -150,7 +148,6 @@ public class CardUseServiceImpl implements CardUseService {
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
-        return sortMap;
     }
     
     
