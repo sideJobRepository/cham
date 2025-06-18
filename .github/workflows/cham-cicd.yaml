@@ -79,7 +79,7 @@ jobs:
             docker run -d --name cham-server \
             -e SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }} \
             -e SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }} \
-            -e SPRING_CLOUD_AWS_REGION_STATIC=ap-northeast-2 \
+            -e SPRING_CLOUD_AWS_REGION_STATIC=${{ secrets.AWS_REGION }} \
             -e SPRING_CLOUD_AWS_S3_BUCKET=${{ secrets.AWS_BUCKET }} \
             -e SPRING_PROFILES_ACTIVE=real \
             -p 8080:8080 \
