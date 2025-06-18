@@ -10,6 +10,8 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -63,7 +65,13 @@ public class S3FileUtils {
     }
     
     private String getFileNameFromUrl(String fileUrl) {
-        return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+        try {
+            URL url = new URL(fileUrl);
+            String path = url.getPath(); // e.g. /images/filename.jpg
+            return path.startsWith("/") ? path.substring(1) : path;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid S3 file URL", e);
+        }
     }
     
     private String createStoreFileName(String originalFilename) {
