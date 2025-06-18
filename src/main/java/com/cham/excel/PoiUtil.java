@@ -5,7 +5,9 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class PoiUtil {
     public static String getCellValue(Row row, int cellNum) {
@@ -51,6 +53,19 @@ public class PoiUtil {
                 return LocalTime.ofSecondOfDay((int) (value * 86400)); // 하루 86400초
             default:
                 throw new IllegalArgumentException("지원하지 않는 셀 타입입니다: " + cell.getCellType());
+        }
+    }
+    
+    public static LocalDate getLocalDateFromCell(Cell cell) {
+        if (cell == null) return null;
+        
+        if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            return DateUtil.getLocalDateTime(cell.getNumericCellValue()).toLocalDate();
+        } else if (cell.getCellType() == CellType.STRING) {
+            String value = cell.getStringCellValue();
+            return LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } else {
+            throw new IllegalStateException("Invalid cell type for date: " + cell.getCellType());
         }
     }
 }

@@ -168,11 +168,17 @@ public class CardUseServiceImpl implements CardUseService {
                 ))
                 .from(cardUseAddr)
                 .fetch();
+       
         
         try (InputStream is = multipartFile.getInputStream()) {
             Workbook workbook = WorkbookFactory.create(is);
             
             Sheet sheet = workbook.getSheetAt(0);
+            String deleKeyValue = sheet.getRow(1).getCell(11).getStringCellValue();
+            boolean exists = cardUseRepository.existsByCardUseDelkey(deleKeyValue);
+            if(exists) {
+                throw new RuntimeException("이미 존재하는 삭제키 입니다.");
+            }
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) {
                     continue;
@@ -190,10 +196,7 @@ public class CardUseServiceImpl implements CardUseService {
                 Cell remarkCell = row.getCell(10); // 비고
                 Cell delKeyCell = row.getCell(11);
                 
-                boolean exists = cardUseRepository.existsByCardUseDelkey(delKeyCell.getStringCellValue());
-                if(exists) {
-                    throw new RuntimeException("이미 존재하는 삭제키 입니다.");
-                }
+             
                 
                 String personnelStr = switch (personnelSell.getCellType()) {
                     case STRING -> personnelSell.getStringCellValue();
@@ -224,9 +227,7 @@ public class CardUseServiceImpl implements CardUseService {
                         });
                 
                 
-                
-                double excelDateValue = dateCell.getNumericCellValue();
-                LocalDate dateValue = DateUtil.getLocalDateTime(excelDateValue).toLocalDate();
+                LocalDate dateValue = PoiUtil.getLocalDateFromCell(dateCell);
                 LocalTime timeValue = PoiUtil.getLocalTimeFromCell(timeSell);
                 
                 CardUse cardUse = new CardUse(

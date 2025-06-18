@@ -20,7 +20,7 @@ import java.util.List;
 public class ChamSecurityConfig {
     
     private final String[] resource = {"/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*"};
-    private final List<String> url = List.of("http://localhost:5173,", "https://https://www.cham-monimap.com", "https://cham-monimap.com");
+    private final List<String> url = List.of("http://localhost:5173,","https://www.cham-monimap.com", "https://cham-monimap.com");
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
