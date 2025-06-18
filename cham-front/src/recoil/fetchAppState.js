@@ -28,7 +28,7 @@ export function useMapSearch() {
   return async (params = {}) => {
     try {
       const res = await api.post('/cham/cardUse', params);
-      console.log('res', res);
+
       setState({
         mapData: res.data,
         mapLoading: false,

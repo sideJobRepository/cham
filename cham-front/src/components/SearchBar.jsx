@@ -4,22 +4,28 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { FiSearch } from 'react-icons/fi';
 import Select from 'react-select';
-import { useSearchMapState, useSelectSearchState } from '@/recoil/useAppState.js';
+import { useSelectSearchState } from '@/recoil/useAppState.js';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { mapCenterAddrState, mapSearchFilterState } from '@/recoil/appState.js';
 
 export default function SearchBar() {
   const mapSearch = useMapSearch();
-  const { mapData, mapLoading } = useSearchMapState();
+
+  const [searchCondition, setSearchCondition] = useRecoilState(mapSearchFilterState);
+
+  const centerAddr = useRecoilValue(mapCenterAddrState);
 
   const handleSearch = () => {
-    const rawAmount = amount.replace(/,/g, ''); // 콤마 제거
+    const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
     const params = {
-      cardOwnerPositionId: selectedRole?.value,
-      cardUseName: name,
-      numberOfVisits: rawAmount ? parseInt(rawAmount, 10) : null,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      sortOrder: sortValue?.value ? sortValue.value : 1,
+      cardOwnerPositionId: searchCondition.selectedRole?.value,
+      cardUseName: searchCondition.cardUseName,
+      numberOfVisits: parseInt(rawAmount, 10),
+      startDate: searchCondition.startDate?.toISOString().split('T')[0],
+      endDate: searchCondition.endDate?.toISOString().split('T')[0],
+      sortOrder: searchCondition.sortOrder,
+      addrDetail: '',
     };
 
     mapSearch(params);
@@ -28,32 +34,7 @@ export default function SearchBar() {
   //직위
   const { selectData, selectLoading } = useSelectSearchState();
 
-  //이름
-  const [name, setName] = useState('');
-
-  //금액
-  const [amount, setAmount] = useState('');
-
-  const handleAmountChange = e => {
-    const raw = e.target.value.replace(/[^0-9]/g, ''); // 숫자만
-    const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ','); // 콤마
-    setAmount(formatted);
-  };
-
-  //날짜
-  const today = new Date();
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(today.getMonth() - 1);
-
-  const [startDate, setStartDate] = useState(oneMonthAgo);
-  const [endDate, setEndDate] = useState(today);
-
-  //직위
-  const [selectedRole, setSelectedRole] = useState(null);
   const [roleOptions, setRoleOptions] = useState([]);
-
-  //필터
-  const [sortValue, setSortValue] = useState();
 
   //정렬
   const sortOptions = [
@@ -136,27 +117,22 @@ export default function SearchBar() {
     }),
   };
 
-  const sortChange = selectedOption => {
-    setSortValue(selectedOption);
-  };
-
   useEffect(() => {
-    //검색조건 직위 셀렉트
     if (!selectLoading && selectData.length > 0) {
       const defaultOption = { label: '전체', value: null };
       const optionsWithAll = [defaultOption, ...selectData];
       setRoleOptions(optionsWithAll);
-      setSelectedRole(defaultOption);
 
-      handleSearch();
+      setSearchCondition(prev => ({
+        ...prev,
+        selectedRole: prev.selectedRole ?? defaultOption,
+      }));
     }
   }, [selectLoading, selectData]);
 
   useEffect(() => {
-    if (sortValue !== undefined) {
-      handleSearch();
-    }
-  }, [sortValue]);
+    handleSearch();
+  }, []);
 
   return (
     <Wrapper>
@@ -166,9 +142,9 @@ export default function SearchBar() {
             <label>직위</label>
             <SortSelect>
               <Select
-                value={selectedRole}
+                value={searchCondition.selectedRole}
                 options={roleOptions}
-                onChange={setSelectedRole}
+                onChange={option => setSearchCondition(prev => ({ ...prev, selectedRole: option }))}
                 styles={searchSelect}
                 isSearchable={false}
                 menuPortalTarget={document.body}
@@ -180,14 +156,34 @@ export default function SearchBar() {
 
           <Field>
             <label>이름</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} />
+            <input
+              type="text"
+              value={searchCondition.cardUseName}
+              onChange={e =>
+                setSearchCondition(prev => ({
+                  ...prev,
+                  cardUseName: e.target.value,
+                }))
+              }
+            />
           </Field>
 
           <Divider />
 
           <Field>
             <label>방문횟수</label>
-            <input type="text" value={amount} onChange={handleAmountChange} />
+            <input
+              type="text"
+              value={searchCondition.numberOfVisits}
+              onChange={e => {
+                const raw = e.target.value.replace(/[^0-9]/g, '');
+                const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                setSearchCondition(prev => ({
+                  ...prev,
+                  numberOfVisits: formatted,
+                }));
+              }}
+            />
           </Field>
 
           <Divider />
@@ -196,15 +192,25 @@ export default function SearchBar() {
             <label>집행일자</label>
             <DateRange>
               <DatePicker
-                selected={startDate}
-                onChange={date => setStartDate(date)}
+                selected={searchCondition.startDate}
+                onChange={date =>
+                  setSearchCondition(prev => ({
+                    ...prev,
+                    startDate: date,
+                  }))
+                }
                 dateFormat="yyyy.MM.dd"
                 portalId="root-portal"
               />
               <DateCenter>-</DateCenter>
               <DatePicker
-                selected={endDate}
-                onChange={date => setEndDate(date)}
+                selected={searchCondition.endDate}
+                onChange={date =>
+                  setSearchCondition(prev => ({
+                    ...prev,
+                    endDate: date,
+                  }))
+                }
                 dateFormat="yyyy.MM.dd"
                 portalId="root-portal"
               />
@@ -220,16 +226,21 @@ export default function SearchBar() {
 
       <BottomRow>
         <CountText>
-          검색결과 <strong>{mapData ? Object.keys(mapData).length : 0} 건</strong>
+          검색결과 <strong>{centerAddr ? Object.keys(centerAddr).length : 0} 건</strong>
         </CountText>
         <SortSelect>
           <Select
             options={sortOptions}
-            value={sortValue}
-            defaultValue={sortOptions[0]}
+            value={searchCondition.sortValue}
             styles={customSelectStyles}
             isSearchable={false}
-            onChange={sortChange}
+            onChange={option => {
+              setSearchCondition(prev => ({
+                ...prev,
+                sortOrder: option.value,
+                sortValue: option,
+              }));
+            }}
           />
         </SortSelect>
       </BottomRow>

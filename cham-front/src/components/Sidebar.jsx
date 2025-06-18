@@ -1,23 +1,36 @@
 import styled from 'styled-components';
 import ItemCard from './ItemCard.jsx';
-import { useEffect } from 'react';
-import { useSearchMapState } from '@/recoil/useAppState.js';
+import { useMemo } from 'react';
+import { useRecoilValue } from 'recoil';
+import { mapCenterAddrState, mapSearchFilterState } from '@/recoil/appState.js';
 
 export default function Sidebar() {
-  const { mapData, mapLoading } = useSearchMapState();
+  const centerAddr = useRecoilValue(mapCenterAddrState);
+  const searchCondition = useRecoilValue(mapSearchFilterState);
 
-  useEffect(() => {
-    //맵데이터
-    if (!mapLoading && mapData) {
-      console.log('데이터', mapData);
-    }
-  }, [mapLoading, mapData]);
-  const dummy = Array.from({ length: 20 });
+  const sortedList = useMemo(() => {
+    if (!centerAddr) return [];
+
+    const list = Object.values(centerAddr);
+
+    return list.sort((a, b) => {
+      const dateA = new Date(a.useDate);
+      const dateB = new Date(b.useDate);
+
+      if (searchCondition.sortOrder === 1) {
+        // 최신순 (최근이 먼저)
+        return dateB - dateA;
+      } else {
+        // 오래된순 (과거가 먼저)
+        return dateA - dateB;
+      }
+    });
+  }, [centerAddr, searchCondition.sortOrder]);
 
   return (
     <Wrapper>
-      {mapData && Object.keys(mapData).length > 0 ? (
-        Object.entries(mapData).map(([key, value]) => <ItemCard key={key} data={value} />)
+      {sortedList.length > 0 ? (
+        sortedList.map((item, idx) => <ItemCard key={idx} data={item} />)
       ) : (
         <EmptyMessage>검색 결과가 없습니다.</EmptyMessage>
       )}

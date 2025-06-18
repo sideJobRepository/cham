@@ -4,8 +4,13 @@ import profile from '/profile.png';
 import VisitCard from '../components/VisiitCard.jsx';
 import { FaCommentDots } from 'react-icons/fa';
 import { FaPen } from 'react-icons/fa';
+import { useRecoilValue } from 'recoil';
+import { selectedCardDataState } from '@/recoil/appState.js';
 
 export default function DetailPage() {
+  const selectedCard = useRecoilValue(selectedCardDataState);
+
+  console.log('selectedCard', selectedCard);
   return (
     <DetailWrapper>
       <FixedTop>

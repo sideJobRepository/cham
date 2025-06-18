@@ -1,17 +1,30 @@
 import styled from 'styled-components';
 import test from '/test.jpg';
 import { useNavigate } from 'react-router-dom';
+import { useSetRecoilState } from 'recoil';
+import { selectedCardDataState } from '@/recoil/appState.js';
 
 export default function ItemCard({ data }) {
   const navigate = useNavigate();
+
+  const setSelectedCard = useSetRecoilState(selectedCardDataState);
+
+  const handleClick = item => {
+    setSelectedCard(item);
+  };
 
   return (
     <Card
       onClick={() => {
         navigate('detail');
+        handleClick(data);
       }}
     >
-      <img src={test} alt="sample" />
+      {data?.cardUseImageUrl ? (
+        <img src={data?.cardUseImageUrl} alt="sample" />
+      ) : (
+        <img src={test} alt="sample" />
+      )}
       <CardBody>
         <Title>{data.visitMember} 방문</Title>
         <Stats>방문횟수 {data.visits}</Stats>

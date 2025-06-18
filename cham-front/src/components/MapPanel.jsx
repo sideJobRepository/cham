@@ -1,8 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
+import { useSearchMapState } from '@/recoil/useAppState.js';
+import { useSetRecoilState } from 'recoil';
+import { mapCenterAddrState } from '@/recoil/appState.js';
 
 export default function MapPanel() {
   const theme = useTheme();
+  const { mapData } = useSearchMapState();
+  const setCenterAddr = useSetRecoilState(mapCenterAddrState);
+  const [mapReady, setMapReady] = useState(false);
+
+  // 최초 지도 생성
   useEffect(() => {
     const loadScript = () => {
       return new Promise(resolve => {
@@ -18,29 +26,78 @@ export default function MapPanel() {
     const initMap = () => {
       window.kakao.maps.load(() => {
         const container = document.getElementById('map');
-
         const map = new window.kakao.maps.Map(container, {
           center: new window.kakao.maps.LatLng(36.3504, 127.3845),
           level: 6,
         });
 
+        window.mapInstance = map;
+
         const bounds = new window.kakao.maps.LatLngBounds();
-        bounds.extend(new window.kakao.maps.LatLng(36.461, 127.275)); // 북서쪽
-        bounds.extend(new window.kakao.maps.LatLng(36.281, 127.493)); // 남동쪽
+        bounds.extend(new window.kakao.maps.LatLng(36.461, 127.275));
+        bounds.extend(new window.kakao.maps.LatLng(36.281, 127.493));
         map.setBounds(bounds);
 
-        const geocoder = new window.kakao.maps.services.Geocoder();
+        setMapReady(true); // 지도 준비 완료 표시
+      });
+    };
 
-        const data = [
-          { address: '대전광역시 서구 둔산로 100', amount: 123000 },
-          { address: '대전광역시 유성구 대학로 291', amount: 54000 },
-          { address: '대전광역시 중구 중앙로 120', amount: 87000 },
-        ];
+    loadScript().then(() => {
+      window.kakao.maps.load(() => {
+        initMap();
+      });
+    });
+  }, []);
 
-        data.forEach(({ address, amount }) => {
-          geocoder.addressSearch(address, (result, status) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
+  useEffect(() => {
+    //지도 준비
+    if (!window.kakao?.maps || !window.mapInstance || !mapReady) {
+      return;
+    }
+
+    //map 데이터 준비
+    if (!mapData || Object.keys(mapData).length === 0) {
+      return;
+    }
+
+    const map = window.mapInstance;
+    const geocoder = new window.kakao.maps.services.Geocoder();
+
+    const renderAndSaveVisibleMarkers = () => {
+      // 기존 마커 제거
+      if (!window.customOverlays) window.customOverlays = [];
+      window.customOverlays.forEach(o => o.setMap(null));
+      window.customOverlays = [];
+
+      const bounds = map.getBounds();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+
+      const points = Object.values(mapData || {}).map(item => ({
+        address: item.addrDetail,
+        amount: item.totalSum,
+        raw: item,
+      }));
+
+      const visibleItems = [];
+      let completed = 0;
+
+      points.forEach(({ address, amount, raw }) => {
+        geocoder.addressSearch(address, (result, status) => {
+          completed++;
+
+          if (status === window.kakao.maps.services.Status.OK && result[0]) {
+            const lat = parseFloat(result[0].y);
+            const lng = parseFloat(result[0].x);
+            const coords = new window.kakao.maps.LatLng(lat, lng);
+
+            if (
+              lat >= sw.getLat() &&
+              lat <= ne.getLat() &&
+              lng >= sw.getLng() &&
+              lng <= ne.getLng()
+            ) {
+              visibleItems.push(raw);
 
               const content = `
                 <div style="
@@ -63,23 +120,30 @@ export default function MapPanel() {
 
               const overlay = new window.kakao.maps.CustomOverlay({
                 position: coords,
-                content: content,
+                content,
                 yAnchor: 1,
               });
-
               overlay.setMap(map);
+              window.customOverlays.push(overlay);
             }
-          });
+          }
+
+          if (completed === points.length) {
+            setCenterAddr(visibleItems);
+          }
         });
       });
     };
 
-    loadScript().then(() => {
-      window.kakao.maps.load(() => {
-        initMap();
-      });
-    });
-  }, []);
+    renderAndSaveVisibleMarkers();
+
+    const idleHandler = () => renderAndSaveVisibleMarkers();
+    window.kakao.maps.event.addListener(map, 'idle', idleHandler);
+
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'idle', idleHandler);
+    };
+  }, [mapData, mapReady, setCenterAddr, theme]);
 
   return <MapBox id="map" />;
 }
