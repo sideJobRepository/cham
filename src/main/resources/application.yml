@@ -9,3 +9,15 @@ spring:
     url: jdbc:log4jdbc:mysql://localhost:3307/CHAM
     username: root
     password: 1234
+
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION}
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_BUCKET}
