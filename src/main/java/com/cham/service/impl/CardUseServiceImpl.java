@@ -119,10 +119,8 @@ public class CardUseServiceImpl implements CardUseService {
                             use.getCardUseTime()))
                     .collect(Collectors.toList());
             
-            Integer sortOrder = request.getSortOrder();
             
-            LocalDate userData = sortOrder == 1 ? cardUseList.stream().map(CardUse::getCardUseDate).min(Comparator.naturalOrder()).orElse(null) :
-                    cardUseList.stream().map(CardUse::getCardUseDate).max(Comparator.naturalOrder()).orElse(null);
+            LocalDate useDate = cardUseList.stream().map(CardUse::getCardUseDate).max(Comparator.naturalOrder()).orElse(null);
             
             
             String addrDetail = cardUseList.stream()
@@ -130,7 +128,7 @@ public class CardUseServiceImpl implements CardUseService {
                     .findFirst()
                     .orElse("");
             String imageUrl = cardUseAddrRepository.findByImageUrl(addrId);
-            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,addrId,userData, groupedResponses);
+            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,addrId,useDate, groupedResponses);
             resultMap.put(addrId, response);
         }
         Comparator<LocalDate> dateComparator = Comparator.nullsLast(Comparator.naturalOrder());
@@ -139,8 +137,7 @@ public class CardUseServiceImpl implements CardUseService {
                 .sorted((item1, item2) -> {
                     LocalDate d1 = item1.getValue().getUseDate();
                     LocalDate d2 = item2.getValue().getUseDate();
-                    int compare = dateComparator.compare(d1, d2);
-                    return -compare;
+                    return dateComparator.compare(d2, d1);
                 })
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
