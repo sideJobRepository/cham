@@ -27,4 +27,14 @@ public class Member extends BaseData {
     @Column(name = "MEMBER_SOCIAL_TYPE")
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
+    
+    @Column(name = "MEMBER_SUB_ID")
+    private String memberSubId;
+    
+    public Member(String memberEmail, String memberName, SocialType socialType, String memberSubId) {
+        this.memberEmail = memberEmail;
+        this.memberName = memberName;
+        this.socialType = socialType;
+        this.memberSubId = memberSubId;
+    }
 }

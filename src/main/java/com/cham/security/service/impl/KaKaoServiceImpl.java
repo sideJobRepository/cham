@@ -3,11 +3,17 @@ package com.cham.security.service.impl;
 import com.cham.security.service.KaKaoService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
+@Service
+@Transactional
+@RequiredArgsConstructor
 public class KaKaoServiceImpl implements KaKaoService {
     
     private final String kakaoClientId = ""; //값 넣어야함

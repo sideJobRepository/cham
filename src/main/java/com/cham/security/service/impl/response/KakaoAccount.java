@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoAccount {
     private String email;
+    private String nickname;
 }
