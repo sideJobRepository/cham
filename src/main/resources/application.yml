@@ -17,7 +17,5 @@ spring:
         secret-key: ${AWS_SECRET_KEY}
       region:
         static: ${AWS_REGION}
-cloud:
-  aws:
-    s3:
-      bucket: ${AWS_BUCKET}
+      s3:
+        bucket: ${AWS_BUCKET}

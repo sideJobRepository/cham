@@ -21,7 +21,7 @@ import java.util.UUID;
 public class S3FileUtils {
     private final S3Client s3Client;
     
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
     
     public String storeFile(MultipartFile multipartFile) {
