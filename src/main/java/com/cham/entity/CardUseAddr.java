@@ -27,6 +27,10 @@ public class CardUseAddr extends BaseData {
     @Column(name = "CARD_USE_DETAIL_ADDR")
     private String cardUseDetailAddr;
     
+    // 카드 사용 이미지 URL
+    @Column(name = "CARD_USE_IMAGE_URL")
+    private String cardUseImageUrl;
+    
     public CardUseAddr(String cardUseAddrNameValue, String cardUseDetailAddrValue) {
         this.cardUseAddrName = cardUseAddrNameValue;
         this.cardUseDetailAddr = cardUseDetailAddrValue;
@@ -34,5 +38,9 @@ public class CardUseAddr extends BaseData {
     
     public CardUseAddr(Long cardUseAddrId) {
         this.cardUseAddrId = cardUseAddrId;
+    }
+    
+    public void updateImage(String s3Url) {
+        this.cardUseImageUrl = s3Url;
     }
 }

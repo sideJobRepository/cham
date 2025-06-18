@@ -65,8 +65,12 @@ public class CardUse extends BaseData {
     @Column(name = "CARD_USE_REMARK")
     private String cardUseRemark;
     
+    // 카드 사용 비고
+    @Column(name = "CARD_USE_DELKEY")
+    private String cardUseDelkey;
     
-    public CardUse(List<CardOwnerPositionDto> cardOwnerPositionDtos, CardUseAddr cardUserAddr, String userSellValue, String nameSellValue, LocalDate dateValue, LocalTime timeValue, String purpose, String personnel, double amount, String method, String remark) {
+    
+    public CardUse(List<CardOwnerPositionDto> cardOwnerPositionDtos, CardUseAddr cardUserAddr, String userSellValue, String nameSellValue, LocalDate dateValue, LocalTime timeValue, String purpose, String personnel, double amount, String method, String remark, String delKeyValue) {
         this(cardOwnerPositionDtos, userSellValue, nameSellValue);
         this.cardUseAddr = cardUserAddr;
         this.cardUseDate = dateValue;
@@ -76,6 +80,7 @@ public class CardUse extends BaseData {
         this.cardUseAmount = (int) amount;
         this.cardUseMethod = method;
         this.cardUseRemark = remark;
+        this.cardUseDelkey = delKeyValue;
     }
     
     public CardUse(List<CardOwnerPositionDto> cardOwnerPositionDtos,String userSell , String nameSell ) {

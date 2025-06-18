@@ -177,6 +177,12 @@ public class CardUseServiceImpl implements CardUseService {
                 Cell amountCell = row.getCell(8); // 금액
                 Cell methodCell = row.getCell(9); // 금액
                 Cell remarkCell = row.getCell(10); // 비고
+                Cell delKeyCell = row.getCell(11);
+                
+                boolean exists = cardUseRepository.existsByCardUseDelkey(delKeyCell.getStringCellValue());
+                if(exists) {
+                    throw new RuntimeException("이미 존재하는 삭제키 입니다.");
+                }
                 
                 String personnelStr = switch (personnelSell.getCellType()) {
                     case STRING -> personnelSell.getStringCellValue();
@@ -223,7 +229,8 @@ public class CardUseServiceImpl implements CardUseService {
                         personnelStr,
                         amountCell.getNumericCellValue(),
                         methodCell.getStringCellValue(),
-                        remarkCell.getStringCellValue()
+                        remarkCell.getStringCellValue(),
+                        delKeyCell.getStringCellValue()
                 );
                 cardUseRepository.save(cardUse);
             }

@@ -8,14 +8,12 @@ import org.apache.poi.ss.usermodel.Row;
 import java.time.LocalTime;
 
 public class PoiUtil {
-    
-    
     public static String getCellValue(Row row, int cellNum) {
         if (row == null) return "";
         Cell cell = row.getCell(cellNum);
         if (cell == null) return "";
         
-        return switch (cell.getCellType()) {
+        String value = switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue();
             case NUMERIC -> {
                 if (DateUtil.isCellDateFormatted(cell)) {
@@ -25,16 +23,24 @@ public class PoiUtil {
                 }
             }
             case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            case FORMULA -> {
-                yield switch (cell.getCachedFormulaResultType()) {
-                    case STRING -> cell.getStringCellValue();
-                    case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-                    case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-                    default -> "";
-                };
-            }
+            case FORMULA -> switch (cell.getCachedFormulaResultType()) {
+                case STRING -> cell.getStringCellValue();
+                case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+                case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+                default -> "";
+            };
             default -> "";
         };
+        
+        return sanitize(value);
+    }
+    
+    private static String sanitize(String input) {
+        if (input == null) return "";
+        return input
+                .replace("\u00A0", " ")     // non-breaking space → 일반 공백
+                .replaceAll("\\s+", " ")    // 연속 공백 → 공백 하나
+                .trim();                    // 앞뒤 공백 제거
     }
     public static LocalTime getLocalTimeFromCell(Cell cell) {
         switch (cell.getCellType()) {

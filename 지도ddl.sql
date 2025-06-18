@@ -22,6 +22,7 @@ CREATE TABLE CHAM.CARD_USE_ADDR
     `CARD_USE_ADDR_ID`      BIGINT           NOT NULL    AUTO_INCREMENT COMMENT '카드 사용 장소 ID',
     `CARD_USE_ADDR_NAME`    VARCHAR(1000)    NULL        COMMENT '카드 사용 장소 이름',
     `CARD_USE_DETAIL_ADDR`  VARCHAR(4000)    NULL        COMMENT '카드 사용 상세 장소',
+    `CARD_USE_IMAGE_URL`    VARCHAR(1000)    NULL        COMMENT '카드 사용 이미지 URL',
     `REGIST_DATE`           DATETIME         NULL        COMMENT '생성 일시',
     `MODIFY_DATE`           DATETIME         NULL        COMMENT '수정 일시',
     PRIMARY KEY (CARD_USE_ADDR_ID)
@@ -63,6 +64,7 @@ CREATE TABLE CHAM.CARD_USE
     `CARD_USE_AMOUNT`         INT              NULL        COMMENT '카드 사용 금액',
     `CARD_USE_METHOD`         VARCHAR(100)     NULL        COMMENT '카드 사용 방법',
     `CARD_USE_REMARK`         VARCHAR(100)     NULL        COMMENT '카드 사용 비고',
+    `CARD_USE_DELKEY`         VARCHAR(1000)    NULL        COMMENT '카드 사용 삭제키',
     `REGIST_DATE`             DATETIME         NULL        COMMENT '생성 일시',
     `MODIFY_DATE`             DATETIME         NULL        COMMENT '수정 일시',
     PRIMARY KEY (CARD_USE_ID)
@@ -123,5 +125,3 @@ ALTER TABLE CHAM.REPLY
 -- Foreign Key 삭제 SQL - CHAM.REPLY(CARD_USE_ID)
 -- ALTER TABLE CHAM.REPLY
 -- DROP FOREIGN KEY FK_REPLY_CARD_USE_ID_CARD_USE_CARD_USE_ID;
-
-

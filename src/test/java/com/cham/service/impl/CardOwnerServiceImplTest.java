@@ -1,6 +1,7 @@
 package com.cham.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
+import com.cham.config.S3FileUtils;
 import com.cham.service.CardUseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,8 +17,7 @@ class CardOwnerServiceImplTest extends RepositoryAndServiceTestSupport {
     
     @Autowired
     private CardUseService cardUseService;
-    
-    
+
     @DisplayName("엑셀파일 업로드")
     @Test
     void test() throws IOException {
