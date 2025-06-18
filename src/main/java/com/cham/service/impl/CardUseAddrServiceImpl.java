@@ -9,6 +9,7 @@ import com.cham.service.CardUseAddrService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -27,9 +28,13 @@ public class CardUseAddrServiceImpl implements CardUseAddrService {
     }
     
     @Override
-    public ApiResponse UpdateCardUseAddrImage(CardUseAddrImageRequest request) {
+    public ApiResponse  UpdateCardUseAddrImage(CardUseAddrImageRequest request) {
         
         MultipartFile cardUseImageUrl = request.getCardUseImageUrl();
+        String byCardUseImageUrl = cardUseAddrRepository.findByImageUrl(request.getCardUseAddrId());
+        if(StringUtils.hasText(byCardUseImageUrl)) {
+            s3FileUtils.deleteFile(byCardUseImageUrl);
+        }
         String s3Url = s3FileUtils.storeFile(cardUseImageUrl);
         
         CardUseAddr cardUseAddr = cardUseAddrRepository

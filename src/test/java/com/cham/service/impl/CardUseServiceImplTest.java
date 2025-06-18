@@ -23,7 +23,7 @@ class CardUseServiceImplTest extends RepositoryAndServiceTestSupport {
     @Test
     void test(){
         LocalDate startDate = LocalDate.of(2022, 1, 1);
-        CardUseConditionRequest cardUseConditionRequest = new CardUseConditionRequest(null,null,3,null,startDate,null,1);
+        CardUseConditionRequest cardUseConditionRequest = new CardUseConditionRequest(null,null,3,null,startDate,null,2);
         
         Map<Long, CardUseResponse> responseMap =  cardUseService.selectCardUse(cardUseConditionRequest);
     }

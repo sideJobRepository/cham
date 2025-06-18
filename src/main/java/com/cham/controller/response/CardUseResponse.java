@@ -14,6 +14,8 @@ public class CardUseResponse {
     private String visitMember; // 방문 사람
     private Integer totalSum;
     private String addrDetail;
+    private String cardUseImageUrl;
+    private CardUseGroupedResponse groupedResponses;
     private List<CardUseGroupedResponse> cardUseGroupedResponses;
     
     

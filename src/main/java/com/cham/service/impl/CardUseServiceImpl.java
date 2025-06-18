@@ -10,6 +10,7 @@ import com.cham.entity.QCardUseAddr;
 import com.cham.entity.dto.CardOwnerPositionDto;
 import com.cham.entity.dto.CardUseAddrDto;
 import com.cham.excel.PoiUtil;
+import com.cham.repository.CardUseAddrRepository;
 import com.cham.repository.CardUseRepository;
 import com.cham.service.CardUseAddrService;
 import com.cham.service.CardUseService;
@@ -45,6 +46,8 @@ import static com.cham.entity.QCardUseAddr.cardUseAddr;
 public class CardUseServiceImpl implements CardUseService {
     
     private final CardUseRepository cardUseRepository;
+    
+    private final CardUseAddrRepository cardUseAddrRepository;
     
     private final CardUseAddrService cardUseAddrService;
     
@@ -124,12 +127,21 @@ public class CardUseServiceImpl implements CardUseService {
                             use.getCardUseTime()))
                     .collect(Collectors.toList());
             
+            CardUseGroupedResponse earliestResponse = cardUseList.stream()
+                    .min(Comparator.comparing(CardUse::getCardUseDate))
+                    .map(use -> new CardUseGroupedResponse(
+                            use.getCardUseName(),
+                            use.getCardUseDate(),
+                            use.getCardUseTime()
+                    )).orElse(null);
+            
+            
             String addrDetail = cardUseList.stream()
                     .map(item -> item.getCardUseAddr().getCardUseDetailAddr())
                     .findFirst()
                     .orElse("");
-            
-            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail, groupedResponses);
+            String imageUrl = cardUseAddrRepository.findByImageUrl(addrId);
+            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,earliestResponse, groupedResponses);
             resultMap.put(addrId, response);
         }
         
