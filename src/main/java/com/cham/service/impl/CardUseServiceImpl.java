@@ -6,7 +6,6 @@ import com.cham.controller.response.CardUseGroupedResponse;
 import com.cham.controller.response.CardUseResponse;
 import com.cham.entity.CardUse;
 import com.cham.entity.CardUseAddr;
-import com.cham.entity.QCardUseAddr;
 import com.cham.entity.dto.CardOwnerPositionDto;
 import com.cham.entity.dto.CardUseAddrDto;
 import com.cham.excel.PoiUtil;
@@ -15,9 +14,6 @@ import com.cham.repository.CardUseRepository;
 import com.cham.service.CardUseAddrService;
 import com.cham.service.CardUseService;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +32,6 @@ import java.util.stream.Collectors;
 
 import static com.cham.entity.QCardOwnerPosition.cardOwnerPosition;
 import static com.cham.entity.QCardUse.cardUse;
-import static com.cham.entity.QCardUseAddr.*;
 import static com.cham.entity.QCardUseAddr.cardUseAddr;
 
 
@@ -56,8 +51,6 @@ public class CardUseServiceImpl implements CardUseService {
     
     @Override
     public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
-        
-        OrderSpecifier<?>[] orderSpecifier = createOrderSpecifier(request);
         
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         if (request.getCardOwnerPositionId() != null) {
@@ -84,7 +77,6 @@ public class CardUseServiceImpl implements CardUseService {
                 .selectFrom(cardUse)
                 .join(cardUse.cardUseAddr, cardUseAddr).fetchJoin()
                 .where(booleanBuilder)
-                .orderBy(orderSpecifier)
                 .fetch();
         
         Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
@@ -127,13 +119,10 @@ public class CardUseServiceImpl implements CardUseService {
                             use.getCardUseTime()))
                     .collect(Collectors.toList());
             
-            CardUseGroupedResponse earliestResponse = cardUseList.stream()
-                    .min(Comparator.comparing(CardUse::getCardUseDate))
-                    .map(use -> new CardUseGroupedResponse(
-                            use.getCardUseName(),
-                            use.getCardUseDate(),
-                            use.getCardUseTime()
-                    )).orElse(null);
+            Integer sortOrder = request.getSortOrder();
+            
+            LocalDate userData = sortOrder == 1 ? cardUseList.stream().map(CardUse::getCardUseDate).min(Comparator.naturalOrder()).orElse(null) :
+                    cardUseList.stream().map(CardUse::getCardUseDate).max(Comparator.naturalOrder()).orElse(null);
             
             
             String addrDetail = cardUseList.stream()
@@ -141,11 +130,27 @@ public class CardUseServiceImpl implements CardUseService {
                     .findFirst()
                     .orElse("");
             String imageUrl = cardUseAddrRepository.findByImageUrl(addrId);
-            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,earliestResponse, groupedResponses);
+            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,addrId,userData, groupedResponses);
             resultMap.put(addrId, response);
         }
+        Integer sortOrder = request.getSortOrder();
+        Comparator<LocalDate> dateComparator = Comparator.nullsLast(Comparator.naturalOrder());
         
-        return resultMap;
+        Map<Long, CardUseResponse> sortMap = resultMap.entrySet()
+                .stream()
+                .sorted((item1, item2) -> {
+                    LocalDate d1 = item1.getValue().getUseDate();
+                    LocalDate d2 = item2.getValue().getUseDate();
+                    int compare = dateComparator.compare(d1, d2);
+                    return sortOrder == 1 ? compare : -compare;
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
+        return sortMap;
     }
     
     
@@ -250,14 +255,5 @@ public class CardUseServiceImpl implements CardUseService {
             throw new RuntimeException(e);
         }
         return new ApiResponse(200 , true,"성공");
-    }
-    private OrderSpecifier<?>[] createOrderSpecifier(CardUseConditionRequest request) {
-        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
-        if (1 == request.getSortOrder()) {
-            orderSpecifiers.add(new OrderSpecifier<>(Order.ASC, cardUse.cardUseDate));
-        } else {
-            orderSpecifiers.add(new OrderSpecifier<>(Order.DESC, cardUse.cardUseDate));
-        }
-        return orderSpecifiers.toArray(new OrderSpecifier[0]);
     }
 }

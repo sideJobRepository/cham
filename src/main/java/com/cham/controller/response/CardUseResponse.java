@@ -3,6 +3,7 @@ package com.cham.controller.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -15,7 +16,8 @@ public class CardUseResponse {
     private Integer totalSum;
     private String addrDetail;
     private String cardUseImageUrl;
-    private CardUseGroupedResponse groupedResponses;
+    private Long cardUseAddrId;
+    private LocalDate useDate;
     private List<CardUseGroupedResponse> cardUseGroupedResponses;
     
     
