@@ -19,3 +19,7 @@ spring:
         static: ${AWS_REGION}
       s3:
         bucket: ${AWS_BUCKET}
+
+kakao:
+  redirecturi: http://localhost:5173/oauth/kakao/callback
+  clientId: cea9fa380d4db5159271874966b03bc4

@@ -4,6 +4,7 @@ import com.cham.security.service.KaKaoService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +17,10 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class KaKaoServiceImpl implements KaKaoService {
     
-    private final String kakaoClientId = "cea9fa380d4db5159271874966b03bc4"; //값 넣어야함
-    private final String kakaoRedirectUri = "http://localhost:5173/oauth/kakao/callback"; // 바꿀예정
+    @Value("${kakao.clientId}")
+    private String kakaoClientId; //값 넣어야함
+    @Value("${kakao.redirecturi}")
+    private String kakaoRedirectUri;
     
     @Override
     public AccessTokenResponse getAccessToken(String code) {
