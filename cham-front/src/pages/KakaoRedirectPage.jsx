@@ -14,7 +14,7 @@ export default function KakaoRedirectPage() {
 
     // 인가코드를 서버로 보내기 (예시)
     axios
-      .post('/kakao/login', { code })
+      .post('/cham/kakao-login', { code })
       .then(res => {
         console.log('서버로부터 받은 사용자 정보:', res.data);
         // 토큰 저장 및 홈 이동 등

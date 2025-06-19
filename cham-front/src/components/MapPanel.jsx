@@ -32,7 +32,7 @@ export default function MapPanel() {
         const container = document.getElementById('map');
         const map = new window.kakao.maps.Map(container, {
           center: new window.kakao.maps.LatLng(36.3504, 127.3845),
-          level: 6,
+          level: 9,
         });
 
         //확대 축소 버튼
