@@ -9,6 +9,7 @@ import { GiHamburgerMenu } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue, useResetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
+import { toast } from 'react-toastify';
 
 export default function TopHeader() {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export default function TopHeader() {
     localStorage.removeItem('user');
     resetUser();
     setIsOpen(false);
+    toast.success('로그아웃 되었습니다.');
   };
 
   //메뉴바 닫기

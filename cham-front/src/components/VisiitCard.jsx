@@ -7,15 +7,14 @@ export default function VisitCard(item) {
       <CardContent>
         <CardTitle>
           {item.data.userName}
-          <span>대상인원 10명</span>
+          <span>대상인원 {item.data.cardUsePersonnel}명</span>
         </CardTitle>
         <CardMeta>사용일시 {item.data.useDate}</CardMeta>
-        <CardPrice>계좌 150,000원 사용</CardPrice>
-        <CardDesc>1인당 15,000원 이용</CardDesc>
-        <CardText>
-          간담회로 인한 식사 했고, 맛있게 식사 햇습니다. 간담회로 인한 식사 했고, 맛있게 식사
-          햇습니다. 간담회로 인한 식사 했고, 맛있게 식사 햇습니다.
-        </CardText>
+        <CardPrice>
+          {item.data.cardUseMethod} {item.data.cardUseAmount}원 사용
+        </CardPrice>
+        <CardDesc>1인당 {item.data.amountPerPerson} 이용</CardDesc>
+        <CardText>{item.data.cardUsePurpose}</CardText>
       </CardContent>
     </CardWrapper>
   );

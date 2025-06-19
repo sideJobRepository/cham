@@ -34,7 +34,7 @@ export default function KakaoRedirectPage() {
           render: '로그인에 성공하였습니다.',
           type: 'success',
           isLoading: false,
-          autoClose: 3000,
+          autoClose: 1000,
         });
       })
       .catch(err => {

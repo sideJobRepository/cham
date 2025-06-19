@@ -68,60 +68,6 @@ export default function DetailPage() {
                         <strong>박용우 : </strong> 여기 진짜 리얼 맛집입니다.
                       </CommentText>
                     </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>박찬식 : </strong> 근데 여기 가격대가 좀 있는듯...
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                      </CommentText>
-                    </CommentItem>
                   </CommentItemSection>
                 </CommentSection>
               </InfoBox>
