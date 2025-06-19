@@ -46,7 +46,8 @@ export default function SearchBar() {
     control: provided => ({
       ...provided,
       width: 100,
-      height: 30,
+      height: 26,
+      minHeight: 20,
       border: 'none',
       cursor: 'pointer',
       fontSize: '13px',
@@ -296,9 +297,6 @@ const Field = styled.div`
     color: black;
     background: transparent;
     cursor: pointer;
-    @media ${({ theme }) => theme.device.mobile} {
-      width: 80px;
-    }
   }
 `;
 
