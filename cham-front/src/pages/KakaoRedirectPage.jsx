@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 export default function KakaoRedirectPage() {
   const navigate = useNavigate();
@@ -12,11 +13,14 @@ export default function KakaoRedirectPage() {
       return;
     }
 
-    // 인가코드를 서버로 보내기 (예시)
+    // 인가코드를 서버로 보내기
     axios
       .post('/cham/kakao-login', { code })
       .then(res => {
-        console.log('서버로부터 받은 사용자 정보:', res.data);
+        const decoded = jwtDecode(res.data.token);
+        console.log('서버로부터 받은 사용자 정보:', decoded);
+        localStorage.setItem('user', decoded);
+        localStorage.setItem('token', res.data.token);
         // 토큰 저장 및 홈 이동 등
         navigate('/');
       })

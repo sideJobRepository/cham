@@ -306,6 +306,7 @@ const MenuButtonWrapper = styled.div`
   font-size: ${({ theme }) => theme.sizes.menu};
   font-weight: bold;
   text-decoration: none;
+  cursor: pointer;
   img {
     height: 26px;
   }
