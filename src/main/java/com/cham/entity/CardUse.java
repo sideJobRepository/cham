@@ -99,4 +99,18 @@ public class CardUse extends BaseData {
             this.cardOwnerPosition = new CardOwnerPosition(defaultId);
         }
     }
+    
+    public String getAmountPerPerson() {
+        if (this.cardUsePersonnel == null ||  cardUseAmount == null && this.cardUseMethod == null) {
+            return null; // 혹은 0 또는 예외 처리
+        }
+        if("내방객".equals(this.cardUsePersonnel)) {
+            return "내방객등";
+        }
+        int personnel = Integer.parseInt(this.cardUsePersonnel);
+        if (personnel == 0) return null; // 0명일 경우 예외 처리
+        
+        return String.format("%,d원", cardUseAmount / personnel); // 콤마 포함한 원 단위 출력
+        
+    }
 }

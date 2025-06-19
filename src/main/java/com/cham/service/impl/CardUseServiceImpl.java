@@ -113,10 +113,15 @@ public class CardUseServiceImpl implements CardUseService {
             
             // 사용자별 기록 정리
             List<CardUseGroupedResponse> groupedResponses = cardUseList.stream()
-                    .map(use -> new CardUseGroupedResponse(
-                            use.getCardUseName(),
-                            use.getCardUseDate(),
-                            use.getCardUseTime()))
+                    .map(use -> {
+                        String amountPerPerson = use.getAmountPerPerson();
+                        return new CardUseGroupedResponse(
+                                use.getCardUseName(),
+                                amountPerPerson,
+                                use.getCardUseMethod(),
+                                use.getCardUseDate(),
+                                use.getCardUseTime());
+                    })
                     .collect(Collectors.toList());
             
             

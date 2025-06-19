@@ -14,6 +14,8 @@ import java.util.List;
 public class CardUseGroupedResponse {
 
     private String userName;     // 사용자 이름
+    private String amountPerPerson;
+    private String cardUseMethod; // 카드 사용방법 (계좌 ,카드 등)
     private LocalDate useDate;   // 사용 일자
     private LocalTime useTime;   // 사용 시간
 }
