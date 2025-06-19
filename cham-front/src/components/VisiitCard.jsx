@@ -7,7 +7,12 @@ export default function VisitCard(item) {
       <CardContent>
         <CardTitle>
           {item.data.userName}
-          <span>대상인원 {item.data.cardUsePersonnel}명</span>
+          <span>
+            대상인원{' '}
+            {Number(item.data.cardUsePersonnel)
+              ? item.data.cardUsePersonnel + '명'
+              : item.data.cardUsePersonnel}
+          </span>
         </CardTitle>
         <CardMeta>사용일시 {item.data.useDate}</CardMeta>
         <CardPrice>
