@@ -119,6 +119,9 @@ public class CardUseServiceImpl implements CardUseService {
                                 use.getCardUseName(),
                                 amountPerPerson,
                                 use.getCardUseMethod(),
+                                use.getCardUseAmount(),
+                                use.getCardUsePurpose(),
+                                use.getCardUsePersonnel(),
                                 use.getCardUseDate(),
                                 use.getCardUseTime());
                     })
