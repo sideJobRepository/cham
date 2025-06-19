@@ -24,13 +24,13 @@ public class JwtTokenProvider {
         this.encryptionKey = new SecretKeySpec(java.util.Base64.getDecoder().decode(secretKey), SignatureAlgorithm.HS512.getJcaName());
     }
     
-    public String createToken(String email, String role, String profileImageUrl, String thumbnailImageUrl) {
+    public String createToken(String email, String role, String profileImageUrl, String thumbnailImageUrl, String memberName) {
         // Claims 는 jwt 토큰의 payload 부분을 의미
         Claims claims = Jwts.claims().setSubject(email);
         claims.put("role", role);
         claims.put("profileImageUrl", profileImageUrl);
         claims.put("thumbnailImageUrl", thumbnailImageUrl);
-        
+        claims.put("memberName", memberName);
         Date now = new Date();
         return Jwts.builder()
                 .setClaims(claims)
