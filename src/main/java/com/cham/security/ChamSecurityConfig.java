@@ -3,11 +3,15 @@ package com.cham.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -22,8 +26,16 @@ public class ChamSecurityConfig {
     private final String[] resource = {"/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*"};
     private final List<String> url = List.of("http://localhost:5173,","https://www.cham-monimap.com", "https://cham-monimap.com");
     
+    private final AuthenticationProvider chamAuthenticationProvider;
+    private final AuthenticationSuccessHandler chamAuthenticationSuccessHandler;
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        
+        AuthenticationManagerBuilder managerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        managerBuilder.authenticationProvider(chamAuthenticationProvider);
+        AuthenticationManager authenticationManager = managerBuilder.build();
+        
         
         http
                 .securityMatcher("/cham/**")
@@ -32,11 +44,15 @@ public class ChamSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationManager(authenticationManager)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(resource).permitAll()
                         .anyRequest().permitAll()
-                        
-                );
+                )
+                .with(new ChamSecurityDsl<>(), chamSecurityDsl -> chamSecurityDsl
+                        .chamKaKaoSuccessHandler(chamAuthenticationSuccessHandler)
+                )
+        ;
         
         return http.build();
     }
