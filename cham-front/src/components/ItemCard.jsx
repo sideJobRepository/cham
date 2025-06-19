@@ -1,11 +1,58 @@
 import styled from 'styled-components';
-import test from '/test.jpg';
-import { useNavigate } from 'react-router-dom';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { mapSearchFilterState, selectedCardDataState } from '@/recoil/appState.js';
+import { AiOutlinePlusCircle } from 'react-icons/ai';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { mapSearchFilterState, userState } from '@/recoil/appState.js';
+import { useRef } from 'react';
+import axios from 'axios';
+import { useMapSearch } from '@/recoil/fetchAppState.js';
+import { toast } from 'react-toastify';
 
 export default function ItemCard({ data }) {
   const searchCondition = useRecoilValue(mapSearchFilterState);
+
+  const mapSearch = useMapSearch();
+
+  const fileInputRef = useRef();
+
+  const user = useRecoilValue(userState);
+
+  const handlePlusClick = e => {
+    fileInputRef.current.click(); // input 클릭 유도
+  };
+
+  //이미지 업로드
+  const handleFileChange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('cardUseImageUrl', file);
+    formData.append('cardUseAddrId', data.cardUseAddrId);
+
+    const toastId = toast.loading('이미지 업로드 중 입니다.');
+
+    try {
+      await axios.post('/cham/cardUseAddrImage', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      mapSearch(searchCondition);
+      toast.update(toastId, {
+        render: '이미지 업로드가 완료됐습니다.',
+        type: 'success',
+        isLoading: false,
+        autoClose: 1000,
+      });
+    } catch (err) {
+      toast.update(toastId, {
+        render: '이미지 업로드에 실패하였습니다.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+      });
+      console.error('업로드 실패', err);
+    }
+  };
 
   const handleClick = data => {
     const query = new URLSearchParams({
@@ -29,9 +76,47 @@ export default function ItemCard({ data }) {
       }}
     >
       {data?.cardUseImageUrl ? (
-        <img src={data?.cardUseImageUrl} alt="sample" />
+        <ImageWrapper>
+          <img src={data?.cardUseImageUrl} alt="cardImage" />
+          {user?.role === 'ADMIN' ? (
+            <PlusButtonWrapper
+              onClick={e => {
+                e.stopPropagation();
+                handlePlusClick();
+              }}
+            >
+              <PlusButton size={30} />
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
+            </PlusButtonWrapper>
+          ) : null}
+        </ImageWrapper>
       ) : (
-        <img src={test} alt="sample" />
+        <EmptyImage>
+          <span>대표 이미지가 없습니다.</span>
+          {user?.role === 'ADMIN' ? (
+            <div
+              onClick={e => {
+                e.stopPropagation();
+                handlePlusClick();
+              }}
+            >
+              <PlusButton size={30} />
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
+            </div>
+          ) : null}
+        </EmptyImage>
       )}
       <CardBody>
         <Title>{data.visitMember} 방문</Title>
@@ -57,6 +142,14 @@ const Card = styled.article`
     height: 180px;
     border-radius: 8px;
     object-fit: cover;
+  }
+
+  &:hover {
+    img,
+    p,
+    span {
+      opacity: 0.5;
+    }
   }
 `;
 
@@ -98,4 +191,51 @@ const Price = styled.p`
   font-weight: bold;
   color: black;
   margin-top: 12px;
+`;
+
+const EmptyImage = styled.div`
+  width: 100%;
+  height: 180px;
+  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.liteGray};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  span {
+    color: white;
+  }
+`;
+
+const ImageWrapper = styled.div`
+  position: relative;
+  width: 100%;
+
+  img {
+    width: 100%;
+    height: 180px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+`;
+
+const PlusButtonWrapper = styled.div`
+  position: absolute;
+  top: 44%;
+  left: 44%;
+  cursor: pointer;
+
+  &:hover svg {
+    transform: scale(1.2);
+  }
+`;
+const PlusButton = styled(AiOutlinePlusCircle)`
+  cursor: pointer;
+  pointer-events: auto;
+  color: white;
+
+  &:hover {
+    transform: scale(1.2);
+  }
 `;

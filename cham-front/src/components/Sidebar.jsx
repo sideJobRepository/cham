@@ -3,6 +3,7 @@ import ItemCard from './ItemCard.jsx';
 import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { mapCenterAddrState, mapSearchFilterState } from '@/recoil/appState.js';
+import { toast } from 'react-toastify';
 
 export default function Sidebar() {
   const centerAddr = useRecoilValue(mapCenterAddrState);

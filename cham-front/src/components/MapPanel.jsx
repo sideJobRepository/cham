@@ -15,8 +15,6 @@ export default function MapPanel() {
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
 
-  const navigate = useNavigate();
-  const setSelectedCard = useSetRecoilState(selectedCardDataState);
   const searchCondition = useRecoilValue(mapSearchFilterState);
 
   // 최초 지도 생성

@@ -9,12 +9,14 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import DetailPage from './pages/DetailPage.jsx';
 import { RecoilRoot } from 'recoil';
 import KakaoRedirectPage from '@/pages/KakaoRedirectPage.jsx';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <RecoilRoot>
+        <ToastContainer position="top-center" autoClose={3000} />
         <BrowserRouter>
           <Routes>
             <Route path="/oauth/kakao/callback" element={<KakaoRedirectPage />} />
