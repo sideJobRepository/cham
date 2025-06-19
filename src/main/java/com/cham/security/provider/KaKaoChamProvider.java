@@ -1,5 +1,6 @@
 package com.cham.security.provider;
 
+import com.cham.security.context.UserServiceContext;
 import com.cham.security.service.KaKaoChamUserDetailService;
 import com.cham.security.service.KaKaoService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
@@ -28,9 +29,10 @@ public class KaKaoChamProvider implements AuthenticationProvider {
         KaKaoProfileResponse kaKaoProfile = kaKaoService.getKaKaoProfile(accessToken.getAccess_token());
         
         Long id = kaKaoProfile.getId();
-        chamUserDetailService.loadUserByUsername(kaKaoProfile);
+        UserServiceContext userServiceContext = (UserServiceContext) chamUserDetailService.loadUserByUsername(kaKaoProfile);
         
-        return null;
+        
+        return new KaKaoChamAuthenticationToken(userServiceContext.getMember(), null,userServiceContext.getAuthorities());
     }
     
     

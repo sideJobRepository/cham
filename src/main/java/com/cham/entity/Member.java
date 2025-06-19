@@ -1,13 +1,17 @@
 package com.cham.entity;
 
 import com.cham.entity.base.BaseData;
+import com.cham.entity.enumeration.Role;
 import com.cham.entity.enumeration.SocialType;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 @Entity
 @Getter
 @Table(name = "MEMBER")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class Member extends BaseData {
     // 회원 ID
     @Id
@@ -31,10 +35,8 @@ public class Member extends BaseData {
     @Column(name = "MEMBER_SUB_ID")
     private String memberSubId;
     
-    public Member(String memberEmail, String memberName, SocialType socialType, String memberSubId) {
-        this.memberEmail = memberEmail;
-        this.memberName = memberName;
-        this.socialType = socialType;
-        this.memberSubId = memberSubId;
-    }
+    @Column(name = "MEMBER_ROLE")
+    @Enumerated(EnumType.STRING)
+    private Role role;
+    
 }
