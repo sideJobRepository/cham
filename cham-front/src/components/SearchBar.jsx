@@ -273,6 +273,7 @@ const FieldsWrapper = styled.div`
   flex: 1;
   overflow-x: auto;
   flex-wrap: nowrap;
+  overflow-y: hidden;
 `;
 
 const Field = styled.div`
