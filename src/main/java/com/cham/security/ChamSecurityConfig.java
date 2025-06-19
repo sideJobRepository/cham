@@ -1,5 +1,6 @@
 package com.cham.security;
 
+import com.cham.security.jwt.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.List;
 
@@ -26,11 +26,15 @@ import java.util.List;
 public class ChamSecurityConfig {
     
     private final String[] resource = {"/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*"};
-    private final List<String> url = List.of("http://localhost:5173,","https://www.cham-monimap.com", "https://cham-monimap.com");
+    private final List<String> url = List.of(
+            "http://localhost:5173",
+            "https://www.cham-monimap.com",
+            "https://cham-monimap.com"
+    );
     
     private final AuthenticationProvider chamAuthenticationProvider;
     private final AuthenticationSuccessHandler chamAuthenticationSuccessHandler;
-    private final OncePerRequestFilter jwtTokenFilter;
+    private final JwtTokenFilter jwtTokenFilter;
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -73,5 +77,6 @@ public class ChamSecurityConfig {
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
     }
+    
 
 }

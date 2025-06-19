@@ -8,6 +8,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -35,9 +36,12 @@ public class ChamSecurityDsl<H extends HttpSecurityBuilder<H>> extends AbstractA
         AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
         getAuthenticationFilter().setAuthenticationManager(authenticationManager);
         getAuthenticationFilter().setAuthenticationSuccessHandler(successHandler);
+        SessionAuthenticationStrategy sessionAuthenticationStrategy = http.getSharedObject(SessionAuthenticationStrategy.class);
+        if(sessionAuthenticationStrategy != null) {
+            getAuthenticationFilter().setSessionAuthenticationStrategy(sessionAuthenticationStrategy);
+        }
         http.setSharedObject(ChamAuthenticationFilter.class,getAuthenticationFilter());
         http.addFilterBefore(getAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        super.configure(http);
     }
     
     public ChamSecurityDsl<H> chamKaKaoSuccessHandler(AuthenticationSuccessHandler successHandler) {

@@ -23,14 +23,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+
 @RequiredArgsConstructor
 @Slf4j
+@Component(value = "jwtTokenFilter")
 public class JwtTokenFilter extends OncePerRequestFilter {
     
     private final JwtTokenProvider jwtTokenProvider;
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws  IOException {
         
         String token = request.getHeader("Authorization");
         try {
@@ -62,6 +63,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return true;
+        return !path.startsWith("/cham/reply");
     }
 }
