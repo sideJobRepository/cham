@@ -7,9 +7,14 @@ import ddemocracy from '/ddemocracy.png';
 import { useRef, useState, useEffect } from 'react';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilValue, useResetRecoilState } from 'recoil';
+import { userState } from '@/recoil/appState.js';
 
 export default function TopHeader() {
   const navigate = useNavigate();
+
+  const user = useRecoilValue(userState);
+  const resetUser = useResetRecoilState(userState);
 
   const menuRef = useRef(null);
   const hamburgerRef = useRef(null);
@@ -30,6 +35,14 @@ export default function TopHeader() {
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoClientId}&redirect_uri=${redirectUri}&response_type=code`;
 
     window.location.href = kakaoAuthUrl;
+    setIsOpen(false);
+  };
+
+  const logoutKakao = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    resetUser();
+    setIsOpen(false);
   };
 
   //메뉴바 닫기
@@ -53,6 +66,11 @@ export default function TopHeader() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
+
+  //메뉴바 닫기
+  useEffect(() => {
+    console.log('user', user);
+  }, [user]);
 
   return (
     <Wrapper>
@@ -99,10 +117,18 @@ export default function TopHeader() {
             </a>
           </FieldsWrapper>
         </LinkGroup>
-        <KakaoButton onClick={loginWithKakao}>
-          <img src={kakaoImg} alt="카카오" />
-          카카오 로그인
-        </KakaoButton>
+        {user ? (
+          <KakaoButton onClick={logoutKakao}>
+            {/*<img src={user.thumbnailImageUrl} alt="카카오" />*/}
+            <img src={kakaoImg} alt="카카오" />
+            로그아웃
+          </KakaoButton>
+        ) : (
+          <KakaoButton onClick={loginWithKakao}>
+            <img src={kakaoImg} alt="카카오" />
+            로그인
+          </KakaoButton>
+        )}
       </Right>
       <Hamburger size={24} onClick={toggleMenu} />
       <MobileMenu ref={menuRef} $open={isOpen}>
@@ -119,10 +145,17 @@ export default function TopHeader() {
             {menu}
           </MenuItemMobile>
         ))}
-        <MenuButtonWrapper onClick={loginWithKakao}>
-          <img src={kakaoImg} alt="카카오" />
-          카카오 로그인
-        </MenuButtonWrapper>
+        {user ? (
+          <MenuButtonWrapper onClick={logoutKakao}>
+            <img src={kakaoImg} alt="카카오" />
+            카카오 로그아웃
+          </MenuButtonWrapper>
+        ) : (
+          <MenuButtonWrapper onClick={loginWithKakao}>
+            <img src={kakaoImg} alt="카카오" />
+            카카오 로그인
+          </MenuButtonWrapper>
+        )}
 
         <LinkWrapper>
           <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="noreferrer">

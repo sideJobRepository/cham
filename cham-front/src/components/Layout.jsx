@@ -3,12 +3,48 @@ import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useFetchSelectSearch } from '@/recoil/fetchAppState.js';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { userState } from '@/recoil/appState.js';
 
 export default function Layout() {
   const fetchSelect = useFetchSelectSearch();
+  const setUser = useSetRecoilState(userState);
+  const user = useRecoilValue(userState);
 
   useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
+  }, []);
+
+  //유저정보
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!user) {
+      setUser(JSON.parse(stored));
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = e => {
+      if (e.key === 'user') {
+        if (e.newValue) {
+          // 다른 창에서 로그인됨
+          try {
+            const userObj = JSON.parse(e.newValue);
+            setUser(userObj);
+          } catch (error) {
+            console.error('유저 파싱 실패', error);
+          }
+        } else {
+          // 다른 창에서 로그아웃됨
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   return (

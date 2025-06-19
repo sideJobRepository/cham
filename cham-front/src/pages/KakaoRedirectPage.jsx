@@ -2,9 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { useSetRecoilState } from 'recoil';
+import { userState } from '@/recoil/appState.js';
 
 export default function KakaoRedirectPage() {
   const navigate = useNavigate();
+  const setUser = useSetRecoilState(userState);
 
   useEffect(() => {
     const code = new URL(window.location.href).searchParams.get('code');
@@ -18,9 +21,11 @@ export default function KakaoRedirectPage() {
       .post('/cham/kakao-login', { code })
       .then(res => {
         const decoded = jwtDecode(res.data.token);
-        console.log('서버로부터 받은 사용자 정보:', decoded);
-        localStorage.setItem('user', decoded);
+
+        localStorage.setItem('user', JSON.stringify(decoded));
+        console.log('decoded', decoded);
         localStorage.setItem('token', res.data.token);
+        setUser(decoded);
         // 토큰 저장 및 홈 이동 등
         navigate('/');
       })
@@ -29,5 +34,5 @@ export default function KakaoRedirectPage() {
       });
   }, []);
 
-  return <div>로그인 처리 중입니다...</div>;
+  return <></>;
 }

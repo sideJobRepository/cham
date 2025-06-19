@@ -4,6 +4,11 @@ const today = new Date();
 const oneMonthAgo = new Date();
 oneMonthAgo.setMonth(today.getMonth() - 1);
 
+export const userState = atom({
+  key: 'userState',
+  default: null,
+});
+
 export const mapState = atom({
   key: 'mapState',
   default: {
