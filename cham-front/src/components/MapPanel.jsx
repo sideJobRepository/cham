@@ -35,6 +35,10 @@ export default function MapPanel() {
           level: 6,
         });
 
+        //확대 축소 버튼
+        const zoomControl = new window.kakao.maps.ZoomControl();
+        map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
+
         window.mapInstance = map;
 
         const bounds = new window.kakao.maps.LatLngBounds();
@@ -60,13 +64,19 @@ export default function MapPanel() {
     }
 
     //map 데이터 준비
-    if (!mapData || Object.keys(mapData).length === 0) {
+    if (!mapData) {
       return;
+    }
+
+    //검색결과가 없을 경우
+    if (Object.keys(mapData).length === 0) {
+      setCenterAddr([]);
     }
 
     const map = window.mapInstance;
     const geocoder = new window.kakao.maps.services.Geocoder();
 
+    //마커생성
     const renderAndSaveVisibleMarkers = () => {
       // 기존 마커 제거
       if (!window.customOverlays) window.customOverlays = [];

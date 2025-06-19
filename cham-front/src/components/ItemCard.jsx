@@ -37,8 +37,6 @@ export default function ItemCard({ data }) {
 }
 
 const Card = styled.article`
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 8px;
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
@@ -47,6 +45,7 @@ const Card = styled.article`
   img {
     width: 100%;
     height: 180px;
+    border-radius: 8px;
     object-fit: cover;
   }
 `;
@@ -88,5 +87,5 @@ const Price = styled.p`
   font-size: ${({ theme }) => theme.sizes.large};
   font-weight: bold;
   color: black;
-  margin-top: 12px;
+  margin-top: auto;
 `;

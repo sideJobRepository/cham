@@ -9,8 +9,6 @@ export default function Sidebar() {
   const searchCondition = useRecoilValue(mapSearchFilterState);
 
   const sortedList = useMemo(() => {
-    if (!centerAddr) return [];
-
     const list = Object.values(centerAddr);
 
     return list.sort((a, b) => {
