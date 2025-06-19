@@ -46,7 +46,7 @@ export default function SearchBar() {
     control: provided => ({
       ...provided,
       width: 100,
-      height: 26,
+      height: 28,
       minHeight: 20,
       border: 'none',
       cursor: 'pointer',
