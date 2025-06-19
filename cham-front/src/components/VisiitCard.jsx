@@ -1,15 +1,16 @@
 import styled from 'styled-components';
 import test from '/test.jpg';
 
-export default function VisitCard() {
+export default function VisitCard(item) {
+  console.log('item', item);
   return (
     <CardWrapper>
       <CardContent>
         <CardTitle>
-          하천관리사업소장
+          {item.data.userName}
           <span>대상인원 10명</span>
         </CardTitle>
-        <CardMeta>사용일시 2025.06.01 12:00</CardMeta>
+        <CardMeta>사용일시 {item.data.useDate}</CardMeta>
         <CardPrice>계좌 150,000원 사용</CardPrice>
         <CardDesc>1인당 15,000원 이용</CardDesc>
         <CardText>

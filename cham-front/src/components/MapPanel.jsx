@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useSearchMapState } from '@/recoil/useAppState.js';
 import { useSetRecoilState } from 'recoil';
-import { mapCenterAddrState } from '@/recoil/appState.js';
+import { mapCenterAddrState, selectedCardDataState } from '@/recoil/appState.js';
+import { useNavigate } from 'react-router-dom';
 
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState();
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
+
+  const navigate = useNavigate();
+  const setSelectedCard = useSetRecoilState(selectedCardDataState);
 
   // 최초 지도 생성
   useEffect(() => {
@@ -99,28 +103,33 @@ export default function MapPanel() {
             ) {
               visibleItems.push(raw);
 
-              const content = `
-                <div style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  background: ${theme.colors.primary};
-                  color: white;
-                  padding: 5px 12px;
-                  border-radius: 20px;
-                  font-weight: bold;
-                  font-size: ${theme.sizes.medium};
-                  white-space: nowrap;
-                  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                  height: 30px;
-                ">
-                  ${amount.toLocaleString()}원
-                </div>
-              `;
+              const div = document.createElement('div');
+              div.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: ${theme.colors.primary};
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: ${theme.sizes.medium};
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            height: 30px;
+            cursor: pointer;
+          `;
+              div.textContent = `${amount.toLocaleString()}원`;
+
+              // 클릭 시 상세 페이지로 이동
+              div.addEventListener('click', () => {
+                navigate(`detail`);
+                setSelectedCard(raw);
+              });
 
               const overlay = new window.kakao.maps.CustomOverlay({
                 position: coords,
-                content,
+                content: div,
                 yAnchor: 1,
               });
               overlay.setMap(map);

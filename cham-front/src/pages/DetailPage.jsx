@@ -16,17 +16,21 @@ export default function DetailPage() {
       <FixedTop>
         <TopContent>
           <ImageBox>
-            <img src={test} alt="sample" />
+            {selectedCard?.cardUseImageUrl ? (
+              <img src={selectedCard?.cardUseImageUrl} alt="sample" />
+            ) : (
+              <img src={test} alt="sample" />
+            )}
           </ImageBox>
           <InfoBox>
-            <Title>하천관리사업소장 외 12명 방문</Title>
-            <SubMeta>방문횟수 31</SubMeta>
+            <Title>{selectedCard.visitMember} 방문</Title>
+            <SubMeta>방문횟수 {selectedCard.visits}</SubMeta>
             <MetaGroup>
-              <strong>한우대잔치</strong>
-              <span>대전 평동 12414번지 23-1</span>
+              <strong>{selectedCard.addrName}</strong>
+              <span>{selectedCard.addrDetail}</span>
             </MetaGroup>
             <TotalPrice>
-              총 이용 금액 <strong>42,000,000원</strong>
+              총 이용 금액 <strong>{selectedCard.totalSum.toLocaleString()}원</strong>
             </TotalPrice>
             <CommentSection>
               <CommentTitle>
@@ -105,8 +109,8 @@ export default function DetailPage() {
       </FixedTop>
       <ScrollableBottom>
         <BottomCards>
-          {Array.from({ length: 30 }).map((_, i) => (
-            <VisitCard key={i} />
+          {selectedCard.cardUseGroupedResponses.map((item, i) => (
+            <VisitCard key={i} data={item} />
           ))}
         </BottomCards>
       </ScrollableBottom>
