@@ -28,9 +28,9 @@ export default function ItemCard({ data }) {
       <CardBody>
         <Title>{data.visitMember} 방문</Title>
         <Stats>방문횟수 {data.visits}</Stats>
+        <Price>총 {data.totalSum.toLocaleString()}원</Price>
         <Menu>{data.addrName}</Menu>
         <Address>{data.addrDetail}</Address>
-        <Price>총 {data.totalSum.toLocaleString()}원</Price>
       </CardBody>
     </Card>
   );
@@ -39,6 +39,8 @@ export default function ItemCard({ data }) {
 const Card = styled.article`
   overflow: hidden;
   width: 100%;
+
+  //max-height: 140px;
   box-sizing: border-box;
   cursor: pointer;
 
@@ -87,5 +89,5 @@ const Price = styled.p`
   font-size: ${({ theme }) => theme.sizes.large};
   font-weight: bold;
   color: black;
-  margin-top: auto;
+  margin-top: 12px;
 `;
