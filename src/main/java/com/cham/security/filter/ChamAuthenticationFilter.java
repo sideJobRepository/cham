@@ -18,7 +18,7 @@ public class ChamAuthenticationFilter extends AbstractAuthenticationProcessingFi
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     public ChamAuthenticationFilter() {
-        super(new AntPathRequestMatcher("/kakao/login", "POST"));
+        super(new AntPathRequestMatcher("/cham/kakao-login", "POST"));
     }
     
     @Override
