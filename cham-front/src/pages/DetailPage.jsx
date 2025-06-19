@@ -238,7 +238,7 @@ const BottomCards = styled.div`
 const CommentItemSection = styled.div`
   display: flex;
   flex-direction: column;
-  height: 120px;
+  max-height: 120px;
   padding: 4px 0;
   gap: 6px;
   overflow-y: auto;
