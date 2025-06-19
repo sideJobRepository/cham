@@ -12,6 +12,14 @@ export const mapState = atom({
   },
 });
 
+export const detailState = atom({
+  key: 'detailState',
+  default: {
+    mapDetailData: null,
+    mapDetailLoading: true,
+  },
+});
+
 export const selectSearchState = atom({
   key: 'selectSearchState',
   default: {

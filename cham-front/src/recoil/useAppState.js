@@ -1,5 +1,5 @@
 import { useRecoilValue } from 'recoil';
-import { mapState, selectSearchState } from './appState';
+import { detailState, mapState, selectSearchState } from './appState';
 
 export const useSelectSearchState = () => {
   return useRecoilValue(selectSearchState);
@@ -7,4 +7,8 @@ export const useSelectSearchState = () => {
 
 export const useSearchMapState = () => {
   return useRecoilValue(mapState);
+};
+
+export const useDetailMapState = () => {
+  return useRecoilValue(detailState);
 };

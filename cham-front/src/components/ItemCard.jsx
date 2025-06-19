@@ -1,22 +1,30 @@
 import styled from 'styled-components';
 import test from '/test.jpg';
 import { useNavigate } from 'react-router-dom';
-import { useSetRecoilState } from 'recoil';
-import { selectedCardDataState } from '@/recoil/appState.js';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { mapSearchFilterState, selectedCardDataState } from '@/recoil/appState.js';
 
 export default function ItemCard({ data }) {
-  const navigate = useNavigate();
+  const searchCondition = useRecoilValue(mapSearchFilterState);
 
-  const setSelectedCard = useSetRecoilState(selectedCardDataState);
-
-  const handleClick = item => {
-    setSelectedCard(item);
+  const handleClick = data => {
+    const query = new URLSearchParams({
+      cardOwnerPositionId: searchCondition.selectedRole?.value,
+      cardUseName: searchCondition.cardUseName,
+      numberOfVisits: searchCondition.numberOfVisits,
+      startDate: searchCondition.startDate?.toISOString().split('T')[0],
+      endDate: searchCondition.endDate?.toISOString().split('T')[0],
+      sortOrder: searchCondition.sortOrder,
+      addrDetail: data.addrDetail,
+      detail: true,
+      // 필요한 필드 추가
+    }).toString();
+    window.open(`/detail?${query}`, '_blank');
   };
 
   return (
     <Card
       onClick={() => {
-        navigate('detail');
         handleClick(data);
       }}
     >

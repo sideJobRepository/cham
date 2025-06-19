@@ -119,7 +119,7 @@ export default function TopHeader() {
             {menu}
           </MenuItemMobile>
         ))}
-        <MenuButtonWrapper>
+        <MenuButtonWrapper onClick={loginWithKakao}>
           <img src={kakaoImg} alt="카카오" />
           카카오 로그인
         </MenuButtonWrapper>

@@ -2,118 +2,142 @@ import styled from 'styled-components';
 import test from '/test.jpg';
 import profile from '/profile.png';
 import VisitCard from '../components/VisiitCard.jsx';
+import { useEffect, useState } from 'react';
 import { FaCommentDots } from 'react-icons/fa';
 import { FaPen } from 'react-icons/fa';
-import { useRecoilValue } from 'recoil';
-import { selectedCardDataState } from '@/recoil/appState.js';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMapSearch } from '@/recoil/fetchAppState.js';
+import { useDetailMapState } from '@/recoil/useAppState.js';
 
 export default function DetailPage() {
-  const selectedCard = useRecoilValue(selectedCardDataState);
+  const [searchParams] = useSearchParams();
+  const { mapDetailData } = useDetailMapState();
+  const [detail, SetDetail] = useState(null);
 
-  console.log('selectedCard', selectedCard);
+  const navigate = useNavigate();
+
+  const detailSearch = useMapSearch();
+
+  useEffect(() => {
+    const paramsObj = Object.fromEntries(searchParams.entries());
+    detailSearch(paramsObj);
+  }, []);
+
+  useEffect(() => {
+    if (mapDetailData) {
+      SetDetail(Object.values(mapDetailData)[0]);
+    }
+  }, [mapDetailData]);
+
   return (
     <DetailWrapper>
-      <FixedTop>
-        <TopContent>
-          <ImageBox>
-            {selectedCard?.cardUseImageUrl ? (
-              <img src={selectedCard?.cardUseImageUrl} alt="sample" />
-            ) : (
-              <img src={test} alt="sample" />
-            )}
-          </ImageBox>
-          <InfoBox>
-            <Title>{selectedCard.visitMember} 방문</Title>
-            <SubMeta>방문횟수 {selectedCard.visits}</SubMeta>
-            <MetaGroup>
-              <strong>{selectedCard.addrName}</strong>
-              <span>{selectedCard.addrDetail}</span>
-            </MetaGroup>
-            <TotalPrice>
-              총 이용 금액 <strong>{selectedCard.totalSum.toLocaleString()}원</strong>
-            </TotalPrice>
-            <CommentSection>
-              <CommentTitle>
-                <FaCommentDots style={{ marginRight: '4px' }} />
-                댓글 <span>3건</span>
-                <WriteButton>
-                  <PenIcon size={12} />
-                  작성
-                </WriteButton>
-              </CommentTitle>
-              <CommentItemSection>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>박용우 : </strong> 여기 진짜 리얼 맛집입니다.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>박찬식 : </strong> 근데 여기 가격대가 좀 있는듯...
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-                <CommentItem>
-                  <Avatar src={profile} />
-                  <CommentText>
-                    <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
-                  </CommentText>
-                </CommentItem>
-              </CommentItemSection>
-            </CommentSection>
-          </InfoBox>
-        </TopContent>
-      </FixedTop>
-      <ScrollableBottom>
-        <BottomCards>
-          {selectedCard.cardUseGroupedResponses.map((item, i) => (
-            <VisitCard key={i} data={item} />
-          ))}
-        </BottomCards>
-      </ScrollableBottom>
+      {detail ? (
+        <>
+          <FixedTop>
+            <TopContent>
+              <ImageBox>
+                {detail?.cardUseImageUrl ? (
+                  <img src={detail?.cardUseImageUrl} alt="sample" />
+                ) : (
+                  <img src={test} alt="sample" />
+                )}
+              </ImageBox>
+              <InfoBox>
+                <Title>{detail.visitMember} 방문</Title>
+                <SubMeta>방문횟수 {detail.visits}</SubMeta>
+                <MetaGroup>
+                  <strong>{detail.addrName}</strong>
+                  <span>{detail.addrDetail}</span>
+                </MetaGroup>
+                <TotalPrice>
+                  총 이용 금액 <strong>{detail.totalSum.toLocaleString()}원</strong>
+                </TotalPrice>
+                <CommentSection>
+                  <CommentTitle>
+                    <FaCommentDots style={{ marginRight: '4px' }} />
+                    댓글 <span>3건</span>
+                    <WriteButton>
+                      <PenIcon size={12} />
+                      작성
+                    </WriteButton>
+                  </CommentTitle>
+                  <CommentItemSection>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>박용우 : </strong> 여기 진짜 리얼 맛집입니다.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>박찬식 : </strong> 근데 여기 가격대가 좀 있는듯...
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                    <CommentItem>
+                      <Avatar src={profile} />
+                      <CommentText>
+                        <strong>최우석 : </strong> ㅎㅎ 좋은 곳에서 먹네요.
+                      </CommentText>
+                    </CommentItem>
+                  </CommentItemSection>
+                </CommentSection>
+              </InfoBox>
+            </TopContent>
+          </FixedTop>
+          <ScrollableBottom>
+            <BottomCards>
+              {detail.cardUseGroupedResponses.map((item, i) => (
+                <VisitCard key={i} data={item} />
+              ))}
+            </BottomCards>
+          </ScrollableBottom>
+        </>
+      ) : (
+        <></>
+      )}
     </DetailWrapper>
   );
 }

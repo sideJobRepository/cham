@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useSearchMapState } from '@/recoil/useAppState.js';
-import { useSetRecoilState } from 'recoil';
-import { mapCenterAddrState, selectedCardDataState } from '@/recoil/appState.js';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  mapCenterAddrState,
+  mapSearchFilterState,
+  selectedCardDataState,
+} from '@/recoil/appState.js';
 import { useNavigate } from 'react-router-dom';
 
 export default function MapPanel() {
@@ -13,6 +17,7 @@ export default function MapPanel() {
 
   const navigate = useNavigate();
   const setSelectedCard = useSetRecoilState(selectedCardDataState);
+  const searchCondition = useRecoilValue(mapSearchFilterState);
 
   // 최초 지도 생성
   useEffect(() => {
@@ -133,8 +138,18 @@ export default function MapPanel() {
 
               // 클릭 시 상세 페이지로 이동
               div.addEventListener('click', () => {
-                navigate(`detail`);
-                setSelectedCard(raw);
+                const query = new URLSearchParams({
+                  cardOwnerPositionId: searchCondition.selectedRole?.value,
+                  cardUseName: searchCondition.cardUseName,
+                  numberOfVisits: searchCondition.numberOfVisits,
+                  startDate: searchCondition.startDate?.toISOString().split('T')[0],
+                  endDate: searchCondition.endDate?.toISOString().split('T')[0],
+                  sortOrder: searchCondition.sortOrder,
+                  addrDetail: raw.addrDetail,
+                  detail: true,
+                  // 필요한 필드 추가
+                }).toString();
+                window.open(`/detail?${query}`, '_blank');
               });
 
               const overlay = new window.kakao.maps.CustomOverlay({

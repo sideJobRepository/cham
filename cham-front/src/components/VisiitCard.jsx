@@ -2,7 +2,6 @@ import styled from 'styled-components';
 import test from '/test.jpg';
 
 export default function VisitCard(item) {
-  console.log('item', item);
   return (
     <CardWrapper>
       <CardContent>
