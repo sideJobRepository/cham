@@ -156,6 +156,7 @@ const TopContent = styled.div`
 const ImageBox = styled.div`
   flex: 1;
   min-width: 300px;
+  height: 323px;
   img {
     width: 100%;
     height: 100%;

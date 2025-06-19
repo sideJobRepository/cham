@@ -22,6 +22,16 @@ export default function TopHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen(prev => !prev);
 
+  //카카오 로그인
+  const kakaoClientId = 'cea9fa380d4db5159271874966b03bc4';
+  const redirectUri = `${window.location.origin}/oauth/kakao/callback`;
+
+  const loginWithKakao = () => {
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoClientId}&redirect_uri=${redirectUri}&response_type=code`;
+
+    window.location.href = kakaoAuthUrl;
+  };
+
   //메뉴바 닫기
   useEffect(() => {
     const handleClickOutside = e => {
@@ -89,7 +99,7 @@ export default function TopHeader() {
             </a>
           </FieldsWrapper>
         </LinkGroup>
-        <KakaoButton>
+        <KakaoButton onClick={loginWithKakao}>
           <img src={kakaoImg} alt="카카오" />
           카카오 로그인
         </KakaoButton>

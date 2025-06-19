@@ -8,6 +8,7 @@ import Layout from './components/Layout.jsx';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import DetailPage from './pages/DetailPage.jsx';
 import { RecoilRoot } from 'recoil';
+import KakaoRedirectPage from '@/pages/KakaoRedirectPage.jsx';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <RecoilRoot>
         <BrowserRouter>
           <Routes>
+            <Route path="/oauth/kakao/callback" element={<KakaoRedirectPage />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<MainPage />} />
               <Route path="/contract" element={<ContractPage />} />
