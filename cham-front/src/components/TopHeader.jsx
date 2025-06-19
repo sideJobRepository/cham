@@ -131,7 +131,7 @@ export default function TopHeader() {
         )}
       </Right>
       <div ref={hamburgerRef}>
-        <Hamburger ref={hamburgerRef} size={24} onClick={toggleMenu} />
+        <Hamburger size={24} onClick={toggleMenu} />
       </div>
       <MobileMenu ref={menuRef} $open={isOpen}>
         {menus.map((menu, i) => (
