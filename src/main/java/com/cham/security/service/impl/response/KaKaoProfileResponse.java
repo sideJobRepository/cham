@@ -1,8 +1,10 @@
 package com.cham.security.service.impl.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -12,5 +14,29 @@ import lombok.NoArgsConstructor;
 public class KaKaoProfileResponse {
     
     private Long id;
-    private KakaoAccount kakao_account;
+    
+    @JsonProperty("kakao_account")
+    private KakaoAccount kakaoAccount;
+    
+    @Getter
+    @NoArgsConstructor
+    public static class KakaoAccount {
+        
+        private String email;
+        
+        private Profile profile;
+    }
+    
+    @Getter
+    @NoArgsConstructor
+    public static class Profile {
+        
+        private String nickname;
+        
+        @JsonProperty("profile_image_url")
+        private String profileImageUrl;
+        
+        @JsonProperty("thumbnail_image_url")
+        private String thumbnailImageUrl;
+    }
 }

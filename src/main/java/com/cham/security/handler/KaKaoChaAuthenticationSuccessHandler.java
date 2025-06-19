@@ -2,6 +2,7 @@ package com.cham.security.handler;
 
 import com.cham.entity.Member;
 import com.cham.security.jwt.JwtTokenProvider;
+import com.cham.security.token.KaKaoChamAuthenticationToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +25,11 @@ public class KaKaoChaAuthenticationSuccessHandler implements AuthenticationSucce
     
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        Member member = (Member) authentication.getPrincipal();
-        String token = jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name());
+        KaKaoChamAuthenticationToken kakaoToken = (KaKaoChamAuthenticationToken) authentication;
+        Member member = (Member) kakaoToken.getPrincipal();
+        String profileImageUrl = kakaoToken.getProfileImageUrl();
+        String thumbnailImageUrl = kakaoToken.getThumbnailImageUrl();
+        String token = jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name(),  profileImageUrl, thumbnailImageUrl);
         Map<String,Object> map = new HashMap<>();
         map.put("id",member.getMemberId());
         map.put("token",token);

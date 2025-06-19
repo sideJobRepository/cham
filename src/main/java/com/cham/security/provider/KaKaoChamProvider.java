@@ -27,12 +27,12 @@ public class KaKaoChamProvider implements AuthenticationProvider {
         String authorizeCode = (String) token.getPrincipal();
         AccessTokenResponse accessToken = kaKaoService.getAccessToken(authorizeCode);
         KaKaoProfileResponse kaKaoProfile = kaKaoService.getKaKaoProfile(accessToken.getAccess_token());
-        
-        Long id = kaKaoProfile.getId();
+        String profileImageUrl = kaKaoProfile.getKakaoAccount().getProfile().getProfileImageUrl();
+        String thumbnailImageUrl = kaKaoProfile.getKakaoAccount().getProfile().getThumbnailImageUrl();
         UserServiceContext userServiceContext = (UserServiceContext) chamUserDetailService.loadUserByUsername(kaKaoProfile);
         
         
-        return new KaKaoChamAuthenticationToken(userServiceContext.getMember(), null,userServiceContext.getAuthorities());
+        return new KaKaoChamAuthenticationToken(userServiceContext.getMember(), null,profileImageUrl,thumbnailImageUrl,userServiceContext.getAuthorities());
     }
     
     

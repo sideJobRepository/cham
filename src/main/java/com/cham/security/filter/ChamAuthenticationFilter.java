@@ -31,6 +31,8 @@ public class ChamAuthenticationFilter extends AbstractAuthenticationProcessingFi
         
         KaKaoChamAuthenticationToken kaKaoChamAuthenticationToken = new KaKaoChamAuthenticationToken(
                 code,
+                null,
+                null,
                 null
         );
         

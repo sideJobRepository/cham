@@ -11,7 +11,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -34,6 +36,8 @@ public class ChamSecurityConfig {
     
     private final AuthenticationProvider chamAuthenticationProvider;
     private final AuthenticationSuccessHandler chamAuthenticationSuccessHandler;
+    private final AuthenticationFailureHandler chamAuthenticationFailureHandler;
+    private final AuthenticationEntryPoint chamAuthenticationEntryPoint;
     private final JwtTokenFilter jwtTokenFilter;
     
     @Bean
@@ -59,6 +63,8 @@ public class ChamSecurityConfig {
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .with(new ChamSecurityDsl<>(), chamSecurityDsl -> chamSecurityDsl
                         .chamKaKaoSuccessHandler(chamAuthenticationSuccessHandler)
+                        .chamKaKaoFailureHandler(chamAuthenticationFailureHandler)
+                        .chamKaKaoEntryPoint(chamAuthenticationEntryPoint)
                         .loginProcessingUrl("/cham/kakao-login")
                 )
         ;

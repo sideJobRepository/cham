@@ -43,8 +43,8 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     
     private Member toMember(KaKaoProfileResponse profile) {
         return Member.builder()
-                .memberEmail(profile.getKakao_account().getEmail())
-                .memberName(profile.getKakao_account().getNickname())
+                .memberEmail(profile.getKakaoAccount().getEmail())
+                .memberName(profile.getKakaoAccount().getProfile().getNickname())
                 .socialType(SocialType.KAKAO)
                 .memberSubId(String.valueOf(profile.getId()))
                 .role(Role.USER)          // 신규 가입 시 기본 권한

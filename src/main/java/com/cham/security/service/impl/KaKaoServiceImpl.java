@@ -16,8 +16,8 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class KaKaoServiceImpl implements KaKaoService {
     
-    private final String kakaoClientId = ""; //값 넣어야함
-    private final String kakaoRedirectUri = "http://localhost:5173/oauth/kakao/redirect"; // 바꿀예정
+    private final String kakaoClientId = "cea9fa380d4db5159271874966b03bc4"; //값 넣어야함
+    private final String kakaoRedirectUri = "http://localhost:5173/oauth/kakao/callback"; // 바꿀예정
     
     @Override
     public AccessTokenResponse getAccessToken(String code) {
