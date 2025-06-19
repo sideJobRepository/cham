@@ -39,7 +39,9 @@ export default function DetailPage() {
                 {detail?.cardUseImageUrl ? (
                   <img src={detail?.cardUseImageUrl} alt="sample" />
                 ) : (
-                  <img src={test} alt="sample" />
+                  <EmptyImage>
+                    <span>대표 이미지가 없습니다.</span>
+                  </EmptyImage>
                 )}
               </ImageBox>
               <InfoBox>
@@ -132,6 +134,21 @@ const ImageBox = styled.div`
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
+  }
+`;
+
+const EmptyImage = styled.div`
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.liteGray};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  span {
+    color: white;
   }
 `;
 
