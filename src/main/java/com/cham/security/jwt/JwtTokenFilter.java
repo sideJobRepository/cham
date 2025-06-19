@@ -1,6 +1,8 @@
 package com.cham.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +24,7 @@ import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ import java.util.List;
 public class JwtTokenFilter extends OncePerRequestFilter {
     
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws  IOException {
         
@@ -52,6 +56,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContextHolderStrategy().getContext().setAuthentication(authenticationToken);
             }
             filterChain.doFilter(request, response);
+        }catch (ExpiredJwtException e){
+            log.warn("JWT 만료됨: {}", e.getMessage());
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+            objectMapper.writeValue(response.getWriter(), Map.of("error", "token expired"));
         } catch (Exception e) {
             log.error("jwt 인증에러  = ", e);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());

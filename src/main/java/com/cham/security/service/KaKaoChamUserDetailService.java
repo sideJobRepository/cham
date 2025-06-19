@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -33,8 +34,15 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     
     public UserDetails loadUserByUsername(KaKaoProfileResponse kaKaoProfile) {
         Member member = memberRepository.findByMemberSubId(String.valueOf(kaKaoProfile.getId()))
-                .orElseGet(() -> memberRepository.save(toMember(kaKaoProfile)));
-        
+                .map(existingMember -> {
+                    String thumbnailImageUrl = kaKaoProfile.getKakaoAccount().getProfile().getThumbnailImageUrl();
+                    existingMember.modifyMemberImageUrl(thumbnailImageUrl);
+                    return existingMember;
+                })
+                .orElseGet(() -> {
+                    Member newMember = toMember(kaKaoProfile);
+                    return memberRepository.save(newMember);
+                });
         List<GrantedAuthority> authorities =
                 AuthorityUtils.createAuthorityList(member.getRole().name());
         
@@ -47,6 +55,7 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
                 .memberName(profile.getKakaoAccount().getProfile().getNickname())
                 .socialType(SocialType.KAKAO)
                 .memberSubId(String.valueOf(profile.getId()))
+                .memberImageUrl(profile.getKakaoAccount().getProfile().getThumbnailImageUrl())
                 .role(Role.USER)          // 신규 가입 시 기본 권한
                 .build();
     }

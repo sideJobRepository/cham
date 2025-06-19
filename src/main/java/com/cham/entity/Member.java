@@ -5,6 +5,7 @@ import com.cham.entity.enumeration.Role;
 import com.cham.entity.enumeration.SocialType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
@@ -12,6 +13,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@DynamicUpdate
 public class Member extends BaseData {
     // 회원 ID
     @Id
@@ -38,5 +40,13 @@ public class Member extends BaseData {
     @Column(name = "MEMBER_ROLE")
     @Enumerated(EnumType.STRING)
     private Role role;
+    
+    @Column(name = "MEMBER_IMAGE_URL")
+    private String memberImageUrl;
+    
+    
+    public void modifyMemberImageUrl(String memberImageUrl) {
+        this.memberImageUrl = memberImageUrl;
+    }
     
 }

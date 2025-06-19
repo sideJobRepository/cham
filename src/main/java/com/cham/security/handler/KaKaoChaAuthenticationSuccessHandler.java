@@ -29,7 +29,7 @@ public class KaKaoChaAuthenticationSuccessHandler implements AuthenticationSucce
         Member member = (Member) kakaoToken.getPrincipal();
         String profileImageUrl = kakaoToken.getProfileImageUrl();
         String thumbnailImageUrl = kakaoToken.getThumbnailImageUrl();
-        String token = jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name(),   profileImageUrl, thumbnailImageUrl, member.getMemberName());
+        String token = jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name(),   profileImageUrl, thumbnailImageUrl, member.getMemberName(),member.getMemberSubId());
         Map<String,Object> map = new HashMap<>();
         map.put("id",member.getMemberId());
         map.put("token",token);
