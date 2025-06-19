@@ -93,10 +93,6 @@ const DetailWrapper = styled.section`
   flex-direction: column;
   height: 100%;
   margin: 0 auto;
-  overflow-y: hidden;
-  @media screen and ${({ theme }) => theme.device.mobile} {
-    overflow-y: unset;
-  }
 `;
 
 const FixedTop = styled.div`
@@ -107,10 +103,6 @@ const FixedTop = styled.div`
 const ScrollableBottom = styled.div`
   flex: 1;
   padding: 0 20px;
-  overflow-y: auto;
-  @media screen and ${({ theme }) => theme.device.mobile} {
-    overflow-y: unset;
-  }
 `;
 
 const TopContent = styled.div`
