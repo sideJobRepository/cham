@@ -1,5 +1,6 @@
 package com.cham.entity;
 
+import com.cham.controller.request.ReplyModifyRequest;
 import com.cham.entity.base.BaseData;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -55,6 +56,10 @@ public class Reply extends BaseData {
     @Override
     public int hashCode() {
         return Objects.hash(replyId);
+    }
+    
+    public void modifyReply(ReplyModifyRequest request) {
+        this.replyCont = request.getReplyCont();
     }
     
 }

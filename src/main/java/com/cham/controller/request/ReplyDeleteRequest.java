@@ -4,16 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReplyRequest {
+@Data
+public class ReplyDeleteRequest {
     
-    
-    private Long cardUseAddrId;
-    
-    private Long memberId;
-    
-    private String replyCont;
-    
+    private Long replyId;
 }

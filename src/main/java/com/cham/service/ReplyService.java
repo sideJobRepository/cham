@@ -1,10 +1,16 @@
 package com.cham.service;
 
-import com.cham.controller.request.ReplyRequest;
+import com.cham.controller.request.ReplyDeleteRequest;
+import com.cham.controller.request.ReplyModifyRequest;
+import com.cham.controller.request.ReplyCreateRequest;
 import com.cham.controller.response.ApiResponse;
 
 public interface ReplyService {
     
     
-    ApiResponse insertReply(ReplyRequest reply);
+    ApiResponse insertReply(ReplyCreateRequest request);
+    
+    ApiResponse updateReply(ReplyModifyRequest request);
+    
+    ApiResponse deleteReply(ReplyDeleteRequest request);
 }

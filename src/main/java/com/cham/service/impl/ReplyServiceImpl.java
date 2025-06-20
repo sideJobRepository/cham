@@ -1,6 +1,8 @@
 package com.cham.service.impl;
 
-import com.cham.controller.request.ReplyRequest;
+import com.cham.controller.request.ReplyDeleteRequest;
+import com.cham.controller.request.ReplyModifyRequest;
+import com.cham.controller.request.ReplyCreateRequest;
 import com.cham.controller.response.ApiResponse;
 import com.cham.entity.Reply;
 import com.cham.repository.ReplyRepository;
@@ -17,9 +19,25 @@ public class ReplyServiceImpl implements ReplyService {
     private final ReplyRepository replyRepository;
     
     @Override
-    public ApiResponse insertReply(ReplyRequest request) {
+    public ApiResponse insertReply(ReplyCreateRequest request) {
         Reply reply = new Reply(request.getMemberId(), request.getCardUseAddrId(), request.getReplyCont());
         replyRepository.save(reply);
         return new ApiResponse(200,true,"댓글이 작성 되었습니다.");
+    }
+    
+    @Override
+    public ApiResponse updateReply(ReplyModifyRequest request) {
+        Long replyId = request.getReplyId();
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재하지 않는 댓글입니다."));
+        reply.modifyReply(request);
+        return new ApiResponse(200,true,"댓글이 수정 되었습니다.");
+    }
+    
+    @Override
+    public ApiResponse deleteReply(ReplyDeleteRequest request) {
+        Long replyId = request.getReplyId();
+        Reply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재하지 않는 댓글입니다."));
+        replyRepository.delete(reply);
+        return new ApiResponse(200,true,"댓글이 삭제 되었습니다.");
     }
 }

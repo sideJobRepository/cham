@@ -25,7 +25,7 @@ public class JwtTokenProvider {
         this.encryptionKey = new SecretKeySpec(java.util.Base64.getDecoder().decode(secretKey), SignatureAlgorithm.HS512.getJcaName());
     }
     
-    public String createToken(String email, String role, String profileImageUrl, String thumbnailImageUrl, String memberName, String memberSubId) {
+    public String createToken(Long memberId, String email, String role, String profileImageUrl, String thumbnailImageUrl, String memberName, String memberSubId) {
         // Claims 는 jwt 토큰의 payload 부분을 의미
         Date now = new Date();
         long expireMillis = now.getTime() + expiration * 60 * 1000L;
@@ -35,6 +35,7 @@ public class JwtTokenProvider {
         String expiredAtFormatted = format.format(expireDate);
         
         Claims claims = Jwts.claims().setSubject(memberSubId);
+        claims.put("memberId", memberId);
         claims.put("email", email);
         claims.put("role", role);
         claims.put("profileImageUrl", profileImageUrl);

@@ -19,6 +19,7 @@ public class CardUseResponse {
     private Long cardUseAddrId;
     private LocalDate useDate;
     private List<CardUseGroupedResponse> cardUseGroupedResponses;
+    private List<ReplyResponse> replies;
     
     
     

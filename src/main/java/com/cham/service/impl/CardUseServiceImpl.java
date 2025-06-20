@@ -4,8 +4,11 @@ import com.cham.controller.request.CardUseConditionRequest;
 import com.cham.controller.response.ApiResponse;
 import com.cham.controller.response.CardUseGroupedResponse;
 import com.cham.controller.response.CardUseResponse;
+import com.cham.controller.response.ReplyResponse;
 import com.cham.entity.CardUse;
 import com.cham.entity.CardUseAddr;
+import com.cham.entity.QReply;
+import com.cham.entity.Reply;
 import com.cham.entity.dto.CardOwnerPositionDto;
 import com.cham.entity.dto.CardUseAddrDto;
 import com.cham.excel.PoiUtil;
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 import static com.cham.entity.QCardOwnerPosition.cardOwnerPosition;
 import static com.cham.entity.QCardUse.cardUse;
 import static com.cham.entity.QCardUseAddr.cardUseAddr;
+import static com.cham.entity.QReply.*;
 
 
 @RequiredArgsConstructor
@@ -73,14 +77,24 @@ public class CardUseServiceImpl implements CardUseService {
             booleanBuilder.and(cardUse.cardUseDate.loe(request.getEndDate()));
         }
         
+        // 1. 카드사용 + 카드사용장소 + 댓글 조회
         List<CardUse> cardUses = queryFactory
                 .selectFrom(cardUse)
                 .join(cardUse.cardUseAddr, cardUseAddr).fetchJoin()
                 .where(booleanBuilder)
                 .fetch();
         
+        List<Reply> replies = queryFactory
+                .selectFrom(reply)
+                .join(reply.cardUseAddr, cardUseAddr).fetchJoin()
+                .fetch();
+
+// 2. 그룹핑: 장소별 카드사용, 장소별 댓글
         Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getCardUseAddrId()));
+        
+        Map<Long, List<Reply>> repliesGroupedByAddrId = replies.stream()
+                .collect(Collectors.groupingBy(reply -> reply.getCardUseAddr().getCardUseAddrId()));
         
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
         
@@ -110,35 +124,53 @@ public class CardUseServiceImpl implements CardUseService {
                     .mapToInt(CardUse::getCardUseAmount)
                     .sum();
             
-            
-            // 사용자별 기록 정리
             List<CardUseGroupedResponse> groupedResponses = cardUseList.stream()
-                    .map(use -> {
-                        String amountPerPerson = use.getAmountPerPerson();
-                        return new CardUseGroupedResponse(
-                                use.getCardUseName(),
-                                amountPerPerson,
-                                use.getCardUseMethod(),
-                                use.getCardUseAmount(),
-                                use.getCardUsePurpose(),
-                                use.getCardUsePersonnel(),
-                                use.getCardUseDate(),
-                                use.getCardUseTime());
-                    })
+                    .map(use -> new CardUseGroupedResponse(
+                            use.getCardUseName(),
+                            use.getAmountPerPerson(),
+                            use.getCardUseMethod(),
+                            use.getCardUseAmount(),
+                            use.getCardUsePurpose(),
+                            use.getCardUsePersonnel(),
+                            use.getCardUseDate(),
+                            use.getCardUseTime()
+                    ))
                     .collect(Collectors.toList());
             
-            
-            LocalDate useDate = cardUseList.stream().map(CardUse::getCardUseDate).max(Comparator.naturalOrder()).orElse(null);
-            
+            LocalDate useDate = cardUseList.stream()
+                    .map(CardUse::getCardUseDate)
+                    .max(Comparator.naturalOrder())
+                    .orElse(null);
             
             String addrDetail = cardUseList.stream()
                     .map(item -> item.getCardUseAddr().getCardUseDetailAddr())
                     .findFirst()
                     .orElse("");
+            
             String imageUrl = cardUseAddrRepository.findByImageUrl(addrId);
-            CardUseResponse response = new CardUseResponse(addrName, visitCount, visitMember,totalSum,addrDetail,imageUrl,addrId,useDate, groupedResponses);
+            
+            // 댓글 내용 리스트
+            List<ReplyResponse> replyList = repliesGroupedByAddrId.getOrDefault(addrId, Collections.emptyList())
+                    .stream().map(item -> new ReplyResponse(item.getReplyId(),item.getReplyCont(),item.getMember().getMemberName(),item.getMember().getMemberImageUrl()))
+                    .collect(Collectors.toList());
+            // 응답 생성
+            CardUseResponse response = new CardUseResponse(
+                    addrName,
+                    visitCount,
+                    visitMember,
+                    totalSum,
+                    addrDetail,
+                    imageUrl,
+                    addrId,
+                    useDate,
+                    groupedResponses,
+                    replyList // 댓글 포함
+            );
+            
             resultMap.put(addrId, response);
         }
+
+// 날짜 내림차순 정렬 후 반환
         Comparator<LocalDate> dateComparator = Comparator.nullsLast(Comparator.naturalOrder());
         return resultMap.entrySet()
                 .stream()
