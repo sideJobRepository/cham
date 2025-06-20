@@ -44,6 +44,10 @@ public class Member extends BaseData {
     @Column(name = "MEMBER_IMAGE_URL")
     private String memberImageUrl;
     
+    public Member(Long memberId) {
+        this.memberId = memberId;
+    }
+    
     
     public void modifyMemberImageUrl(String memberImageUrl) {
         this.memberImageUrl = memberImageUrl;
