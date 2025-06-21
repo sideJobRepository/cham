@@ -151,7 +151,7 @@ public class CardUseServiceImpl implements CardUseService {
             
             // 댓글 내용 리스트
             List<ReplyResponse> replyList = repliesGroupedByAddrId.getOrDefault(addrId, Collections.emptyList())
-                    .stream().map(item -> new ReplyResponse(item.getReplyId(),item.getReplyCont(),item.getMember().getMemberName(),item.getMember().getMemberImageUrl()))
+                    .stream().map(item -> new ReplyResponse(item.getReplyId(),item.getReplyCont(),item.getMember().getMemberName(),item.getMember().getMemberImageUrl(), item.getMember().getMemberEmail()))
                     .collect(Collectors.toList());
             // 응답 생성
             CardUseResponse response = new CardUseResponse(

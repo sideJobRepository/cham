@@ -16,4 +16,6 @@ public class ReplyResponse {
     private String memberName;
     
     private String memberImageUrl;
+    
+    private String memberEmail;
 }
