@@ -145,7 +145,6 @@ const Card = styled.article`
   }
 
   &:hover {
-    img,
     p,
     span {
       opacity: 0.5;
