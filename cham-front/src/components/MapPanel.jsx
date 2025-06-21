@@ -118,20 +118,20 @@ export default function MapPanel() {
 
               const div = document.createElement('div');
               div.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: ${theme.colors.primary};
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: ${theme.sizes.medium};
-            white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            height: 30px;
-            cursor: pointer;
-          `;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: ${theme.colors.primary};
+                color: white;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: ${theme.sizes.medium};
+                white-space: nowrap;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                height: 30px;
+                cursor: pointer;
+              `;
               div.textContent = `${amount.toLocaleString()}원`;
 
               // 클릭 시 상세 페이지로 이동
@@ -148,6 +148,13 @@ export default function MapPanel() {
                   // 필요한 필드 추가
                 }).toString();
                 window.open(`/detail?${query}`, '_blank');
+              });
+
+              div.addEventListener('mouseenter', () => {
+                div.style.opacity = '0.8';
+              });
+              div.addEventListener('mouseleave', () => {
+                div.style.opacity = '1';
               });
 
               const overlay = new window.kakao.maps.CustomOverlay({

@@ -1,30 +1,56 @@
 import styled from 'styled-components';
-import test from '/test.jpg';
-import profile from '/profile.png';
 import VisitCard from '../components/VisiitCard.jsx';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaCommentDots } from 'react-icons/fa';
 import { FaPen } from 'react-icons/fa';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 import { useDetailMapState } from '@/recoil/useAppState.js';
+import { useRecoilValue } from 'recoil';
+import { userState } from '@/recoil/appState.js';
+import { useSearchParams } from 'react-router-dom';
+import api from '@/utils/axiosInstance.js';
+import { toast } from 'react-toastify';
 
 export default function DetailPage() {
   const [searchParams] = useSearchParams();
   const { mapDetailData } = useDetailMapState();
   const [detail, SetDetail] = useState(null);
 
-  const navigate = useNavigate();
+  const paramsObj = Object.fromEntries(searchParams.entries());
+
+  const user = useRecoilValue(userState);
 
   const detailSearch = useMapSearch();
 
+  const [showInput, setShowInput] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleCreate = async () => {
+    const replyCont = inputRef.current.value;
+    const memberId = user.memberId;
+    const cardUseAddrId = detail.cardUseAddrId;
+
+    const params = { cardUseAddrId, memberId, replyCont };
+
+    try {
+      await api.post('/cham/reply', params);
+      setShowInput(false);
+      toast.success('댓글이 저장되었습니다.');
+      await detailSearch(paramsObj);
+    } catch (e) {
+      toast.error('댓글 저장이 실패했습니다.');
+    }
+  };
+
   useEffect(() => {
-    const paramsObj = Object.fromEntries(searchParams.entries());
     detailSearch(paramsObj);
   }, []);
 
   useEffect(() => {
     if (mapDetailData) {
+      console.log('mapDetailData', mapDetailData);
+      console.log('user', user);
       SetDetail(Object.values(mapDetailData)[0]);
     }
   }, [mapDetailData]);
@@ -57,19 +83,43 @@ export default function DetailPage() {
                 <CommentSection>
                   <CommentTitle>
                     <FaCommentDots style={{ marginRight: '4px' }} />
-                    댓글 <span>3건</span>
-                    <WriteButton>
-                      <PenIcon size={12} />
-                      작성
-                    </WriteButton>
+                    댓글 <span>{detail.replies.length}건</span>
+                    {user && !showInput && (
+                      <WriteButton
+                        onClick={() => {
+                          setShowInput(true);
+                          setTimeout(() => {
+                            inputRef.current?.focus();
+                          }, 0); // 렌더 직후 포커스
+                        }}
+                      >
+                        <PenIcon size={12} />
+                        작성
+                      </WriteButton>
+                    )}
                   </CommentTitle>
                   <CommentItemSection>
-                    <CommentItem>
-                      <Avatar src={profile} />
-                      <CommentText>
-                        <strong>박용우 : </strong> 여기 진짜 리얼 맛집입니다.
-                      </CommentText>
-                    </CommentItem>
+                    {detail.replies.map(reply => (
+                      <CommentItem key={reply.replyId}>
+                        <Avatar src={reply.memberImageUrl} alt="프로필 이미지" />
+                        <CommentText>
+                          <strong>{reply.memberName} :</strong> {reply.replyCont}
+                        </CommentText>
+                      </CommentItem>
+                    ))}
+                    {showInput && (
+                      <InputBox>
+                        <input ref={inputRef} type="text" placeholder="댓글을 입력하세요" />
+                        <WriteButton onClick={handleCreate}>저장</WriteButton>
+                        <WriteButton
+                          onClick={() => {
+                            setShowInput(false);
+                          }}
+                        >
+                          취소
+                        </WriteButton>
+                      </InputBox>
+                    )}
                   </CommentItemSection>
                 </CommentSection>
               </InfoBox>
@@ -255,10 +305,21 @@ const BottomCards = styled.div`
 const CommentItemSection = styled.div`
   display: flex;
   flex-direction: column;
-  max-height: 120px;
+  max-height: 110px;
   padding: 4px 0;
   gap: 6px;
   overflow-y: auto;
+
+  input {
+    border: none;
+    width: 100%;
+    border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
+    padding: 4px;
+    &:focus {
+      outline: none;
+      border-bottom: 2px solid ${({ theme }) => theme.colors.primary}; // 선택적으로 재지정
+    }
+  }
 `;
 
 const CommentItem = styled.div`
@@ -267,8 +328,8 @@ const CommentItem = styled.div`
 `;
 
 const Avatar = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 8px;
@@ -277,4 +338,9 @@ const Avatar = styled.img`
 const CommentText = styled.p`
   margin: 0;
   font-size: 13px;
+`;
+
+const InputBox = styled.div`
+  display: flex;
+  width: 100%;
 `;

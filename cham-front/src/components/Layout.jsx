@@ -64,6 +64,12 @@ export default function Layout() {
 const Wrapper = styled.div`
   height: 100vh;
   overflow-y: hidden;
+
+  button {
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 `;
 const Inner = styled.div`
   max-width: 1500px;

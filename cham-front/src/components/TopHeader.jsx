@@ -69,11 +69,6 @@ export default function TopHeader() {
     };
   }, [isOpen]);
 
-  //메뉴바 닫기
-  useEffect(() => {
-    console.log('user', user);
-  }, [user]);
-
   return (
     <Wrapper>
       <Left
