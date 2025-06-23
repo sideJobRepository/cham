@@ -15,61 +15,6 @@ import { useMapSearch } from '@/recoil/fetchAppState.js';
 export default function MainPage() {
   const theme = useTheme();
   const [isMobile, setIsMobile] = useState(false);
-  const user = useRecoilValue(userState);
-
-  //삭제키
-  const [deleteText, setDeleteText] = useState('');
-
-  const fileInputRef = useRef(null);
-
-  const mapSearch = useMapSearch();
-  const [searchCondition, setSearchCondition] = useRecoilState(mapSearchFilterState);
-
-  const handleSearch = () => {
-    const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
-    const params = {
-      cardOwnerPositionId: searchCondition.selectedRole?.value,
-      cardUseName: searchCondition.cardUseName,
-      numberOfVisits: parseInt(rawAmount, 10),
-      startDate: searchCondition.startDate?.toISOString().split('T')[0],
-      endDate: searchCondition.endDate?.toISOString().split('T')[0],
-      sortOrder: searchCondition.sortOrder,
-      addrDetail: '',
-    };
-
-    mapSearch(params);
-  };
-
-  const handleExcelUploadClick = () => {
-    fileInputRef.current?.click(); // 엑셀 업로드 버튼 클릭 시 input 클릭
-  };
-
-  const handleExcelFileChange = async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-      toast.error('엑셀 파일(.xlsx, .xls)만 업로드할 수 있습니다.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('multipartFile', file);
-
-    try {
-      await api.post('/cham/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      toast.success('엑셀 파일이 업로드되었습니다.');
-      await handleSearch();
-    } catch (error) {
-      console.log('error', error);
-      toast.error('엑셀 업로드 실패');
-    } finally {
-      e.target.value = '';
-    }
-  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -93,55 +38,6 @@ export default function MainPage() {
             <ListSection>
               <SearchBar />
               <MapSection>
-                {user?.role === 'ADMIN' && (
-                  <ExcelSection>
-                    <ExcelButton onClick={handleExcelUploadClick}>
-                      <FaFileExcel size={16} />
-                      엑셀 업로드
-                    </ExcelButton>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      accept=".xlsx,.xls"
-                      style={{ display: 'none' }}
-                      onChange={handleExcelFileChange}
-                    />
-                    <DeleteInput
-                      value={deleteText}
-                      onChange={e => setDeleteText(e.target.value)}
-                      type="text"
-                      placeholder="삭제키를 입력해주세요"
-                    />
-                    <ExcelButton
-                      onClick={() => {
-                        confirmAlert({
-                          message: '해당 엑셀을 삭제하시겠습니까?',
-                          buttons: [
-                            {
-                              label: '삭제',
-                              onClick: async () => {
-                                try {
-                                  await api.delete(`/cham/reply/${deleteText}`);
-                                  toast.success('엑셀 삭제가 완료되었습니다.');
-                                  await handleSearch();
-                                } catch (e) {
-                                  toast.error('엑셀 삭제가 실패했습니다.');
-                                }
-                              },
-                            },
-                            {
-                              label: '취소',
-                              onClick: () => {},
-                            },
-                          ],
-                        });
-                      }}
-                    >
-                      <AiOutlineDelete size={20} />
-                      엑셀 삭제
-                    </ExcelButton>
-                  </ExcelSection>
-                )}
                 <MapPanel />
               </MapSection>
               <ListContent>
@@ -158,55 +54,6 @@ export default function MainPage() {
               </ListContent>
             </ListSection>
             <MapSection>
-              {user?.role === 'ADMIN' && (
-                <ExcelSection>
-                  <ExcelButton onClick={handleExcelUploadClick}>
-                    <FaFileExcel size={16} />
-                    엑셀 업로드
-                  </ExcelButton>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept=".xlsx,.xls"
-                    style={{ display: 'none' }}
-                    onChange={handleExcelFileChange}
-                  />
-                  <DeleteInput
-                    value={deleteText}
-                    type="text"
-                    onChange={e => setDeleteText(e.target.value)}
-                    placeholder="삭제키를 입력해주세요"
-                  />
-                  <ExcelButton
-                    onClick={() => {
-                      confirmAlert({
-                        message: '해당 엑셀을 삭제하시겠습니까?',
-                        buttons: [
-                          {
-                            label: '삭제',
-                            onClick: async () => {
-                              try {
-                                await api.delete(`/cham/upload/${deleteText}`);
-                                toast.success('엑셀 삭제가 완료되었습니다.');
-                                await handleSearch();
-                              } catch (e) {
-                                toast.error('엑셀 삭제가 실패했습니다.');
-                              }
-                            },
-                          },
-                          {
-                            label: '취소',
-                            onClick: () => {},
-                          },
-                        ],
-                      });
-                    }}
-                  >
-                    <AiOutlineDelete size={20} />
-                    엑셀 삭제
-                  </ExcelButton>
-                </ExcelSection>
-              )}
               <MapPanel />
             </MapSection>
           </>
@@ -257,7 +104,7 @@ const ListContent = styled.div`
 
 const MapSection = styled.div`
   flex: 1;
-  height: 90%;
+  height: 100%;
   border-radius: 8px;
   padding: 0 12px;
   @media ${({ theme }) => theme.device.mobile} {
@@ -266,43 +113,5 @@ const MapSection = styled.div`
     padding: 0;
     margin-top: 20px;
     overflow: hidden;
-  }
-`;
-
-const ExcelSection = styled.div`
-  width: 100%;
-  height: 10%;
-  padding: 10px;
-  display: flex;
-  gap: 8px;
-  justify-content: right;
-  @media ${({ theme }) => theme.device.mobile} {
-    padding: 0;
-    margin-bottom: 20px;
-  }
-`;
-
-const ExcelButton = styled.button`
-  display: flex;
-  align-items: center;
-  background: ${({ color, theme }) => color || theme.colors.primary};
-  border: none;
-  color: white;
-  font-weight: bold;
-  font-size: ${({ theme }) => theme.sizes.medium};
-  padding: 10px 16px;
-  border-radius: 999px;
-  cursor: pointer;
-  white-space: nowrap;
-  gap: 6px;
-`;
-
-const DeleteInput = styled.input`
-  border: none;
-  border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
-  padding: 4px;
-  &:focus {
-    outline: none;
-    border-bottom: 2px solid ${({ theme }) => theme.colors.primary}; // 선택적으로 재지정
   }
 `;
