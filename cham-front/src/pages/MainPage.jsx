@@ -3,14 +3,6 @@ import SearchBar from '../components/SearchBar';
 import Sidebar from '../components/Sidebar';
 import MapPanel from '../components/MapPanel';
 import { useState, useEffect, useRef } from 'react';
-import { FaFileExcel } from 'react-icons/fa';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { mapSearchFilterState, userState } from '@/recoil/appState.js';
-import { AiOutlineDelete } from 'react-icons/ai';
-import { toast } from 'react-toastify';
-import { confirmAlert } from 'react-confirm-alert';
-import api from '@/utils/axiosInstance.js';
-import { useMapSearch } from '@/recoil/fetchAppState.js';
 
 export default function MainPage() {
   const theme = useTheme();

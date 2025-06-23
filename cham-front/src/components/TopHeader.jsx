@@ -22,8 +22,8 @@ export default function TopHeader() {
 
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const menus = ['업무추진비 맛집지도', '수의계약'];
-  const menuLinks = ['/', 'contract'];
+  const menus = ['업무추진비 맛집지도'];
+  const menuLinks = ['/'];
 
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen(prev => !prev);
