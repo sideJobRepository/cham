@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useSearchMapState } from '@/recoil/useAppState.js';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
+
 import {
   mapCenterAddrState,
   mapSearchFilterState,
@@ -94,12 +95,13 @@ export default function MapPanel() {
         address: item.addrDetail,
         amount: item.totalSum,
         raw: item,
+        replies: item.replies.length,
       }));
 
       const visibleItems = [];
       let completed = 0;
 
-      points.forEach(({ address, amount, raw }) => {
+      points.forEach(({ address, amount, replies, raw }) => {
         geocoder.addressSearch(address, (result, status) => {
           completed++;
 
@@ -132,7 +134,7 @@ export default function MapPanel() {
                 height: 30px;
                 cursor: pointer;
               `;
-              div.textContent = `${amount.toLocaleString()}원`;
+              div.innerHTML = `${amount.toLocaleString()}원&nbsp;&nbsp;&nbsp;<i class="fa fa-comment"></i>&nbsp;${replies}`;
 
               // 클릭 시 상세 페이지로 이동
               div.addEventListener('click', () => {

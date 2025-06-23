@@ -11,11 +11,16 @@ import { userState } from '@/recoil/appState.js';
 import { useSearchParams } from 'react-router-dom';
 import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 export default function DetailPage() {
   const [searchParams] = useSearchParams();
   const { mapDetailData } = useDetailMapState();
   const [detail, SetDetail] = useState(null);
+
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editingText, setEditingText] = useState('');
 
   const paramsObj = Object.fromEntries(searchParams.entries());
 
@@ -102,9 +107,93 @@ export default function DetailPage() {
                     {detail.replies.map(reply => (
                       <CommentItem key={reply.replyId}>
                         <Avatar src={reply.memberImageUrl} alt="프로필 이미지" />
-                        <CommentText>
-                          <strong>{reply.memberName} :</strong> {reply.replyCont}
-                        </CommentText>
+                        {editingReplyId === reply.replyId ? (
+                          <>
+                            <input
+                              value={editingText}
+                              onChange={e => setEditingText(e.target.value)}
+                              autoFocus
+                            />
+
+                            <WriteButton
+                              onClick={() => {
+                                confirmAlert({
+                                  message: '해당 댓글을 수정하시겠습니까?',
+                                  buttons: [
+                                    {
+                                      label: '수정',
+                                      onClick: async () => {
+                                        try {
+                                          await api.put('/cham', {
+                                            replyId: reply.replyId,
+                                            replyCont: editingText,
+                                          });
+                                          toast.success('댓글이 수정되었습니다.');
+                                          setEditingReplyId(null);
+                                          await detailSearch(paramsObj);
+                                        } catch (e) {
+                                          toast.error('댓글 수정이 실패했습니다.');
+                                        }
+                                      },
+                                    },
+                                    {
+                                      label: '취소',
+                                      onClick: () => {},
+                                    },
+                                  ],
+                                });
+                              }}
+                            >
+                              저장
+                            </WriteButton>
+                            <WriteButton onClick={() => setEditingReplyId(null)}>취소</WriteButton>
+                          </>
+                        ) : (
+                          <>
+                            <CommentText>
+                              <strong>{reply.memberName} :</strong> {reply.replyCont}
+                            </CommentText>
+                            {!showInput && user.email === reply.memberEmail && (
+                              <>
+                                <WriteButton
+                                  onClick={() => {
+                                    setEditingReplyId(reply.replyId);
+                                    setEditingText(reply.replyCont);
+                                  }}
+                                >
+                                  수정
+                                </WriteButton>
+                                <WriteButton
+                                  onClick={() => {
+                                    confirmAlert({
+                                      message: '해당 댓글을 삭제하시겠습니까?',
+                                      buttons: [
+                                        {
+                                          label: '삭제',
+                                          onClick: async () => {
+                                            try {
+                                              await api.delete(`/cham/reply/${reply.replyId}`);
+                                              toast.success('댓글이 삭제되었습니다.');
+                                              await detailSearch(paramsObj);
+                                            } catch (e) {
+                                              toast.error('댓글 삭제가 실패했습니다.');
+                                            }
+                                          },
+                                        },
+                                        {
+                                          label: '취소',
+                                          onClick: () => {},
+                                        },
+                                      ],
+                                    });
+                                  }}
+                                >
+                                  삭제
+                                </WriteButton>
+                              </>
+                            )}
+                          </>
+                        )}
                       </CommentItem>
                     ))}
                     {showInput && (
@@ -274,7 +363,7 @@ const WriteButton = styled.button`
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.small};
   padding: 6px 10px;
-  margin-left: 8px;
+  margin-left: 4px;
   border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
@@ -336,7 +425,7 @@ const Avatar = styled.img`
 `;
 
 const CommentText = styled.p`
-  margin: 0;
+  margin-right: 4px;
   font-size: 13px;
 `;
 
