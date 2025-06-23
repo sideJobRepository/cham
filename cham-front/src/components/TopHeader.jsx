@@ -22,7 +22,7 @@ export default function TopHeader() {
 
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const menus = ['업무추진비 맛집지도'];
+  const menus = ['대전참여자치시민연대'];
   const menuLinks = ['/'];
 
   const [isOpen, setIsOpen] = useState(false);
@@ -82,7 +82,8 @@ export default function TopHeader() {
         }}
       >
         <MeerkatLogo src={logo} alt="로고" />
-        <img src={logo2} alt="로고" />
+        {/*<img src={logo2} alt="로고" />*/}
+        <span>업무추진비 맛집지도</span>
       </Left>
       <Center>
         {menus.map((menu, i) => (
@@ -102,7 +103,7 @@ export default function TopHeader() {
         <LinkGroup>
           <FieldsWrapper>
             <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="external">
-              <img src={linkLogo} alt="링크이동" />
+              대전참여자치시민연대 홈페이지
             </a>
             <Divider />
             <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">
@@ -110,7 +111,7 @@ export default function TopHeader() {
             </a>
             <Divider />
             <a href="https://ddemocracy.stibee.com" target="_blank" rel="external">
-              <Ddemocracy src={ddemocracy} alt="링크이동" rel="external" />
+              띠모크라시
             </a>
             <Divider />
             <a href="https://secure.donus.org/djcham/pay/step1" target="_blank" rel="external">
@@ -162,14 +163,20 @@ export default function TopHeader() {
 
         <LinkWrapper>
           <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="noreferrer">
-            <img src={linkLogo} alt="링크이동" />
+            대전참여자치시민연대 홈페이지
           </a>
+        </LinkWrapper>
+        <LinkWrapper>
           <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">
-            예산감시 <br /> 플랫폼
+            예산감시 플랫폼
           </a>
+        </LinkWrapper>
+        <LinkWrapper>
           <a href="https://ddemocracy.stibee.com" target="_blank" rel="external">
-            <Ddemocracy src={ddemocracy} alt="링크이동" rel="external" />
+            띠모크라시
           </a>
+        </LinkWrapper>
+        <LinkWrapper>
           <a href="https://secure.donus.org/djcham/pay/step1" target="_blank" rel="external">
             후원하기
           </a>
@@ -199,6 +206,13 @@ const Wrapper = styled.div`
 const Left = styled.div`
   display: flex;
   align-items: center;
+
+  span {
+    font-size: ${({ theme }) => theme.sizes.bigLarge};
+    font-weight: bold;
+    cursor: pointer;
+    color: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const Center = styled.div`

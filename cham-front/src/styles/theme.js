@@ -14,6 +14,7 @@ export const theme = {
     small: '10px',
     medium: '13px',
     large: '18px',
+    bigLarge: '22px',
   },
   device: {
     mobile: '(max-width: 844px)',
