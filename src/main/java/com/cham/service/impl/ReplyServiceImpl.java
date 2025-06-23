@@ -1,6 +1,5 @@
 package com.cham.service.impl;
 
-import com.cham.controller.request.ReplyDeleteRequest;
 import com.cham.controller.request.ReplyModifyRequest;
 import com.cham.controller.request.ReplyCreateRequest;
 import com.cham.controller.response.ApiResponse;
@@ -34,8 +33,7 @@ public class ReplyServiceImpl implements ReplyService {
     }
     
     @Override
-    public ApiResponse deleteReply(ReplyDeleteRequest request) {
-        Long replyId = request.getReplyId();
+    public ApiResponse deleteReply(Long replyId) {
         Reply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재하지 않는 댓글입니다."));
         replyRepository.delete(reply);
         return new ApiResponse(200,true,"댓글이 삭제 되었습니다.");

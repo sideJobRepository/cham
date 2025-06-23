@@ -26,9 +26,9 @@ public class ReplyController {
         return replyService.updateReply(request);
     }
     
-    @DeleteMapping("/reply")
-    public ApiResponse deleteReply(@RequestBody ReplyDeleteRequest request) {
-        return replyService.deleteReply(request);
+    @DeleteMapping("/reply/{replyId}")
+    public ApiResponse deleteReply(@PathVariable Long replyId) {
+        return replyService.deleteReply(replyId);
     }
 
 
