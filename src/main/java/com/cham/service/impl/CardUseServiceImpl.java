@@ -291,4 +291,10 @@ public class CardUseServiceImpl implements CardUseService {
         }
         return new ApiResponse(200 , true,"성공");
     }
+    
+    @Override
+    public ApiResponse deleteExcel(String deleteKey) {
+        cardUseRepository.deleteByCardUseDelkey(deleteKey);
+        return new ApiResponse(200 , true,"삭제 되었습니다.");
+    }
 }

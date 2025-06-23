@@ -12,4 +12,6 @@ public interface CardUseService {
     Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request);
     
     ApiResponse insertCardUse(MultipartFile multipartFile);
+    
+    ApiResponse deleteExcel(String deleteKey);
 }
