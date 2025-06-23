@@ -218,7 +218,7 @@ const Left = styled.div`
 const Center = styled.div`
   display: flex;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 8px;
   gap: 80px;
   @media ${({ theme }) => theme.device.tablet} {
     display: none;
