@@ -17,33 +17,29 @@ export default function Layout() {
 
   //유저정보
   useEffect(() => {
-    const stored = localStorage.getItem('user');
+    const stored = sessionStorage.getItem('user');
     if (!user) {
       setUser(JSON.parse(stored));
     }
   }, []);
 
   useEffect(() => {
-    const handleStorageChange = e => {
-      if (e.key === 'user') {
-        if (e.newValue) {
-          // 다른 창에서 로그인됨
-          try {
-            const userObj = JSON.parse(e.newValue);
-            setUser(userObj);
-          } catch (error) {
-            console.error('유저 파싱 실패', error);
-          }
-        } else {
-          // 다른 창에서 로그아웃됨
-          setUser(null);
-        }
+    const channel = new BroadcastChannel('auth');
+
+    channel.onmessage = event => {
+      if (event.data === 'logout') {
+        sessionStorage.clear();
+        setUser(null);
+      }
+
+      if (event.data.type === 'login') {
+        sessionStorage.setItem('user', JSON.stringify(event.data.user));
+        setUser(event.data.user);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      channel.close();
     };
   }, []);
 

@@ -40,8 +40,12 @@ export default function TopHeader() {
   };
 
   const logoutKakao = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    const channel = new BroadcastChannel('auth');
+    channel.postMessage('logout');
+    channel.close(); // 브라우저 리소스 정리
+
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     resetUser();
     setIsOpen(false);
     toast.success('로그아웃 되었습니다.');

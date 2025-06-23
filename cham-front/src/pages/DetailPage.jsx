@@ -33,7 +33,7 @@ export default function DetailPage() {
 
   const handleCreate = async () => {
     const replyCont = inputRef.current.value;
-    const memberId = user.memberId;
+    const memberId = user?.memberId;
     const cardUseAddrId = detail.cardUseAddrId;
 
     const params = { cardUseAddrId, memberId, replyCont };
@@ -54,8 +54,6 @@ export default function DetailPage() {
 
   useEffect(() => {
     if (mapDetailData) {
-      console.log('mapDetailData', mapDetailData);
-      console.log('user', user);
       SetDetail(Object.values(mapDetailData)[0]);
     }
   }, [mapDetailData]);
@@ -153,7 +151,7 @@ export default function DetailPage() {
                             <CommentText>
                               <strong>{reply.memberName} :</strong> {reply.replyCont}
                             </CommentText>
-                            {!showInput && user.email === reply.memberEmail && (
+                            {!showInput && user?.email === reply.memberEmail && (
                               <>
                                 <WriteButton
                                   onClick={() => {

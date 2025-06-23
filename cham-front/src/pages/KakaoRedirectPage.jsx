@@ -24,9 +24,14 @@ export default function KakaoRedirectPage() {
       .then(res => {
         const decoded = jwtDecode(res.data.token);
 
-        localStorage.setItem('user', JSON.stringify(decoded));
-        localStorage.setItem('token', res.data.token);
+        sessionStorage.setItem('user', JSON.stringify(decoded));
+        sessionStorage.setItem('token', res.data.token);
         setUser(decoded);
+
+        //탭 전역 저장
+        const channel = new BroadcastChannel('auth');
+        channel.postMessage({ type: 'login', user: decoded });
+        channel.close();
         // 토큰 저장 및 홈 이동 등
         navigate('/');
         toast.update(toastId, {
