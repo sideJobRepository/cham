@@ -21,7 +21,7 @@ public class ReplyController {
         return replyService.insertReply(request);
     }
     
-    @PutMapping
+    @PutMapping("/reply")
     public ApiResponse updateReply(@RequestBody ReplyModifyRequest request) {
         return replyService.updateReply(request);
     }
