@@ -122,7 +122,7 @@ export default function DetailPage() {
                                       label: '수정',
                                       onClick: async () => {
                                         try {
-                                          await api.put('/cham', {
+                                          await api.put('/cham/reply', {
                                             replyId: reply.replyId,
                                             replyCont: editingText,
                                           });
