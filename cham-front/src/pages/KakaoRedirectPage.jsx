@@ -25,7 +25,6 @@ export default function KakaoRedirectPage() {
         const decoded = jwtDecode(res.data.token);
 
         localStorage.setItem('user', JSON.stringify(decoded));
-        console.log('decoded', decoded);
         localStorage.setItem('token', res.data.token);
         setUser(decoded);
         // 토큰 저장 및 홈 이동 등
