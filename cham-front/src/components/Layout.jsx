@@ -52,16 +52,14 @@ export default function Layout() {
         <MainArea>
           <Outlet />
         </MainArea>
-        <Footer>© 2025 디지털개발소. All rights reserved.</Footer>
+        {/*<Footer>© 2025 디지털개발소. All rights reserved.</Footer>*/}
       </Inner>
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   overflow-y: hidden;
 
   button {
@@ -70,28 +68,24 @@ const Wrapper = styled.div`
     }
   }
 `;
-
 const Inner = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin: 0 auto;
   max-width: 1500px;
   min-width: 1023px;
-  width: 100%;
-
+  height: 100%;
+  display: flex;
+  margin: 0 auto;
+  flex-direction: column;
   @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;
   }
 `;
-
 const TopArea = styled.div`
-  height: 100px;
   position: sticky;
   top: 0;
   left: 0;
   right: 0;
+  height: 100px;
   border-bottom: 2px solid ${({ theme }) => theme.colors.topLine};
   z-index: 1000;
 `;

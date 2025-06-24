@@ -26,6 +26,11 @@ export default function DetailPage() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
 
+  const [editImage, setEditImage] = useState({});
+
+  //수정시 이미지 복사
+  const [editingImageUrls, setEditingImageUrls] = useState({});
+
   const paramsObj = Object.fromEntries(searchParams.entries());
 
   const user = useRecoilValue(userState);
@@ -68,7 +73,69 @@ export default function DetailPage() {
     }
   };
 
-  const [editImage, setEditImage] = useState({});
+  const handleUpdate = async reply => {
+    const replyId = reply.replyId;
+
+    const currentUrls = editingImageUrls[replyId] || [];
+    const originalUrls = reply.replyImageUrls || [];
+    const deletedUrls = originalUrls.filter(url => !currentUrls.includes(url));
+    const newFiles = editImage[replyId]?.files || [];
+
+    const formData = new FormData();
+    formData.append('replyId', replyId);
+    formData.append('replyCont', editingText);
+
+    let index = 0;
+
+    // 남아있는 기존 이미지 (normal)
+    currentUrls.forEach(url => {
+      formData.append(`images[${index}].state`, 'normal');
+      formData.append(`images[${index}].imgUrl`, url);
+      index++;
+    });
+
+    // 삭제된 기존 이미지 (delete)
+    deletedUrls.forEach(url => {
+      formData.append(`images[${index}].state`, 'delete');
+      formData.append(`images[${index}].imgUrl`, url);
+      index++;
+    });
+
+    // 새로 추가된 이미지 (create)
+    newFiles.forEach(file => {
+      formData.append(`images[${index}].state`, 'create');
+      formData.append(`images[${index}].file`, file);
+      index++;
+    });
+
+    try {
+      await api.put('/cham/reply', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      toast.success('댓글이 수정되었습니다.');
+
+      // 상태 초기화
+      setEditingReplyId(null);
+      setEditingText('');
+      setEditImage(prev => {
+        const newMap = { ...prev };
+        delete newMap[replyId];
+        return newMap;
+      });
+      setEditingImageUrls(prev => {
+        const newMap = { ...prev };
+        delete newMap[replyId];
+        return newMap;
+      });
+
+      await detailSearch(paramsObj);
+    } catch (e) {
+      toast.error('댓글 수정이 실패했습니다.');
+    }
+  };
 
   useEffect(() => {
     detailSearch(paramsObj);
@@ -148,19 +215,7 @@ export default function DetailPage() {
                                 buttons: [
                                   {
                                     label: '수정',
-                                    onClick: async () => {
-                                      try {
-                                        await api.put('/cham/reply', {
-                                          replyId: reply.replyId,
-                                          replyCont: editingText,
-                                        });
-                                        toast.success('댓글이 수정되었습니다.');
-                                        setEditingReplyId(null);
-                                        await detailSearch(paramsObj);
-                                      } catch (e) {
-                                        toast.error('댓글 수정이 실패했습니다.');
-                                      }
-                                    },
+                                    onClick: () => handleUpdate(reply),
                                   },
                                   {
                                     label: '취소',
@@ -172,7 +227,20 @@ export default function DetailPage() {
                           >
                             저장
                           </WriteButton>
-                          <WriteButton onClick={() => setEditingReplyId(null)}>취소</WriteButton>
+                          <WriteButton
+                            onClick={() => {
+                              setEditingReplyId(null);
+                              setEditingText('');
+                              setEditImage({});
+                              setEditingImageUrls(prev => {
+                                const newMap = { ...prev };
+                                delete newMap[reply.replyId];
+                                return newMap;
+                              });
+                            }}
+                          >
+                            취소
+                          </WriteButton>
                         </>
                       ) : (
                         <>
@@ -182,6 +250,10 @@ export default function DetailPage() {
                                 onClick={() => {
                                   setEditingReplyId(reply.replyId);
                                   setEditingText(reply.replyCont);
+                                  setEditingImageUrls(prev => ({
+                                    ...prev,
+                                    [reply.replyId]: [...reply.replyImageUrls], // 복사해서 저장
+                                  }));
                                 }}
                               >
                                 수정
@@ -219,17 +291,103 @@ export default function DetailPage() {
                       )}
                     </CommentTop>
                     <ContBox>
+                      {/* 기존 이미지 리스트 */}
                       <ImageRow>
-                        {reply?.replyImageUrls.slice(0, 3).map((imgUrl, idx) => (
-                          <ImageThumb key={idx} src={imgUrl} alt={`이미지 ${idx + 1}`} />
-                        ))}
+                        {editingReplyId === reply.replyId
+                          ? editingImageUrls[reply.replyId]
+                              ?.concat(editImage[reply.replyId]?.previews || [])
+                              .slice(0, 3)
+                              .map((imgUrl, idx) => (
+                                <ImageWrapper key={idx}>
+                                  <ImageThumb src={imgUrl} alt={`이미지 ${idx + 1}`} />
+                                  {/* 기존 이미지인 경우에만 삭제 버튼 활성화 */}
+                                  {idx < (editingImageUrls[reply.replyId]?.length || 0) && (
+                                    <DeleteBtn
+                                      onClick={() => {
+                                        setEditingImageUrls(prev => ({
+                                          ...prev,
+                                          [reply.replyId]: prev[reply.replyId].filter(
+                                            url => url !== imgUrl
+                                          ),
+                                        }));
+                                      }}
+                                    >
+                                      ×
+                                    </DeleteBtn>
+                                  )}
+                                </ImageWrapper>
+                              ))
+                          : reply.replyImageUrls?.slice(0, 3).map((imgUrl, idx) => (
+                              <ImageWrapper key={idx}>
+                                <ImageThumb src={imgUrl} alt={`이미지 ${idx + 1}`} />
+                              </ImageWrapper>
+                            ))}
                       </ImageRow>
+
+                      {/* 텍스트 영역 */}
                       {editingReplyId === reply.replyId ? (
-                        <TextArea
-                          value={editingText}
-                          onChange={e => setEditingText(e.target.value)}
-                          rows={3}
-                        />
+                        <>
+                          <ButtonRow>
+                            <WriteButton
+                              onClick={() =>
+                                document.getElementById(`edit-image-${reply.replyId}`).click()
+                              }
+                            >
+                              + 이미지 추가
+                            </WriteButton>
+                          </ButtonRow>
+                          <TextArea
+                            value={editingText}
+                            onChange={e => setEditingText(e.target.value)}
+                            rows={3}
+                          />
+
+                          {/* 새 이미지 추가 버튼 */}
+                          <div>
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              id={`edit-image-${reply.replyId}`}
+                              onChange={e => {
+                                const existingUrls = editingImageUrls[reply.replyId] || [];
+                                const currentFiles = editImage[reply.replyId]?.files || [];
+
+                                const selectedFiles = Array.from(e.target.files || []);
+
+                                const totalCount = existingUrls.length + currentFiles.length;
+                                const allowedCount = Math.max(0, 3 - totalCount);
+
+                                if (allowedCount <= 0) {
+                                  toast.warning('이미지는 3장까지 첨부할 수 있습니다.');
+                                  return;
+                                }
+
+                                const limitedFiles = selectedFiles.slice(0, allowedCount);
+                                const previews = limitedFiles.map(file =>
+                                  URL.createObjectURL(file)
+                                );
+
+                                setEditImage(prev => ({
+                                  ...prev,
+                                  [reply.replyId]: {
+                                    ...(prev[reply.replyId] || {}),
+                                    files: [...(prev[reply.replyId]?.files || []), ...limitedFiles],
+                                    previews: [
+                                      ...(prev[reply.replyId]?.previews || []),
+                                      ...previews,
+                                    ],
+                                  },
+                                }));
+
+                                if (selectedFiles.length > allowedCount) {
+                                  toast.warning('이미지는 3장까지 첨부할 수 있습니다.');
+                                }
+                              }}
+                            />
+                          </div>
+                        </>
                       ) : (
                         <TextContent>{reply.replyCont}</TextContent>
                       )}
@@ -577,4 +735,22 @@ const TextArea = styled.textarea`
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
   }
+`;
+
+const ImageWrapper = styled.div`
+  position: relative;
+`;
+
+const DeleteBtn = styled.button`
+  position: absolute;
+  top: 50%;
+  right: 30px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
 `;
