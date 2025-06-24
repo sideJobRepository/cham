@@ -52,10 +52,8 @@ public class ReplyServiceImpl implements ReplyService {
                 });
         
         request.getImages()
-                .stream().filter(img -> "create".equals(img.getState()) && img.getFile().getSize() > 0)
+                .stream().filter(img -> "create".equals(img.getState()))
                 .forEach(item -> {
-                    String imgUrl = item.getImgUrl();
-                    s3FileUtils.deleteFile(imgUrl);
                     replyImageRepository.save(new ReplyImage(reply, s3FileUtils.storeFile(item.getFile())));
                 });
         return new ApiResponse(200,true,"댓글이 수정 되었습니다.");
