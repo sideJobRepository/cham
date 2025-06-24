@@ -36,6 +36,7 @@ import static com.cham.entity.QCardOwnerPosition.cardOwnerPosition;
 import static com.cham.entity.QCardUse.cardUse;
 import static com.cham.entity.QCardUseAddr.cardUseAddr;
 import static com.cham.entity.QReply.*;
+import static com.cham.entity.QReplyImage.*;
 
 
 @RequiredArgsConstructor
@@ -89,13 +90,21 @@ public class CardUseServiceImpl implements CardUseService {
                 .selectFrom(reply)
                 .join(reply.cardUseAddr, cardUseAddr).fetchJoin()
                 .fetch();
-
-    // 2. 그룹핑: 장소별 카드사용, 장소별 댓글
+        
+        List<ReplyImage> replyImages = queryFactory
+                .selectFrom(replyImage)
+                .join(replyImage.reply, reply).fetchJoin()
+                .fetch();
+        
+        // 2. 그룹핑: 장소별 카드사용, 장소별 댓글
         Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getCardUseAddrId()));
         
         Map<Long, List<Reply>> repliesGroupedByAddrId = replies.stream()
                 .collect(Collectors.groupingBy(reply -> reply.getCardUseAddr().getCardUseAddrId()));
+        
+        Map<Long, List<ReplyImage>> replyImageGroup = replyImages.stream()
+                .collect(Collectors.groupingBy(img -> img.getReply().getReplyId()));
         
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
         
@@ -153,9 +162,28 @@ public class CardUseServiceImpl implements CardUseService {
             String imageUrl = cardUseAddrRepository.findByImageUrl(addrId);
             
             // 댓글 내용 리스트
-            List<ReplyResponse> replyList = repliesGroupedByAddrId.getOrDefault(addrId, Collections.emptyList())
-                    .stream().map(item -> new ReplyResponse(item.getReplyId(),item.getReplyCont(),item.getMember().getMemberName(),item.getMember().getMemberImageUrl(), item.getMember().getMemberEmail()))
+            List<ReplyResponse> replyList = repliesGroupedByAddrId
+                    .getOrDefault(addrId, Collections.emptyList())
+                    .stream()
+                    .map(item -> {
+                        Long replyId = item.getReplyId();
+                        
+                        List<String> imageUrls = replyImageGroup.getOrDefault(replyId, Collections.emptyList())
+                                .stream()
+                                .map(ReplyImage::getReplyImageUrl)
+                                .collect(Collectors.toList());
+                        
+                        return new ReplyResponse(
+                                replyId,
+                                item.getReplyCont(),
+                                item.getMember().getMemberName(),
+                                item.getMember().getMemberImageUrl(),
+                                item.getMember().getMemberEmail(),
+                                imageUrls
+                        );
+                    })
                     .collect(Collectors.toList());
+            
             // 응답 생성
             CardUseResponse response = new CardUseResponse(
                     addrName,
