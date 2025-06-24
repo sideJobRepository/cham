@@ -64,6 +64,11 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     public ApiResponse deleteReply(Long replyId) {
         Reply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재하지 않는 댓글입니다."));
+        List<String> replyImageUrls= replyImageRepository.findByReplyImageUrlInReplyId(reply.getReplyId());
+        if(!replyImageUrls.isEmpty()){
+            replyImageUrls.forEach(s3FileUtils::deleteFile);
+            replyImageRepository.deletebyReplyImage(reply.getReplyId());
+        }
         replyRepository.delete(reply);
         return new ApiResponse(200,true,"댓글이 삭제 되었습니다.");
     }

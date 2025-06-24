@@ -28,17 +28,18 @@ class ReplyServiceImplTest extends RepositoryAndServiceTestSupport {
     void test() throws IOException {
         //given
         
-        File file1 = new File("src/test/java/com/cham/이미지1.png");
-        File file2 = new File("src/test/java/com/cham/이미지2.png");
-
-        MockMultipartFile mockFile1 = new MockMultipartFile(
-                "file", file1.getName(), "image/png", new FileInputStream(file1)
-        );
-
-        MockMultipartFile mockFile2 = new MockMultipartFile(
-                "file", file2.getName(), "image/png", new FileInputStream(file2)
-        );
-        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest(5L, 1L, "테스트댓글2",List.of(mockFile1, mockFile2));
+//        File file1 = new File("src/test/java/com/cham/이미지1.png");
+//        File file2 = new File("src/test/java/com/cham/이미지2.png");
+//
+//        MockMultipartFile mockFile1 = new MockMultipartFile(
+//                "file", file1.getName(), "image/png", new FileInputStream(file1)
+//        );
+//
+//        MockMultipartFile mockFile2 = new MockMultipartFile(
+//                "file", file2.getName(), "image/png", new FileInputStream(file2)
+//        );
+        //ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest(5L, 1L, "테스트댓글2",List.of(mockFile1, mockFile2));
+        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest(5L, 1L, "테스트댓글2");
         
         
         replyService.insertReply(replyCreateRequest);
@@ -74,6 +75,13 @@ class ReplyServiceImplTest extends RepositoryAndServiceTestSupport {
         
         // when
         replyService.updateReply(request);
-        
     }
+    
+    @DisplayName("")
+    @Test
+    void test3(){
+        
+        replyService.deleteReply(7L);
+    }
+    
 }
