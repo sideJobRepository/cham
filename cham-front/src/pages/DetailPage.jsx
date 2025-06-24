@@ -75,6 +75,7 @@ export default function DetailPage() {
       toast.success('댓글이 저장되었습니다.');
       await detailSearch(paramsObj);
     } catch (e) {
+      console.log('error', e);
       toast.error('댓글 저장이 실패했습니다.');
     }
   };
