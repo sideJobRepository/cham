@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @AllArgsConstructor
@@ -19,6 +20,19 @@ public class CardUseGroupedResponse {
     private Integer cardUseAmount;
     private String cardUsePurpose;
     private String cardUsePersonnel;
-    private LocalDate useDate;   // 사용 일자
-    private LocalTime useTime;   // 사용 시간
+    private String cardUseDate;
+    
+    public CardUseGroupedResponse(String userName, String amountPerPerson, String cardUseMethod, Integer cardUseAmount, String cardUsePurpose, String cardUsePersonnel, LocalDate useDate, LocalTime useTime) {
+        this.userName = userName;
+        this.amountPerPerson = amountPerPerson;
+        this.cardUseMethod = cardUseMethod;
+        this.cardUseAmount = cardUseAmount;
+        this.cardUsePurpose = cardUsePurpose;
+        this.cardUsePersonnel = cardUsePersonnel;
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        String useDateStr = useDate.format(dateFormatter);  // "2025-06-24"
+        String useTimeStr = useTime.format(timeFormatter);  // "14:30"
+        this.cardUseDate = useDateStr +  " " + useTimeStr;
+    }
 }
