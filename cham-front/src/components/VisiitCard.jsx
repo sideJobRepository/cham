@@ -14,7 +14,7 @@ export default function VisitCard(item) {
               : item.data.cardUsePersonnel}
           </span>
         </CardTitle>
-        <CardMeta>사용일시 {item.data.useDate}</CardMeta>
+        <CardMeta>사용일시 {item.data.cardUseDate}</CardMeta>
         <CardPrice>
           {item.data.cardUseMethod} {item.data.cardUseAmount.toLocaleString()}원 사용
         </CardPrice>
