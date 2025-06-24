@@ -13,6 +13,7 @@ import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import basicLogo from '/basicLogo.png';
 
 export default function DetailPage() {
   const [searchParams] = useSearchParams();
@@ -39,10 +40,26 @@ export default function DetailPage() {
     const memberId = user?.memberId;
     const cardUseAddrId = detail.cardUseAddrId;
 
-    const params = { cardUseAddrId, memberId, replyCont };
+    const formData = new FormData();
+    formData.append('cardUseAddrId', cardUseAddrId);
+    formData.append('memberId', memberId);
+    formData.append('replyCont', replyCont);
+
+    imageFiles.forEach(file => {
+      formData.append('fileList', file); // key 이름은 반드시 fileList!
+    });
+
+    if (!replyCont) {
+      toast.error('내용을 입력해주세요.');
+      return;
+    }
 
     try {
-      await api.post('/cham/reply', params);
+      await api.post('/cham/reply', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       setShowInput(false);
       toast.success('댓글이 저장되었습니다.');
       await detailSearch(paramsObj);
@@ -50,6 +67,8 @@ export default function DetailPage() {
       toast.error('댓글 저장이 실패했습니다.');
     }
   };
+
+  const [editImage, setEditImage] = useState({});
 
   useEffect(() => {
     detailSearch(paramsObj);
@@ -72,9 +91,7 @@ export default function DetailPage() {
                 {detail?.cardUseImageUrl ? (
                   <img src={detail?.cardUseImageUrl} alt="sample" />
                 ) : (
-                  <EmptyImage>
-                    <span>대표 이미지가 없습니다.</span>
-                  </EmptyImage>
+                  <img src={basicLogo} alt="sample" />
                 )}
               </ImageBox>
               <InfoBox>
@@ -203,22 +220,10 @@ export default function DetailPage() {
                     </CommentTop>
                     <ContBox>
                       <ImageRow>
-                        {/*{reply.replyImages?.slice(0, 3).map((imgUrl, idx) => (*/}
-                        {/*  <ImageThumb key={idx} src={imgUrl} alt={`이미지 ${idx + 1}`} />*/}
-                        {/*))}*/}
-                        {(
-                          reply.replyImages ?? [
-                            'https://picsum.photos/id/237/80/80',
-                            'https://picsum.photos/id/237/80/80',
-                            'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=80&h=80&fit=crop',
-                          ]
-                        )
-                          .slice(0, 3)
-                          .map((imgUrl, idx) => (
-                            <ImageThumb key={idx} src={imgUrl} alt={`이미지 ${idx + 1}`} />
-                          ))}
+                        {reply?.replyImageUrls.slice(0, 3).map((imgUrl, idx) => (
+                          <ImageThumb key={idx} src={imgUrl} alt={`이미지 ${idx + 1}`} />
+                        ))}
                       </ImageRow>
-                      {/*<TextContent>{reply.replyCont}</TextContent>*/}
                       {editingReplyId === reply.replyId ? (
                         <TextArea
                           value={editingText}
@@ -234,8 +239,17 @@ export default function DetailPage() {
                 {showInput && (
                   <InputBox>
                     <TextareaBox>
+                      {imagePreviews.length > 0 && (
+                        <PreviewContainer>
+                          {imagePreviews.map((src, idx) => (
+                            <Preview key={idx} src={src} alt={`preview-${idx}`} />
+                          ))}
+                        </PreviewContainer>
+                      )}
                       <ButtonRow>
-                        <WriteButton htmlFor="fileInput">+ 이미지 첨부</WriteButton>
+                        <WriteButton onClick={() => document.getElementById('fileInput')?.click()}>
+                          + 이미지 첨부
+                        </WriteButton>
                         <WriteButton onClick={handleCreate}>저장</WriteButton>
                         <WriteButton onClick={() => setShowInput(false)}>취소</WriteButton>
                       </ButtonRow>
@@ -259,13 +273,6 @@ export default function DetailPage() {
                           setImagePreviews(previews);
                         }}
                       />
-                      {imagePreviews.length > 0 && (
-                        <PreviewContainer>
-                          {imagePreviews.map((src, idx) => (
-                            <Preview key={idx} src={src} alt={`preview-${idx}`} />
-                          ))}
-                        </PreviewContainer>
-                      )}
                     </TextareaBox>
                   </InputBox>
                 )}
@@ -392,7 +399,7 @@ const CommentSection = styled.div`
 const CommentTitle = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.large};
   color: ${({ theme }) => theme.colors.primary};
@@ -460,6 +467,13 @@ const CommentItemSection = styled.div`
       border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
     }
   }
+
+  img {
+    cursor: pointer;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 `;
 
 const CommentItem = styled.div`
@@ -502,7 +516,6 @@ const ContBox = styled.div`
 
 const ImageRow = styled.div`
   display: flex;
-  margin: 20px 0;
   gap: 8px;
 `;
 
@@ -511,6 +524,7 @@ const ImageThumb = styled.img`
   height: 80px;
   object-fit: cover;
   border-radius: 6px;
+  margin: 20px 0 10px 0;
 `;
 
 const TextContent = styled.p`
@@ -518,6 +532,7 @@ const TextContent = styled.p`
   font-weight: bold;
   color: ${({ theme }) => theme.colors.liteGray};
   white-space: pre-wrap;
+  margin-top: 10px;
 `;
 
 const CommentTop = styled.div`

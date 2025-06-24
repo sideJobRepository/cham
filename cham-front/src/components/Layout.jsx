@@ -52,13 +52,16 @@ export default function Layout() {
         <MainArea>
           <Outlet />
         </MainArea>
+        <Footer>© 2025 디지털개발소. All rights reserved.</Footer>
       </Inner>
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
-  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   overflow-y: hidden;
 
   button {
@@ -67,24 +70,28 @@ const Wrapper = styled.div`
     }
   }
 `;
+
 const Inner = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
   max-width: 1500px;
   min-width: 1023px;
-  height: 100%;
-  display: flex;
-  margin: 0 auto;
-  flex-direction: column;
+  width: 100%;
+
   @media ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;
   }
 `;
+
 const TopArea = styled.div`
+  height: 100px;
   position: sticky;
   top: 0;
   left: 0;
   right: 0;
-  height: 100px;
   border-bottom: 2px solid ${({ theme }) => theme.colors.topLine};
   z-index: 1000;
 `;
@@ -93,4 +100,12 @@ const MainArea = styled.main`
   position: relative;
   height: calc(100vh - 100px);
   overflow-y: auto;
+`;
+
+const Footer = styled.footer`
+  padding: 20px 0;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.liteGray};
+  font-size: ${({ theme }) => theme.sizes.small};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
 `;
