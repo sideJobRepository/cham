@@ -1,4 +1,4 @@
-package com.cham.service;
+package com.cham.controller;
 
 import com.cham.ControllerTestSupport;
 import com.cham.security.service.impl.request.KaKaoAuthorizeRequest;

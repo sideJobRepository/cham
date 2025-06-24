@@ -6,9 +6,10 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://localhost:3307/CHAM
-    username: root
-    password: 1234
+    #url: jdbc:log4jdbc:mysql://localhost:3307/CHAM
+    url:  jdbc:log4jdbc:mysql://cham-db.cfw68y8yqmke.ap-northeast-2.rds.amazonaws.com:3306/CHAM
+    username: admin
+    password: 10113852
   servlet:
     multipart:
       max-file-size: 10MB

@@ -69,10 +69,21 @@ public class CardUse extends BaseData {
     @Column(name = "CARD_USE_DELKEY")
     private String cardUseDelkey;
     
+    @Column(name = "CARD_USE_REGION")
+    private String cardUseRegion;
     
-    public CardUse(List<CardOwnerPositionDto> cardOwnerPositionDtos, CardUseAddr cardUserAddr, String userSellValue, String nameSellValue, LocalDate dateValue, LocalTime timeValue, String purpose, String personnel, double amount, String method, String remark, String delKeyValue) {
-        this(cardOwnerPositionDtos, userSellValue, nameSellValue);
+    @Column(name = "CARD_USE_USER")
+    private String cardUseUser;
+    
+    
+    public CardUse(CardOwnerPosition cardOwnerPosition, CardUseAddr cardUserAddr, String userSellValue, String nameSellValue,
+                   LocalDate dateValue, LocalTime timeValue, String purpose, String personnel,
+                   double amount, String method, String remark, String delKeyValue, String regionValue) {
+        
+        this.cardOwnerPosition = cardOwnerPosition;
         this.cardUseAddr = cardUserAddr;
+        this.cardUseName = nameSellValue;
+        this.cardUseUser = userSellValue;
         this.cardUseDate = dateValue;
         this.cardUseTime = timeValue;
         this.cardUsePurpose = purpose;
@@ -81,6 +92,7 @@ public class CardUse extends BaseData {
         this.cardUseMethod = method;
         this.cardUseRemark = remark;
         this.cardUseDelkey = delKeyValue;
+        this.cardUseRegion = regionValue;
     }
     
     public CardUse(List<CardOwnerPositionDto> cardOwnerPositionDtos,String userSell , String nameSell ) {

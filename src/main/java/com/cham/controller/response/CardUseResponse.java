@@ -11,6 +11,8 @@ import java.util.List;
 public class CardUseResponse {
     
     private String addrName; // 장소 이름
+    private String cardUseRegion;
+    private String cardUseUser;
     private int visits; // 방문 횟수
     private String visitMember; // 방문 사람
     private Integer totalSum;

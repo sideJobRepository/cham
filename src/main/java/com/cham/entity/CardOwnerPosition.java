@@ -24,4 +24,8 @@ public class CardOwnerPosition extends BaseData {
     public CardOwnerPosition(Long cardOwnerPositionId) {
         this.cardOwnerPositionId = cardOwnerPositionId;
     }
+    
+    public CardOwnerPosition(String cardOwnerPositionName) {
+        this.cardOwnerPositionName = cardOwnerPositionName;
+    }
 }

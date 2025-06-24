@@ -5,13 +5,11 @@ import com.cham.controller.response.ApiResponse;
 import com.cham.controller.response.CardUseGroupedResponse;
 import com.cham.controller.response.CardUseResponse;
 import com.cham.controller.response.ReplyResponse;
-import com.cham.entity.CardUse;
-import com.cham.entity.CardUseAddr;
-import com.cham.entity.QReply;
-import com.cham.entity.Reply;
+import com.cham.entity.*;
 import com.cham.entity.dto.CardOwnerPositionDto;
 import com.cham.entity.dto.CardUseAddrDto;
 import com.cham.excel.PoiUtil;
+import com.cham.repository.CardOwnerPositionRepository;
 import com.cham.repository.CardUseAddrRepository;
 import com.cham.repository.CardUseRepository;
 import com.cham.service.CardUseAddrService;
@@ -29,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,6 +48,8 @@ public class CardUseServiceImpl implements CardUseService {
     private final CardUseAddrRepository cardUseAddrRepository;
     
     private final CardUseAddrService cardUseAddrService;
+    
+    private final CardOwnerPositionRepository cardOwnerPositionRepository;
     
     private final JPAQueryFactory queryFactory;
     
@@ -89,7 +90,7 @@ public class CardUseServiceImpl implements CardUseService {
                 .join(reply.cardUseAddr, cardUseAddr).fetchJoin()
                 .fetch();
 
-// 2. 그룹핑: 장소별 카드사용, 장소별 댓글
+    // 2. 그룹핑: 장소별 카드사용, 장소별 댓글
         Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getCardUseAddrId()));
         
@@ -110,6 +111,8 @@ public class CardUseServiceImpl implements CardUseService {
             CardUse first = cardUseList.get(0);
             String addrName = first.getCardUseAddr().getCardUseAddrName();
             int visitCount = cardUseList.size();
+            String cardUseRegion = first.getCardUseRegion();
+            String cardUseUser = first.getCardUseUser();
             
             // visitMember 설정 로직
             Set<String> uniqueNames = cardUseList.stream()
@@ -156,6 +159,8 @@ public class CardUseServiceImpl implements CardUseService {
             // 응답 생성
             CardUseResponse response = new CardUseResponse(
                     addrName,
+                    cardUseRegion,
+                    cardUseUser,
                     visitCount,
                     visitMember,
                     totalSum,
@@ -223,18 +228,39 @@ public class CardUseServiceImpl implements CardUseService {
                 if (row.getRowNum() == 0) {
                     continue;
                 }
-                Cell userSell = row.getCell(0);
-                String nameSell = PoiUtil.getCellValue(row, 1);
-                Cell dateCell = row.getCell(2); // 집행일자
-                Cell timeSell = row.getCell(3); // 시간
-                Cell addrSell = row.getCell(4); // 사용장소
-                String addrDetailValue = PoiUtil.getCellValue(row,5).trim(); // 상세주소
-                Cell purposeSell = row.getCell(6); // 집행목적
-                Cell personnelSell = row.getCell(7); //대상인원
-                Cell amountCell = row.getCell(8); // 금액
-                Cell methodCell = row.getCell(9); // 금액
-                Cell remarkCell = row.getCell(10); // 비고
-                Cell delKeyCell = row.getCell(11);
+                
+                String cellValue = PoiUtil.getCellValue(row, 0); // 기관
+                
+                Optional<CardOwnerPosition> existing = cardOwnerPositionRepository.findByCardOwnerPositionName(cellValue);
+                
+                if (existing.isEmpty()) {
+                    CardOwnerPosition newEntity = new CardOwnerPosition(cellValue);
+                    CardOwnerPosition save = cardOwnerPositionRepository.save(newEntity);
+                    cardOwnerPositionDtos.add(new CardOwnerPositionDto(save.getCardOwnerPositionId(), save.getCardOwnerPositionName()));
+                }
+                
+                Long cardOwnerPositionId = cardOwnerPositionDtos.stream()
+                        .filter(dto -> dto.getCardOwnerPositionName().equals(cellValue))
+                        .map(CardOwnerPositionDto::getCardOwnerPositionId)
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException("직책 ID 매핑 실패: " + cellValue));
+                
+                CardOwnerPosition cardOwnerPosition = new CardOwnerPosition(cardOwnerPositionId);
+                
+                
+                Cell region = row.getCell(1);
+                Cell userSell = row.getCell(2);
+                String nameSell = PoiUtil.getCellValue(row, 3);
+                Cell dateCell = row.getCell(4); // 집행일자
+                Cell timeSell = row.getCell(5); // 시간
+                Cell addrSell = row.getCell(6); // 사용장소
+                String addrDetailValue = PoiUtil.getCellValue(row,7).trim(); // 상세주소
+                Cell purposeSell = row.getCell(8); // 집행목적
+                Cell personnelSell = row.getCell(9); //대상인원
+                Cell amountCell = row.getCell(10); // 금액
+                Cell methodCell = row.getCell(11); // 금액
+                Cell remarkCell = row.getCell(12); // 비고
+                Cell delKeyCell = row.getCell(13);
                 
              
                 
@@ -271,7 +297,7 @@ public class CardUseServiceImpl implements CardUseService {
                 LocalTime timeValue = PoiUtil.getLocalTimeFromCell(timeSell);
                 
                 CardUse cardUse = new CardUse(
-                        cardOwnerPositionDtos,
+                        cardOwnerPosition,
                         cardUserAddr,
                         userSell.getStringCellValue(),
                         nameSell,
@@ -282,7 +308,8 @@ public class CardUseServiceImpl implements CardUseService {
                         amountCell.getNumericCellValue(),
                         methodCell.getStringCellValue(),
                         remarkCell.getStringCellValue(),
-                        delKeyCell.getStringCellValue()
+                        delKeyCell.getStringCellValue(),
+                        region.getStringCellValue()
                 );
                 cardUseRepository.save(cardUse);
             }
