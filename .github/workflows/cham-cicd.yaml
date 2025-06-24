@@ -80,6 +80,7 @@ jobs:
             -e DB_USERNAME=${{ secrets.DB_USERNAME }}  \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e SPRING_PROFILES_ACTIVE=real \
+            -v $(pwd)/logs:/app/logs
             -p 8080:8080 \
             peachcoolpis/cham-server:latest
 
