@@ -459,16 +459,42 @@ export default function DetailPage() {
         close={() => setLightboxIndex(-1)}
         index={lightboxIndex}
         slides={lightboxImages.map(src => ({ src }))}
-        on={{ view: ({ index }) => setLightboxIndex(index) }} // 슬라이드 이동 시 인덱스 반영
+        on={{ view: ({ index }) => setLightboxIndex(index) }}
         render={{
-          buttonPrev:
-            lightboxIndex > 0
-              ? undefined // 기본 < 버튼 표시
-              : () => null, // 첫 장일 땐 버튼 제거
-          buttonNext:
-            lightboxIndex < lightboxImages.length - 1
-              ? undefined // 기본 > 버튼 표시
-              : () => null, // 마지막 장일 땐 버튼 제거
+          buttonPrev: lightboxIndex > 0 ? undefined : () => null,
+          buttonNext: lightboxIndex < lightboxImages.length - 1 ? undefined : () => null,
+
+          // 👉 이미지 드래그/스와이프 차단
+          slide: ({ slide }) => (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+              onTouchStart={e => e.stopPropagation()}
+              onTouchMove={e => e.stopPropagation()}
+              onTouchEnd={e => e.stopPropagation()}
+              onPointerDown={e => e.stopPropagation()}
+              onPointerMove={e => e.stopPropagation()}
+              onPointerUp={e => e.stopPropagation()}
+              draggable={false}
+            >
+              <img
+                src={slide.src}
+                alt=""
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  userSelect: 'none',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
+          ),
         }}
       />
     </DetailWrapper>
