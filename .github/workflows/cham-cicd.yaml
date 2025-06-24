@@ -83,6 +83,7 @@ jobs:
             -v $(pwd)/logs:/app/logs \
             -p 8080:8080 \
             peachcoolpis/cham-server:latest
+            docker image prune -f
 
   build-frontend:
     needs: detect-changes
