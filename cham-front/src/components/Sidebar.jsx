@@ -54,6 +54,10 @@ const Wrapper = styled.aside`
       width: calc(50% - 6px);
     }
   }
+
+  @media ${({ theme }) => theme.device.tablet} {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const EmptyMessage = styled.div`

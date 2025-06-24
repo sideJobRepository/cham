@@ -465,7 +465,7 @@ const CommentItemSection = styled.div`
 const CommentItem = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 `;
 
 const Avatar = styled.img`
@@ -522,7 +522,6 @@ const TextContent = styled.p`
 
 const CommentTop = styled.div`
   display: flex;
-  margin-top: 12px;
   align-items: center;
 `;
 const TextareaBox = styled.div`

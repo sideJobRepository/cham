@@ -1,11 +1,12 @@
 import styled from 'styled-components';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { mapSearchFilterState, userState } from '@/recoil/appState.js';
 import { useRef } from 'react';
 import axios from 'axios';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 import { toast } from 'react-toastify';
+import basicLogo from '/basicLogo.png';
 
 export default function ItemCard({ data }) {
   const searchCondition = useRecoilValue(mapSearchFilterState);
@@ -75,49 +76,33 @@ export default function ItemCard({ data }) {
         handleClick(data);
       }}
     >
-      {data?.cardUseImageUrl ? (
-        <ImageWrapper>
+      <ImageWrapper>
+        {data?.cardUseImageUrl ? (
           <img src={data?.cardUseImageUrl} alt="cardImage" />
-          {user?.role === 'ADMIN' ? (
-            <PlusButtonWrapper
-              onClick={e => {
-                e.stopPropagation();
-                handlePlusClick();
-              }}
-            >
-              <PlusButton size={30} />
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                ref={fileInputRef}
-                onChange={handleFileChange}
-              />
-            </PlusButtonWrapper>
-          ) : null}
-        </ImageWrapper>
-      ) : (
-        <EmptyImage>
-          <span>대표 이미지가 없습니다.</span>
-          {user?.role === 'ADMIN' ? (
-            <div
-              onClick={e => {
-                e.stopPropagation();
-                handlePlusClick();
-              }}
-            >
-              <PlusButton size={30} />
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                ref={fileInputRef}
-                onChange={handleFileChange}
-              />
-            </div>
-          ) : null}
-        </EmptyImage>
-      )}
+        ) : (
+          <img src={basicLogo} alt="cardImage" />
+        )}
+        <ImageText>
+          {data?.cardUseRegion} {data.cardUseUser} {data.visitMember}
+        </ImageText>
+        {user?.role === 'ADMIN' ? (
+          <PlusButtonWrapper
+            onClick={e => {
+              e.stopPropagation();
+              handlePlusClick();
+            }}
+          >
+            <PlusButton size={30} />
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            />
+          </PlusButtonWrapper>
+        ) : null}
+      </ImageWrapper>
       <CardBody>
         <Title>{data.visitMember} 방문</Title>
         <Stats>방문횟수 {data.visits}</Stats>
@@ -237,4 +222,15 @@ const PlusButton = styled(AiOutlinePlusCircle)`
   &:hover {
     transform: scale(1.2);
   }
+`;
+
+const ImageText = styled.p`
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  color: white;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
 `;
