@@ -65,6 +65,8 @@ export default function DetailPage() {
       return;
     }
 
+    const toastId = toast.loading('댓글을 저장 중 입니다.');
+
     try {
       await api.post('/cham/reply', formData, {
         headers: {
@@ -72,11 +74,26 @@ export default function DetailPage() {
         },
       });
       setShowInput(false);
-      toast.success('댓글이 저장되었습니다.');
+      toast.update(toastId, {
+        render: '댓글 저장이 완료됐습니다..',
+        type: 'success',
+        isLoading: false,
+        autoClose: 1000,
+      });
       await detailSearch(paramsObj);
+
+      // 입력 상태 초기화 추가
+      setEditingText('');
+      setImageFiles([]);
+      setImagePreviews([]);
     } catch (e) {
       console.log('error', e);
-      toast.error('댓글 저장이 실패했습니다.');
+      toast.update(toastId, {
+        render: '댓글 저장이 실패했습니다.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+      });
     }
   };
 
@@ -115,6 +132,8 @@ export default function DetailPage() {
       index++;
     });
 
+    const toastId = toast.loading('댓글을 수정 중 입니다.');
+
     try {
       await api.put('/cham/reply', formData, {
         headers: {
@@ -122,7 +141,12 @@ export default function DetailPage() {
         },
       });
 
-      toast.success('댓글이 수정되었습니다.');
+      toast.update(toastId, {
+        render: '댓글 수정이 완료됐습니다..',
+        type: 'success',
+        isLoading: false,
+        autoClose: 1000,
+      });
 
       // 상태 초기화
       setEditingReplyId(null);
@@ -140,7 +164,12 @@ export default function DetailPage() {
 
       await detailSearch(paramsObj);
     } catch (e) {
-      toast.error('댓글 수정이 실패했습니다.');
+      toast.update(toastId, {
+        render: '댓글 수정이 실패했습니다.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+      });
     }
   };
 
@@ -423,7 +452,16 @@ export default function DetailPage() {
                           + 이미지 첨부
                         </WriteButton>
                         <WriteButton onClick={handleCreate}>저장</WriteButton>
-                        <WriteButton onClick={() => setShowInput(false)}>취소</WriteButton>
+                        <WriteButton
+                          onClick={() => {
+                            setShowInput(false);
+                            setEditingText('');
+                            setImageFiles([]);
+                            setImagePreviews([]);
+                          }}
+                        >
+                          취소
+                        </WriteButton>
                       </ButtonRow>
                       <TextArea
                         ref={inputRef}
