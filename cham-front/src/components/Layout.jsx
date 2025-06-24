@@ -53,7 +53,39 @@ export default function Layout() {
           <OutletWrapper>
             <Outlet />
           </OutletWrapper>
-          <Footer>© 2025 디지털개발소. All rights reserved.</Footer>
+          <Footer>
+            <FooterSection>
+              <h4>왜 만들었나요?</h4>
+              <p>
+                업무추진비 맛집지도’는 공공기관·지방정부가 사용한 업무추진비(판공비) 지출 내역을
+                식당·카페 등 실제 결제 장소와 연결해 한눈에 보여주는 지도 서비스입니다. <br />
+                시민 누구나 클릭 한 번으로 어디서 얼마를 무엇을 위해 썼는지를 확인할 수 있어, 예산
+                집행의 투명성과 책임성을 높이는 데 목적이 있습니다. <br />
+                “세금은 발자국을 남긴다”는 원칙으로, 작은 지출까지도 공개·검증되는 민주적 문화를
+                함께 만들어 갑니다. <br />
+                여러분의 참여가 더 투명한 사회를 만듭니다.
+              </p>
+            </FooterSection>
+
+            <FooterSection>
+              <h4>누가 만들었나요?</h4>
+              <p>
+                대전참여자치시민연대는 1995년부터 지역사회 예산 감시·정책 제안·시민교육을 통해
+                “시민이 주인 되는 대전”을 꿈꾸는 독립적인 시민단체입니다. <br />
+                정보공개 운동, 참여예산제 도입, 예산·정책 분석 보고서 발간 등으로 시민의 알 권리와
+                자치 역량을 키워 왔습니다. <br />
+                “투명한 행정, 책임 있는 권력, 깨어 있는 시민”을 모토로 오늘도 현장에서 발로 뛰며
+                변화를 만들어 갑니다. <br />
+                정부와 지방자치단체 보조금 0% 로 회원의 회비와 시민의 후원금으로 독립적으로
+                운영됩니다.
+              </p>
+            </FooterSection>
+
+            <FooterSection>
+              <h4>도움을 주신 분들</h4>
+              <p>이 프로젝트에 함께한 분들: [이름1], [이름2], ...</p>
+            </FooterSection>
+          </Footer>
         </MainArea>
       </Inner>
     </Wrapper>
@@ -109,9 +141,30 @@ const OutletWrapper = styled.div`
 `;
 
 const Footer = styled.footer`
-  padding: 20px 0;
-  text-align: center;
-  color: ${({ theme }) => theme.colors.liteGray};
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 20px;
+  border-top: 2px solid ${({ theme }) => theme.colors.primary};
   font-size: ${({ theme }) => theme.sizes.small};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  line-height: 1.5;
+  flex-wrap: wrap;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    flex-direction: column;
+    gap: 20px;
+  }
+`;
+
+const FooterSection = styled.div`
+  flex: 1;
+  min-width: 250px;
+
+  h4 {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: ${({ theme }) => theme.sizes.medium};
+    color: ${({ theme }) => theme.colors.primary};
+  }
 `;
