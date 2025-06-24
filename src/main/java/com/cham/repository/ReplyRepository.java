@@ -1,9 +1,9 @@
 package com.cham.repository;
 
 import com.cham.entity.Reply;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ReplyRepository  extends CrudRepository<Reply, Long> {
+public interface ReplyRepository  extends JpaRepository<Reply, Long> {
     
 
 }

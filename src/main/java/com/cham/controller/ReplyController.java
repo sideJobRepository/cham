@@ -17,12 +17,12 @@ public class ReplyController {
     private final ReplyService replyService;
     
     @PostMapping("/reply")
-    public ApiResponse createReply(@RequestBody ReplyCreateRequest request) {
+    public ApiResponse createReply(@ModelAttribute ReplyCreateRequest request) {
         return replyService.insertReply(request);
     }
     
     @PutMapping("/reply")
-    public ApiResponse updateReply(@RequestBody ReplyModifyRequest request) {
+    public ApiResponse updateReply(@ModelAttribute ReplyModifyRequest request) {
         return replyService.updateReply(request);
     }
     

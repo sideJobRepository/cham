@@ -12,9 +12,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +21,17 @@ public class S3FileUtils {
     
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
+    
+    public List<String> storeFiles(List<MultipartFile> multipartFiles) {
+        List<String> uploadFiles = new ArrayList<>();
+        for (MultipartFile multipartFile : multipartFiles) {
+            if (!multipartFile.isEmpty()) {
+                uploadFiles.add(storeFile(multipartFile));
+            }
+        }
+        return uploadFiles;
+    }
+    
     
     public String storeFile(MultipartFile multipartFile) {
         

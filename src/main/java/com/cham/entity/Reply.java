@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Objects;
 
@@ -43,20 +44,10 @@ public class Reply extends BaseData {
         this.replyCont = replyCont;
     }
     
-    // equals: replyId 기준 비교
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Reply)) return false;
-        Reply other = (Reply) o;
-        return replyId != null && replyId.equals(other.replyId);
+    public Reply(Long replyId) {
+        this.replyId = replyId;
     }
     
-    // hashCode: replyId 기준
-    @Override
-    public int hashCode() {
-        return Objects.hash(replyId);
-    }
     
     public void modifyReply(ReplyModifyRequest request) {
         this.replyCont = request.getReplyCont();
