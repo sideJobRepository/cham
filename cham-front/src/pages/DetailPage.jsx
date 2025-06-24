@@ -15,6 +15,9 @@ import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import basicLogo from '/basicLogo.png';
 
+import Lightbox from 'yet-another-react-lightbox';
+import 'yet-another-react-lightbox/styles.css';
+
 export default function DetailPage() {
   const [searchParams] = useSearchParams();
   const { mapDetailData } = useDetailMapState();
@@ -39,6 +42,9 @@ export default function DetailPage() {
 
   const [showInput, setShowInput] = useState(false);
   const inputRef = useRef(null);
+
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
+  const [lightboxImages, setLightboxImages] = useState([]);
 
   const handleCreate = async () => {
     const replyCont = inputRef.current.value;
@@ -319,7 +325,14 @@ export default function DetailPage() {
                               ))
                           : reply.replyImageUrls?.slice(0, 3).map((imgUrl, idx) => (
                               <ImageWrapper key={idx}>
-                                <ImageThumb src={imgUrl} alt={`이미지 ${idx + 1}`} />
+                                <ImageThumb
+                                  src={imgUrl}
+                                  alt={`이미지 ${idx + 1}`}
+                                  onClick={() => {
+                                    setLightboxImages(reply.replyImageUrls); // or editingImageUrls[reply.replyId]
+                                    setLightboxIndex(idx);
+                                  }}
+                                />
                               </ImageWrapper>
                             ))}
                       </ImageRow>
@@ -441,6 +454,23 @@ export default function DetailPage() {
       ) : (
         <></>
       )}
+      <Lightbox
+        open={lightboxIndex >= 0}
+        close={() => setLightboxIndex(-1)}
+        index={lightboxIndex}
+        slides={lightboxImages.map(src => ({ src }))}
+        on={{ view: ({ index }) => setLightboxIndex(index) }} // 슬라이드 이동 시 인덱스 반영
+        render={{
+          buttonPrev:
+            lightboxIndex > 0
+              ? undefined // 기본 < 버튼 표시
+              : () => null, // 첫 장일 땐 버튼 제거
+          buttonNext:
+            lightboxIndex < lightboxImages.length - 1
+              ? undefined // 기본 > 버튼 표시
+              : () => null, // 마지막 장일 땐 버튼 제거
+        }}
+      />
     </DetailWrapper>
   );
 }

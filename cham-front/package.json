@@ -21,7 +21,8 @@
     "react-select": "^5.10.1",
     "react-toastify": "^11.0.5",
     "recoil": "^0.7.7",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "yet-another-react-lightbox": "^3.23.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
