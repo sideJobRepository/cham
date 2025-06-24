@@ -50,9 +50,11 @@ export default function Layout() {
           <TopHeader />
         </TopArea>
         <MainArea>
-          <Outlet />
+          <OutletWrapper>
+            <Outlet />
+          </OutletWrapper>
+          <Footer>© 2025 디지털개발소. All rights reserved.</Footer>
         </MainArea>
-        {/*<Footer>© 2025 디지털개발소. All rights reserved.</Footer>*/}
       </Inner>
     </Wrapper>
   );
@@ -92,8 +94,18 @@ const TopArea = styled.div`
 
 const MainArea = styled.main`
   position: relative;
+  display: flex;
+  flex-direction: column;
   height: calc(100vh - 100px);
   overflow-y: auto;
+`;
+
+const OutletWrapper = styled.div`
+  flex: 1;
+  height: 100%;
+  @media ${({ theme }) => theme.device.mobile} {
+    height: unset;
+  }
 `;
 
 const Footer = styled.footer`
