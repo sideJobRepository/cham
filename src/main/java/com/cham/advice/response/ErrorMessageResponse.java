@@ -27,7 +27,7 @@ import java.util.Map;
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorMessageResponse {
-    private final String code;
+    private final String  code;
     
     private final String message;
     
