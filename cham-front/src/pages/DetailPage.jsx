@@ -22,6 +22,9 @@ export default function DetailPage() {
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editingText, setEditingText] = useState('');
 
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
+
   const paramsObj = Object.fromEntries(searchParams.entries());
 
   const user = useRecoilValue(userState);
@@ -55,6 +58,7 @@ export default function DetailPage() {
   useEffect(() => {
     if (mapDetailData) {
       SetDetail(Object.values(mapDetailData)[0]);
+      console.log('mapDe', mapDetailData);
     }
   }, [mapDetailData]);
 
@@ -83,141 +87,190 @@ export default function DetailPage() {
                 <TotalPrice>
                   총 이용 금액 <strong>{detail.totalSum.toLocaleString()}원</strong>
                 </TotalPrice>
-                <CommentSection>
-                  <CommentTitle>
-                    <FaCommentDots style={{ marginRight: '4px' }} />
-                    댓글 <span>{detail.replies.length}건</span>
-                    {user && !showInput && (
-                      <WriteButton
-                        onClick={() => {
-                          setShowInput(true);
-                          setTimeout(() => {
-                            inputRef.current?.focus();
-                          }, 0); // 렌더 직후 포커스
-                        }}
-                      >
-                        <PenIcon size={12} />
-                        작성
-                      </WriteButton>
-                    )}
-                  </CommentTitle>
-                  <CommentItemSection>
-                    {detail.replies.map(reply => (
-                      <CommentItem key={reply.replyId}>
-                        <Avatar src={reply.memberImageUrl} alt="프로필 이미지" />
-                        {editingReplyId === reply.replyId ? (
-                          <>
-                            <input
-                              value={editingText}
-                              onChange={e => setEditingText(e.target.value)}
-                              autoFocus
-                            />
-
-                            <WriteButton
-                              onClick={() => {
-                                confirmAlert({
-                                  message: '해당 댓글을 수정하시겠습니까?',
-                                  buttons: [
-                                    {
-                                      label: '수정',
-                                      onClick: async () => {
-                                        try {
-                                          await api.put('/cham/reply', {
-                                            replyId: reply.replyId,
-                                            replyCont: editingText,
-                                          });
-                                          toast.success('댓글이 수정되었습니다.');
-                                          setEditingReplyId(null);
-                                          await detailSearch(paramsObj);
-                                        } catch (e) {
-                                          toast.error('댓글 수정이 실패했습니다.');
-                                        }
-                                      },
-                                    },
-                                    {
-                                      label: '취소',
-                                      onClick: () => {},
-                                    },
-                                  ],
-                                });
-                              }}
-                            >
-                              저장
-                            </WriteButton>
-                            <WriteButton onClick={() => setEditingReplyId(null)}>취소</WriteButton>
-                          </>
-                        ) : (
-                          <>
-                            <CommentText>
-                              <strong>{reply.memberName} :</strong> {reply.replyCont}
-                            </CommentText>
-                            {!showInput && user?.email === reply.memberEmail && (
-                              <>
-                                <WriteButton
-                                  onClick={() => {
-                                    setEditingReplyId(reply.replyId);
-                                    setEditingText(reply.replyCont);
-                                  }}
-                                >
-                                  수정
-                                </WriteButton>
-                                <WriteButton
-                                  onClick={() => {
-                                    confirmAlert({
-                                      message: '해당 댓글을 삭제하시겠습니까?',
-                                      buttons: [
-                                        {
-                                          label: '삭제',
-                                          onClick: async () => {
-                                            try {
-                                              await api.delete(`/cham/reply/${reply.replyId}`);
-                                              toast.success('댓글이 삭제되었습니다.');
-                                              await detailSearch(paramsObj);
-                                            } catch (e) {
-                                              toast.error('댓글 삭제가 실패했습니다.');
-                                            }
-                                          },
-                                        },
-                                        {
-                                          label: '취소',
-                                          onClick: () => {},
-                                        },
-                                      ],
-                                    });
-                                  }}
-                                >
-                                  삭제
-                                </WriteButton>
-                              </>
-                            )}
-                          </>
-                        )}
-                      </CommentItem>
-                    ))}
-                    {showInput && (
-                      <InputBox>
-                        <input ref={inputRef} type="text" placeholder="댓글을 입력하세요" />
-                        <WriteButton onClick={handleCreate}>저장</WriteButton>
-                        <WriteButton
-                          onClick={() => {
-                            setShowInput(false);
-                          }}
-                        >
-                          취소
-                        </WriteButton>
-                      </InputBox>
-                    )}
-                  </CommentItemSection>
-                </CommentSection>
+                <BottomCards>
+                  {detail.cardUseGroupedResponses.map((item, i) => (
+                    <VisitCard key={i} data={item} />
+                  ))}
+                </BottomCards>
               </InfoBox>
             </TopContent>
           </FixedTop>
           <ScrollableBottom>
-            <BottomCards>
-              {detail.cardUseGroupedResponses.map((item, i) => (
-                <VisitCard key={i} data={item} />
-              ))}
-            </BottomCards>
+            <CommentSection>
+              <CommentTitle>
+                <FaCommentDots style={{ marginRight: '4px' }} />
+                댓글 <span>{detail.replies.length}건</span>
+                {user && !showInput && (
+                  <WriteButton
+                    onClick={() => {
+                      setShowInput(true);
+                      setTimeout(() => {
+                        inputRef.current?.focus();
+                      }, 0); // 렌더 직후 포커스
+                    }}
+                  >
+                    <PenIcon size={12} />
+                    작성
+                  </WriteButton>
+                )}
+              </CommentTitle>
+              <CommentItemSection>
+                {detail.replies.map(reply => (
+                  <CommentItem key={reply.replyId}>
+                    <CommentTop>
+                      <Avatar src={reply.memberImageUrl} alt="프로필 이미지" />
+                      <CommentText>
+                        <strong>{reply.memberName} </strong> 2025.06.12
+                      </CommentText>
+                      {editingReplyId === reply.replyId ? (
+                        <>
+                          <WriteButton
+                            onClick={() => {
+                              confirmAlert({
+                                message: '해당 댓글을 수정하시겠습니까?',
+                                buttons: [
+                                  {
+                                    label: '수정',
+                                    onClick: async () => {
+                                      try {
+                                        await api.put('/cham/reply', {
+                                          replyId: reply.replyId,
+                                          replyCont: editingText,
+                                        });
+                                        toast.success('댓글이 수정되었습니다.');
+                                        setEditingReplyId(null);
+                                        await detailSearch(paramsObj);
+                                      } catch (e) {
+                                        toast.error('댓글 수정이 실패했습니다.');
+                                      }
+                                    },
+                                  },
+                                  {
+                                    label: '취소',
+                                    onClick: () => {},
+                                  },
+                                ],
+                              });
+                            }}
+                          >
+                            저장
+                          </WriteButton>
+                          <WriteButton onClick={() => setEditingReplyId(null)}>취소</WriteButton>
+                        </>
+                      ) : (
+                        <>
+                          {!showInput && user?.email === reply.memberEmail && (
+                            <>
+                              <WriteButton
+                                onClick={() => {
+                                  setEditingReplyId(reply.replyId);
+                                  setEditingText(reply.replyCont);
+                                }}
+                              >
+                                수정
+                              </WriteButton>
+                              <WriteButton
+                                onClick={() => {
+                                  confirmAlert({
+                                    message: '해당 댓글을 삭제하시겠습니까?',
+                                    buttons: [
+                                      {
+                                        label: '삭제',
+                                        onClick: async () => {
+                                          try {
+                                            await api.delete(`/cham/reply/${reply.replyId}`);
+                                            toast.success('댓글이 삭제되었습니다.');
+                                            await detailSearch(paramsObj);
+                                          } catch (e) {
+                                            toast.error('댓글 삭제가 실패했습니다.');
+                                          }
+                                        },
+                                      },
+                                      {
+                                        label: '취소',
+                                        onClick: () => {},
+                                      },
+                                    ],
+                                  });
+                                }}
+                              >
+                                삭제
+                              </WriteButton>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </CommentTop>
+                    <ContBox>
+                      <ImageRow>
+                        {/*{reply.replyImages?.slice(0, 3).map((imgUrl, idx) => (*/}
+                        {/*  <ImageThumb key={idx} src={imgUrl} alt={`이미지 ${idx + 1}`} />*/}
+                        {/*))}*/}
+                        {(
+                          reply.replyImages ?? [
+                            'https://picsum.photos/id/237/80/80',
+                            'https://picsum.photos/id/237/80/80',
+                            'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=80&h=80&fit=crop',
+                          ]
+                        )
+                          .slice(0, 3)
+                          .map((imgUrl, idx) => (
+                            <ImageThumb key={idx} src={imgUrl} alt={`이미지 ${idx + 1}`} />
+                          ))}
+                      </ImageRow>
+                      {/*<TextContent>{reply.replyCont}</TextContent>*/}
+                      {editingReplyId === reply.replyId ? (
+                        <TextArea
+                          value={editingText}
+                          onChange={e => setEditingText(e.target.value)}
+                          rows={3}
+                        />
+                      ) : (
+                        <TextContent>{reply.replyCont}</TextContent>
+                      )}
+                    </ContBox>
+                  </CommentItem>
+                ))}
+                {showInput && (
+                  <InputBox>
+                    <TextareaBox>
+                      <ButtonRow>
+                        <WriteButton htmlFor="fileInput">+ 이미지 첨부</WriteButton>
+                        <WriteButton onClick={handleCreate}>저장</WriteButton>
+                        <WriteButton onClick={() => setShowInput(false)}>취소</WriteButton>
+                      </ButtonRow>
+                      <TextArea
+                        ref={inputRef}
+                        placeholder="댓글을 입력하세요"
+                        rows={3}
+                        value={editingText}
+                        onChange={e => setEditingText(e.target.value)}
+                      />
+                      <input
+                        id="fileInput"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        style={{ display: 'none' }}
+                        onChange={e => {
+                          const files = Array.from(e.target.files).slice(0, 3);
+                          const previews = files.map(file => URL.createObjectURL(file));
+                          setImageFiles(files);
+                          setImagePreviews(previews);
+                        }}
+                      />
+                      {imagePreviews.length > 0 && (
+                        <PreviewContainer>
+                          {imagePreviews.map((src, idx) => (
+                            <Preview key={idx} src={src} alt={`preview-${idx}`} />
+                          ))}
+                        </PreviewContainer>
+                      )}
+                    </TextareaBox>
+                  </InputBox>
+                )}
+              </CommentItemSection>
+            </CommentSection>
           </ScrollableBottom>
         </>
       ) : (
@@ -372,18 +425,19 @@ const PenIcon = styled(FaPen)`
 `;
 
 const BottomCards = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  overflow-x: auto;
+  margin-top: auto;
   gap: 12px;
 
-  @media ${({ theme }) => theme.device.mobile} {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 20px;
-    gap: 12px;
+  & > * {
+    flex: 0 0 calc(50% - 6px); /* gap 고려해서 반씩 */
+    width: calc(50% - 6px);
+  }
 
+  @media ${({ theme }) => theme.device.mobile} {
     & > * {
-      flex: 0 0 calc(100%); // 한 화면에 2개씩 보이게
+      flex: 0 0 calc(100%);
       width: calc(100%);
     }
   }
@@ -392,7 +446,6 @@ const BottomCards = styled.div`
 const CommentItemSection = styled.div`
   display: flex;
   flex-direction: column;
-  max-height: 110px;
   padding: 4px 0;
   gap: 6px;
   overflow-y: auto;
@@ -404,30 +457,110 @@ const CommentItemSection = styled.div`
     padding: 4px;
     &:focus {
       outline: none;
-      border-bottom: 2px solid ${({ theme }) => theme.colors.primary}; // 선택적으로 재지정
+      border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
     }
   }
 `;
 
 const CommentItem = styled.div`
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  margin-bottom: 10px;
 `;
 
 const Avatar = styled.img`
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  margin-right: 8px;
+  margin-right: 12px;
 `;
 
 const CommentText = styled.p`
-  margin-right: 4px;
-  font-size: 13px;
+  margin-right: 12px;
+  font-size: ${({ theme }) => theme.sizes.medium};
+  color: ${({ theme }) => theme.colors.liteGray};
+  font-weight: bold;
+  strong {
+    margin-right: 4px;
+    color: ${({ theme }) => theme.colors.primary};
+    font-size: 16px;
+  }
 `;
 
 const InputBox = styled.div`
   display: flex;
   width: 100%;
+`;
+
+const ContBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  gap: 8px;
+`;
+
+const ImageRow = styled.div`
+  display: flex;
+  margin: 20px 0;
+  gap: 8px;
+`;
+
+const ImageThumb = styled.img`
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+`;
+
+const TextContent = styled.p`
+  font-size: ${({ theme }) => theme.sizes.medium};
+  font-weight: bold;
+  color: ${({ theme }) => theme.colors.liteGray};
+  white-space: pre-wrap;
+`;
+
+const CommentTop = styled.div`
+  display: flex;
+  margin-top: 12px;
+  align-items: center;
+`;
+const TextareaBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+`;
+
+const PreviewContainer = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const Preview = styled.img`
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 2px;
+  margin-top: 6px;
+`;
+
+const TextArea = styled.textarea`
+  width: 100%;
+  padding: 8px;
+  resize: none;
+  font-size: ${({ theme }) => theme.sizes.medium};
+  border: 2px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 6px;
+  margin-bottom: 20px;
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
 `;
