@@ -1,6 +1,8 @@
 FROM openjdk:17
 
-RUN mkdir -p /logs
+WORKDIR /app
+
+RUN mkdir -p logs
 
 COPY build/libs/*SNAPSHOT.jar app.jar
 
