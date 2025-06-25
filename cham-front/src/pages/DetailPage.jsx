@@ -689,6 +689,8 @@ const BottomCards = styled.div`
   overflow-x: auto;
   margin-top: auto;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 
   & > * {
     flex: 0 0 calc(50% - 6px); /* gap 고려해서 반씩 */
