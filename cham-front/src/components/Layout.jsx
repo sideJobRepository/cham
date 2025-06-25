@@ -1,7 +1,7 @@
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFetchSelectSearch } from '@/recoil/fetchAppState.js';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
@@ -10,6 +10,8 @@ export default function Layout() {
   const fetchSelect = useFetchSelectSearch();
   const setUser = useSetRecoilState(userState);
   const user = useRecoilValue(userState);
+  const theme = useTheme();
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
@@ -43,6 +45,20 @@ export default function Layout() {
     };
   }, []);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      const result = window.matchMedia(theme.device.mobile).matches;
+      setIsMobile(result);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [theme.device.mobile]);
+
   return (
     <Wrapper>
       <Inner>
@@ -50,9 +66,13 @@ export default function Layout() {
           <TopHeader />
         </TopArea>
         <MainArea>
-          <OutletWrapper>
+          {isMobile ? (
+            <OutletWrapper>
+              <Outlet />
+            </OutletWrapper>
+          ) : (
             <Outlet />
-          </OutletWrapper>
+          )}
           <Footer>
             <FooterSection>
               <h4>왜 만들었나요?</h4>
@@ -126,18 +146,13 @@ const TopArea = styled.div`
 
 const MainArea = styled.main`
   position: relative;
-  display: flex;
-  flex-direction: column;
+
   height: calc(100vh - 100px);
   overflow-y: auto;
 `;
 
 const OutletWrapper = styled.div`
   flex: 1;
-  height: 100%;
-  @media ${({ theme }) => theme.device.mobile} {
-    height: unset;
-  }
 `;
 
 const Footer = styled.footer`
