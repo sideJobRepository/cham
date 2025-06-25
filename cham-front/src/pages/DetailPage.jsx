@@ -587,25 +587,11 @@ const ImageBox = styled.div`
   }
 `;
 
-const EmptyImage = styled.div`
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-  background-color: ${({ theme }) => theme.colors.liteGray};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-
-  span {
-    color: white;
-  }
-`;
-
 const InfoBox = styled.div`
   flex: 2;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 `;
 
 const Title = styled.span`
