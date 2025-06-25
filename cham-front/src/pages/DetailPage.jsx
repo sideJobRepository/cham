@@ -17,6 +17,7 @@ import basicLogo from '/basicLogo.png';
 
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
+import { MdDelete } from 'react-icons/md';
 
 export default function DetailPage() {
   const [searchParams] = useSearchParams();
@@ -348,7 +349,7 @@ export default function DetailPage() {
                                         }));
                                       }}
                                     >
-                                      ×
+                                      <MdDelete />
                                     </DeleteBtn>
                                   )}
                                 </ImageWrapper>
