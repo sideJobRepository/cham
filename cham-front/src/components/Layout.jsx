@@ -127,6 +127,7 @@ const Inner = styled.div`
   display: flex;
   margin: 0 auto;
   flex-direction: column;
+  overflow-x: hidden;
 `;
 const TopArea = styled.div`
   position: sticky;
@@ -143,7 +144,7 @@ const MainArea = styled.main`
   position: relative;
   height: calc(100vh - 100px);
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
 `;
 
 const OutletWrapper = styled.div`
