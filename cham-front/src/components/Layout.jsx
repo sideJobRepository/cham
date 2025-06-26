@@ -123,16 +123,10 @@ const Wrapper = styled.div`
   }
 `;
 const Inner = styled.div`
-  max-width: 1500px;
-  min-width: 1023px;
   height: 100%;
   display: flex;
   margin: 0 auto;
   flex-direction: column;
-  @media ${({ theme }) => theme.device.mobile} {
-    max-width: 100%;
-    min-width: 100%;
-  }
 `;
 const TopArea = styled.div`
   position: sticky;
@@ -142,6 +136,7 @@ const TopArea = styled.div`
   height: 100px;
   border-bottom: 2px solid ${({ theme }) => theme.colors.topLine};
   z-index: 1000;
+  }
 `;
 
 const MainArea = styled.main`

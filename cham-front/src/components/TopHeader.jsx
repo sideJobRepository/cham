@@ -193,12 +193,16 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 1500px;
+  min-width: 1023px;
 
   img {
     cursor: pointer;
   }
 
   @media ${({ theme }) => theme.device.mobile} {
+    max-width: 100%;
+    min-width: 100%;
     padding: 0 16px;
   }
 `;

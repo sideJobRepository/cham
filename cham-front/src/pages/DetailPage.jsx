@@ -547,7 +547,11 @@ const DetailWrapper = styled.section`
   height: 100%;
   margin: 0 auto;
   overflow-y: hidden;
+  max-width: 1500px;
+  min-width: 1023px;
   @media screen and ${({ theme }) => theme.device.mobile} {
+    max-width: 100%;
+    min-width: 100%;
     overflow-y: unset;
   }
 `;
