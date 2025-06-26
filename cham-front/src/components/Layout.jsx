@@ -161,8 +161,12 @@ const Footer = styled.footer`
   font-size: ${({ theme }) => theme.sizes.small};
   line-height: 1.5;
   flex-wrap: wrap;
+  max-width: 1500px;
+  min-width: 1023px;
 
   @media ${({ theme }) => theme.device.mobile} {
+    max-width: 100%;
+    min-width: 100%;
     flex-direction: column;
     gap: 20px;
   }

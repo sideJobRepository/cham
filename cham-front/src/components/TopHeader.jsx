@@ -200,7 +200,7 @@ const Wrapper = styled.div`
     cursor: pointer;
   }
 
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     max-width: 100%;
     min-width: 100%;
     padding: 0 16px;
