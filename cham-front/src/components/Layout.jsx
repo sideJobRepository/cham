@@ -141,9 +141,9 @@ const TopArea = styled.div`
 
 const MainArea = styled.main`
   position: relative;
-
   height: calc(100vh - 100px);
   overflow-y: auto;
+  overflow-x: hidden;
 `;
 
 const OutletWrapper = styled.div`
