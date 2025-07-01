@@ -71,6 +71,10 @@ public class CardUseServiceImpl implements CardUseService {
             booleanBuilder.and(cardUse.cardUseAddr.cardUseDetailAddr.like("%" + request.getAddrDetail() + "%"));
         }
         
+        if(StringUtils.hasText(request.getAddrName())) {
+            booleanBuilder.and(cardUse.cardUseAddr.cardUseAddrName.like("%"+ request.getAddrName() +"%"));
+        }
+        
         // 날짜 필터 조건 처리
         if (request.getStartDate() != null && request.getEndDate() != null) {
             booleanBuilder.and(cardUse.cardUseDate.between(request.getStartDate(), request.getEndDate()));
