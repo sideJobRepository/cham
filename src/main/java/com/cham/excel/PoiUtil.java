@@ -53,7 +53,7 @@ public class PoiUtil {
                 double value = cell.getNumericCellValue();         // 0.52 같이 실수
                 return LocalTime.ofSecondOfDay((int) (value * 86400)); // 하루 86400초
             default:
-                throw new  CustomException("셀에 공백이 있는지 확인해 주세요", 400);
+                throw new  CustomException("셀에 빈값이 있는지 확인해 주세요", 400);
         }
     }
     
