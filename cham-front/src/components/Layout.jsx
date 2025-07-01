@@ -104,7 +104,7 @@ export default function Layout() {
 
               <FooterSection>
                 <h4>도움을 주신 분들</h4>
-                <p>이 프로젝트에 함께한 분들: [이름1], [이름2], ...</p>
+                <p>배성환, 박지수</p>
               </FooterSection>
             </FooterBox>
           </Footer>
@@ -156,7 +156,7 @@ const OutletWrapper = styled.div`
 const Footer = styled.footer`
   display: flex;
   border-top: 2px solid ${({ theme }) => theme.colors.primary};
-  font-size: ${({ theme }) => theme.sizes.small};
+  font-size: ${({ theme }) => theme.sizes.medium};
   line-height: 1.5;
   justify-content: center;
   min-width: 1023px;
