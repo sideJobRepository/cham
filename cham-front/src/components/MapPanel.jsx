@@ -74,7 +74,8 @@ export default function MapPanel() {
       await handleSearch();
     } catch (error) {
       console.log('error', error);
-      toast.error('엑셀 업로드 실패');
+      const errorMessage = error.response.data.message;
+      toast.error(errorMessage);
     } finally {
       e.target.value = '';
     }
@@ -283,7 +284,9 @@ export default function MapPanel() {
                           toast.success('엑셀 삭제가 완료되었습니다.');
                           await handleSearch();
                         } catch (e) {
-                          toast.error('엑셀 삭제가 실패했습니다.');
+                          console.error(e);
+                          const errorMessage = e.response.data.message;
+                          toast.error(errorMessage);
                         }
                       },
                     },
