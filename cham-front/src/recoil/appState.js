@@ -1,8 +1,7 @@
 import { atom } from 'recoil';
 
 const today = new Date();
-const oneMonthAgo = new Date();
-oneMonthAgo.setMonth(today.getMonth() - 1);
+const oneMonthAgo = new Date(new Date().getFullYear(), 0, 1);
 
 export const userState = atom({
   key: 'userState',
