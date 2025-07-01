@@ -41,6 +41,8 @@ export default function SearchBar() {
   const sortOptions = [
     { value: 1, label: '최신순' },
     { value: 2, label: '오래된순' },
+    { value: 3, label: '가격순' },
+    { value: 4, label: '방문횟수순' },
   ];
 
   const searchSelect = {

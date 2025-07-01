@@ -12,16 +12,30 @@ export default function Sidebar() {
   const sortedList = useMemo(() => {
     const list = Object.values(centerAddr);
 
+    console.log('list', list);
+
     return list.sort((a, b) => {
       const dateA = new Date(a.useDate);
       const dateB = new Date(b.useDate);
 
+      const totalA = a.totalSum;
+      const totalB = b.totalSum;
+
+      const visitsA = a.visits;
+      const visitsB = b.visits;
+
       if (searchCondition.sortOrder === 1) {
         // 최신순 (최근이 먼저)
         return dateB - dateA;
-      } else {
+      } else if (searchCondition.sortOrder === 2) {
         // 오래된순 (과거가 먼저)
         return dateA - dateB;
+      } else if (searchCondition.sortOrder === 3) {
+        // 가격 높은순
+        return totalB - totalA;
+      } else if (searchCondition.sortOrder === 4) {
+        //방문횟수 높은순
+        return visitsB - visitsA;
       }
     });
   }, [centerAddr, searchCondition.sortOrder]);
