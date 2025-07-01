@@ -355,7 +355,7 @@ public class CardUseServiceImpl implements CardUseService {
     public ApiResponse deleteExcel(String deleteKey) {
         boolean exists = cardUseRepository.existsByCardUseDelkey(deleteKey);
         if (!exists) {
-            throw new CustomException("존재하지 않는 삭제키 입니다.", 400);
+            throw new CustomException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
         }
         cardUseRepository.deleteByCardUseDelkey(deleteKey);
         return new ApiResponse(200 , true,"삭제 되었습니다.");
