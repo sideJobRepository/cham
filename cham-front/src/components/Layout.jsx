@@ -11,7 +11,7 @@ export default function Layout() {
   const setUser = useSetRecoilState(userState);
   const user = useRecoilValue(userState);
   const theme = useTheme();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(null);
 
   useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
@@ -50,14 +50,12 @@ export default function Layout() {
       const result = window.matchMedia(theme.device.mobile).matches;
       setIsMobile(result);
     };
-
     checkMobile();
     window.addEventListener('resize', checkMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
+    return () => window.removeEventListener('resize', checkMobile);
   }, [theme.device.mobile]);
+
+  if (isMobile === null) return null;
 
   return (
     <Wrapper>

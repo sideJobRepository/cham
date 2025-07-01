@@ -12,8 +12,6 @@ export default function Sidebar() {
   const sortedList = useMemo(() => {
     const list = Object.values(centerAddr);
 
-    console.log('list', list);
-
     return list.sort((a, b) => {
       const dateA = new Date(a.useDate);
       const dateB = new Date(b.useDate);
