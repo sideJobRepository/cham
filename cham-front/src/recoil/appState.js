@@ -44,6 +44,7 @@ export const mapSearchFilterState = atom({
     cardOwnerPositionId: null,
     cardUseName: '',
     numberOfVisits: '',
+    addrName: '',
     startDate: oneMonthAgo,
     endDate: today,
     sortOrder: 1,

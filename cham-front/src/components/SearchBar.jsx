@@ -22,6 +22,7 @@ export default function SearchBar() {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
       cardUseName: searchCondition.cardUseName,
       numberOfVisits: parseInt(rawAmount, 10),
+      addrName: searchCondition.addrName,
       startDate: searchCondition.startDate?.toISOString().split('T')[0],
       endDate: searchCondition.endDate?.toISOString().split('T')[0],
       sortOrder: searchCondition.sortOrder,
@@ -184,6 +185,22 @@ export default function SearchBar() {
                   numberOfVisits: formatted,
                 }));
               }}
+            />
+          </Field>
+
+          <Divider />
+
+          <Field>
+            <label>사용장소</label>
+            <input
+              type="text"
+              value={searchCondition.addrName}
+              onChange={e =>
+                setSearchCondition(prev => ({
+                  ...prev,
+                  addrName: e.target.value,
+                }))
+              }
             />
           </Field>
 

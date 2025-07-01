@@ -60,6 +60,7 @@ export default function ItemCard({ data }) {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
       cardUseName: searchCondition.cardUseName,
       numberOfVisits: searchCondition.numberOfVisits,
+      addrName: searchCondition.addrName,
       startDate: searchCondition.startDate?.toISOString().split('T')[0],
       endDate: searchCondition.endDate?.toISOString().split('T')[0],
       sortOrder: searchCondition.sortOrder,
