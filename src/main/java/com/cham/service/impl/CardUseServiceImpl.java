@@ -1,5 +1,6 @@
 package com.cham.service.impl;
 
+import com.cham.advice.exception.CustomException;
 import com.cham.controller.request.CardUseConditionRequest;
 import com.cham.controller.response.ApiResponse;
 import com.cham.controller.response.CardUseGroupedResponse;
@@ -247,13 +248,16 @@ public class CardUseServiceImpl implements CardUseService {
             Workbook workbook = WorkbookFactory.create(is);
             
             Sheet sheet = workbook.getSheetAt(0);
-            String deleKeyValue = sheet.getRow(1).getCell(11).getStringCellValue();
+            String deleKeyValue = sheet.getRow(1).getCell(13).getStringCellValue();
             boolean exists = cardUseRepository.existsByCardUseDelkey(deleKeyValue);
             if(exists) {
-                throw new RuntimeException("이미 존재하는 삭제키 입니다.");
+                throw new CustomException("이미 존재하는 삭제키입니다.", 400);
             }
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) {
+                    continue;
+                }
+                if (PoiUtil.isRowEmpty(row)) {
                     continue;
                 }
                 
@@ -271,7 +275,7 @@ public class CardUseServiceImpl implements CardUseService {
                         .filter(dto -> dto.getCardOwnerPositionName().equals(cellValue))
                         .map(CardOwnerPositionDto::getCardOwnerPositionId)
                         .findFirst()
-                        .orElseThrow(() -> new RuntimeException("직책 ID 매핑 실패: " + cellValue));
+                        .orElseThrow(() -> new CustomException("직책 이름에 해당하는 ID를 찾을 수 없습니다: " + cellValue, 400));
                 
                 CardOwnerPosition cardOwnerPosition = new CardOwnerPosition(cardOwnerPositionId);
                 
@@ -349,6 +353,10 @@ public class CardUseServiceImpl implements CardUseService {
     
     @Override
     public ApiResponse deleteExcel(String deleteKey) {
+        boolean exists = cardUseRepository.existsByCardUseDelkey(deleteKey);
+        if (!exists) {
+            throw new CustomException("존재하지 않는 삭제키 입니다.", 400);
+        }
         cardUseRepository.deleteByCardUseDelkey(deleteKey);
         return new ApiResponse(200 , true,"삭제 되었습니다.");
     }

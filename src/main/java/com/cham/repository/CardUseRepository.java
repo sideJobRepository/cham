@@ -15,5 +15,6 @@ public interface CardUseRepository extends JpaRepository<CardUse, Long> {
     @Modifying
     @Query("DELETE FROM CardUse c WHERE c.cardUseDelkey = :cardUseDelkey")
     void deleteByCardUseDelkey(@Param("cardUseDelkey") String cardUseDelkey);
+    
 }
 

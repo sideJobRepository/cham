@@ -1,5 +1,6 @@
 package com.cham.excel;
 
+import com.cham.advice.exception.CustomException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -52,7 +53,7 @@ public class PoiUtil {
                 double value = cell.getNumericCellValue();         // 0.52 같이 실수
                 return LocalTime.ofSecondOfDay((int) (value * 86400)); // 하루 86400초
             default:
-                throw new IllegalArgumentException("지원하지 않는 셀 타입입니다: " + cell.getCellType());
+                throw new  CustomException("셀에 공백이 있는지 확인해 주세요", 400);
         }
     }
     
@@ -65,7 +66,23 @@ public class PoiUtil {
             String value = cell.getStringCellValue();
             return LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } else {
-            throw new IllegalStateException("Invalid cell type for date: " + cell.getCellType());
+            throw new CustomException("날짜 형식이 올바르지 않습니다 : " + cell.getStringCellValue(), 400);
         }
     }
+    
+    public static boolean isRowEmpty(Row row) {
+        if (row == null) return true;
+        for (Cell cell : row) {
+            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                if (cell.getCellType() == CellType.STRING && !cell.getStringCellValue().trim().isEmpty()) {
+                    return false;
+                }
+                if (cell.getCellType() != CellType.STRING) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
 }
