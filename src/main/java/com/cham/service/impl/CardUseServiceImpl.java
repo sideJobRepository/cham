@@ -64,15 +64,15 @@ public class CardUseServiceImpl implements CardUseService {
             booleanBuilder.and(cardUse.cardOwnerPosition.cardOwnerPositionId.eq(request.getCardOwnerPositionId()));
         }
         if (StringUtils.hasText(request.getCardUseName())) {
-            booleanBuilder.and(cardUse.cardUseName.like("%" + request.getCardUseName() + "%"));
+            booleanBuilder.and(cardUse.cardUseName.like("%" + request.getCardUseName().trim() + "%"));
         }
         
         if (StringUtils.hasText(request.getAddrDetail())) {
-            booleanBuilder.and(cardUse.cardUseAddr.cardUseDetailAddr.like("%" + request.getAddrDetail() + "%"));
+            booleanBuilder.and(cardUse.cardUseAddr.cardUseDetailAddr.like("%" + request.getAddrDetail().trim() + "%"));
         }
         
         if(StringUtils.hasText(request.getAddrName())) {
-            booleanBuilder.and(cardUse.cardUseAddr.cardUseAddrName.like("%"+ request.getAddrName() +"%"));
+            booleanBuilder.and(cardUse.cardUseAddr.cardUseAddrName.like("%"+ request.getAddrName().trim() +"%"));
         }
         
         // 날짜 필터 조건 처리
