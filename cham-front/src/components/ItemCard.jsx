@@ -78,9 +78,9 @@ export default function ItemCard({ data }) {
     >
       <ImageWrapper>
         {data?.cardUseImageUrl ? (
-          <img src={data?.cardUseImageUrl} alt="cardImage" />
+          <img src={data?.cardUseImageUrl} alt="식당 대표 이미지" />
         ) : (
-          <img src={basicLogo} alt="cardImage" />
+          <img src={basicLogo} alt="기본 로고 이미지" />
         )}
         <ImageText>
           {data?.cardUseRegion} {data.cardUseUser} {data.visitMember}

@@ -181,7 +181,6 @@ export default function DetailPage() {
   useEffect(() => {
     if (mapDetailData) {
       SetDetail(Object.values(mapDetailData)[0]);
-      console.log('mapDe', mapDetailData);
     }
   }, [mapDetailData]);
 
@@ -193,9 +192,9 @@ export default function DetailPage() {
             <TopContent>
               <ImageBox>
                 {detail?.cardUseImageUrl ? (
-                  <img src={detail?.cardUseImageUrl} alt="sample" />
+                  <img src={detail?.cardUseImageUrl} alt="식당 대표 이미지" />
                 ) : (
-                  <img src={basicLogo} alt="sample" />
+                  <img src={basicLogo} alt="기본 로고 이미지" />
                 )}
               </ImageBox>
               <InfoBox>
