@@ -140,7 +140,12 @@ export default function SearchBar() {
 
   return (
     <Wrapper>
-      <SearchGroup>
+      <SearchGroup
+        onSubmit={e => {
+          e.preventDefault();
+          handleSearch();
+        }}
+      >
         <FieldsWrapper>
           <Field>
             <label>직위</label>
@@ -238,7 +243,7 @@ export default function SearchBar() {
           </Field>
         </FieldsWrapper>
 
-        <SearchButton onClick={handleSearch}>
+        <SearchButton type="submit">
           <SearchIcon size={22} />
           검색
         </SearchButton>
@@ -275,7 +280,7 @@ const Wrapper = styled.section`
   width: 100%;
 `;
 
-const SearchGroup = styled.div`
+const SearchGroup = styled.form`
   display: flex;
   align-items: center;
   justify-content: space-between;
