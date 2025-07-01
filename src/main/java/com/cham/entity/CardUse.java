@@ -116,7 +116,7 @@ public class CardUse extends BaseData {
         if (this.cardUsePersonnel == null ||  cardUseAmount == null && this.cardUseMethod == null) {
             return null; // 혹은 0 또는 예외 처리
         }
-        if("내방객".equals(this.cardUsePersonnel)) {
+        if(this.cardUsePersonnel.startsWith("내방객")) {
             return "내방객등";
         }
         int personnel = Integer.parseInt(this.cardUsePersonnel);
