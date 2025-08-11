@@ -143,7 +143,7 @@ export default function DetailPage() {
       });
 
       toast.update(toastId, {
-        render: '댓글 수정이 완료됐습니다..',
+        render: '댓글 수정이 완료됐습니다.',
         type: 'success',
         isLoading: false,
         autoClose: 1000,
