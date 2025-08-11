@@ -135,7 +135,16 @@ export default function MapPanel() {
 
     // 검색결과 없을 때
     if (Object.keys(mapData).length === 0) {
+      if (globalThis._overlays) {
+        globalThis._overlays.forEach(e => e.overlay.setMap(null));
+        globalThis._overlays.clear?.();
+      }
+      if (window.customOverlays) {
+        window.customOverlays.forEach(o => o.setMap(null));
+        window.customOverlays = [];
+      }
       setCenterAddr([]);
+      return;
     }
 
     const map = window.mapInstance;
@@ -158,6 +167,17 @@ export default function MapPanel() {
           replies: item.replies?.length ?? 0,
         }))
         .filter(p => !!p.address);
+
+      //검색결과 반영
+      const addrSet = new Set(points.map(p => p.address));
+      if (globalThis._overlays) {
+        globalThis._overlays.forEach((entry, addr) => {
+          if (!addrSet.has(addr)) {
+            entry.overlay.setMap(null);
+            globalThis._overlays.delete(addr);
+          }
+        });
+      }
 
       const bounds = map.getBounds();
       const sw = bounds.getSouthWest();
