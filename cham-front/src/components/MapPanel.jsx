@@ -148,7 +148,6 @@ export default function MapPanel() {
     }
 
     const map = window.mapInstance;
-    const geocoder = new window.kakao.maps.services.Geocoder();
 
     // 전역 캐시/락 (styled-components의 Map 충돌 피하려고 globalThis.Map 사용)
     if (!globalThis._geoCache) globalThis._geoCache = new globalThis.Map(); // addr -> {lat,lng} | null
