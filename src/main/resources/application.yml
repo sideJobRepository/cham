@@ -6,10 +6,9 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://localhost:3307/CHAM
-    #url:  jdbc:log4jdbc:mysql://cham-db.cfw68y8yqmke.ap-northeast-2.rds.amazonaws.com:3306/CHAM
-    username: root
-    password: 1234
+    url:  jdbc:log4jdbc:mysql://cham-db.cfw68y8yqmke.ap-northeast-2.rds.amazonaws.com:3306/CHAM
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   servlet:
     multipart:
       max-file-size: 10MB
@@ -29,7 +28,7 @@ spring:
 kakao:
   redirecturi: http://localhost:5173/oauth/kakao/callback
   clientId: ff0c6740d1fc373d03b97e072f7efbb2
-
+  client-secret: ${CLIENT_SECRET}
 
 logging:
   file:

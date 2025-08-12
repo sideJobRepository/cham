@@ -21,6 +21,8 @@ public class KaKaoServiceImpl implements KaKaoService {
     private String kakaoClientId; //값 넣어야함
     @Value("${kakao.redirecturi}")
     private String kakaoRedirectUri;
+    @Value("${kakao.client-secret}")
+    private String kakaoClientSecret;
     
     @Override
     public AccessTokenResponse getAccessToken(String code) {
@@ -32,6 +34,7 @@ public class KaKaoServiceImpl implements KaKaoService {
         params.add("client_id", kakaoClientId);
         params.add("redirect_uri", kakaoRedirectUri);
         params.add("grant_type", "authorization_code");
+        params.add("client_secret",kakaoClientSecret);
         
         ResponseEntity<AccessTokenResponse> response = restClient.post()
                 .uri("https://kauth.kakao.com/oauth/token")

@@ -28,7 +28,7 @@ spring:
 kakao:
   redirecturi: https://cham-monimap.com/oauth/kakao/callback
   clientId: ff0c6740d1fc373d03b97e072f7efbb2
-
+  client-secret: ${CLIENT_SECRET}
 
 logging:
   file:
