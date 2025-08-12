@@ -29,8 +29,8 @@ export default function TopHeader() {
   const toggleMenu = () => setIsOpen(prev => !prev);
 
   //카카오 로그인
-  const kakaoClientId = 'cea9fa380d4db5159271874966b03bc4';
-  const redirectUri = `${window.location.origin}/oauth/kakao/callback`;
+  const kakaoClientId = import.meta.env.VITE_KAKAO_CLIENT_ID;
+  const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URL;
 
   const loginWithKakao = () => {
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoClientId}&redirect_uri=${redirectUri}&response_type=code`;

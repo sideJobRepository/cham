@@ -118,10 +118,10 @@ export default function ItemCard({ data }) {
 const Card = styled.article`
   overflow: hidden;
   width: 100%;
-
-  //max-height: 140px;
+  padding: 20px 0;
   box-sizing: border-box;
   cursor: pointer;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   img {
     width: 100%;
@@ -199,7 +199,7 @@ const ImageWrapper = styled.div`
 
   img {
     width: 100%;
-    height: 180px;
+    height: 100%;
     border-radius: 8px;
     object-fit: cover;
   }

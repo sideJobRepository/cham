@@ -43,7 +43,7 @@ export default function Sidebar() {
       {sortedList.length > 0 ? (
         sortedList.map((item, idx) => <ItemCard key={idx} data={item} />)
       ) : (
-        <EmptyMessage>검색 결과가 없습니다.</EmptyMessage>
+        <EmptyMessage>검색된 결과가 없습니다.</EmptyMessage>
       )}
     </Wrapper>
   );
@@ -52,8 +52,7 @@ export default function Sidebar() {
 const Wrapper = styled.aside`
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(1, 1fr);
 
   @media ${({ theme }) => theme.device.mobile} {
     display: flex;
@@ -66,14 +65,11 @@ const Wrapper = styled.aside`
       width: calc(50% - 6px);
     }
   }
-
-  @media ${({ theme }) => theme.device.tablet} {
-    grid-template-columns: repeat(2, 1fr);
-  }
 `;
 
 const EmptyMessage = styled.div`
   width: 100%;
+  margin-top: 20px;
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.large};
   color: ${({ theme }) => theme.colors.liteGray};

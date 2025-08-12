@@ -1,20 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useSearchMapState } from '@/recoil/useAppState.js';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 
-import {
-  mapCenterAddrState,
-  mapSearchFilterState,
-  selectedCardDataState,
-  userState,
-} from '@/recoil/appState.js';
-import { useNavigate } from 'react-router-dom';
-import { FaFileExcel } from 'react-icons/fa';
+import { mapCenterAddrState, mapSearchFilterState, userState } from '@/recoil/appState.js';
 import { confirmAlert } from 'react-confirm-alert';
 import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
-import { AiOutlineDelete } from 'react-icons/ai';
+import { AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 
 export default function MapPanel() {
@@ -22,6 +15,7 @@ export default function MapPanel() {
   const { mapData } = useSearchMapState();
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
+  const mapKey = import.meta.env.VITE_KAKAO_MAP_ID;
 
   const searchCondition = useRecoilValue(mapSearchFilterState);
 
@@ -90,8 +84,7 @@ export default function MapPanel() {
     const loadScript = () => {
       return new Promise(resolve => {
         const script = document.createElement('script');
-        script.src =
-          'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1519e43e7b03b773d886b2b894b783b1&autoload=false&libraries=services';
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${mapKey}&autoload=false&libraries=services`;
         script.async = true;
         document.head.appendChild(script);
         script.onload = resolve;
@@ -354,8 +347,8 @@ export default function MapPanel() {
         {user?.role === 'ADMIN' && (
           <ExcelSection>
             <ExcelButton onClick={handleExcelUploadClick}>
-              <FaFileExcel size={16} />
-              엑셀 업로드
+              <AiOutlineUpload />
+              추가
             </ExcelButton>
             <input
               type="file"
@@ -368,7 +361,7 @@ export default function MapPanel() {
               value={deleteText}
               type="text"
               onChange={e => setDeleteText(e.target.value)}
-              placeholder="삭제키를 입력해주세요"
+              placeholder="삭제키를 입력해주세요."
             />
             <ExcelButton
               onClick={() => {
@@ -397,8 +390,8 @@ export default function MapPanel() {
                 });
               }}
             >
-              <AiOutlineDelete size={20} />
-              엑셀 삭제
+              <AiOutlineDelete />
+              삭제
             </ExcelButton>
           </ExcelSection>
         )}
@@ -411,28 +404,28 @@ export default function MapPanel() {
 const MapBox = styled.div`
   width: 100%;
   height: 100%;
+  position: relative;
 `;
 
 const MapContainer = styled.div`
   width: 100%;
-  height: ${({ $hasHeader }) => ($hasHeader ? 'calc(100% - 60px)' : '100%')};
-  border-radius: 8px;
+  height: 100%;
 `;
 
 const ExcelSection = styled.div`
-  width: 100%;
-  height: 60px;
-  padding: 10px;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translate(-50%, -0%);
   display: flex;
+  background-color: #ffffff;
+  border-radius: 999px;
+  border: 2px solid ${({ theme }) => theme.colors.primary};
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
   gap: 8px;
-  justify-content: right;
-  @media ${({ theme }) => theme.device.mobile} {
-    padding: 0;
-    height: 40px;
-    width: 100%;
-    margin-bottom: 20px;
-    justify-content: center;
-  }
+  z-index: 2;
 `;
 
 const ExcelButton = styled.button`
@@ -448,6 +441,11 @@ const ExcelButton = styled.button`
   cursor: pointer;
   white-space: nowrap;
   gap: 6px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.sizes.small};
     padding: 6px 12px;
@@ -456,7 +454,7 @@ const ExcelButton = styled.button`
 
 const DeleteInput = styled.input`
   border: none;
-  border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
+  background: unset;
   padding: 4px;
   &:focus {
     outline: none;

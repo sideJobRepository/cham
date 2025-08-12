@@ -77,6 +77,7 @@ export default function SearchBar() {
       ...provided,
       display: 'none',
     }),
+    menuPortal: base => ({ ...base, zIndex: 3 }),
     menu: provided => ({
       ...provided,
       width: 110,
