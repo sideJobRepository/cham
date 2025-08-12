@@ -79,6 +79,7 @@ jobs:
             -e SPRING_CLOUD_AWS_S3_BUCKET=${{ secrets.AWS_BUCKET }} \
             -e DB_USERNAME=${{ secrets.DB_USERNAME }}  \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
             -e SPRING_PROFILES_ACTIVE=real \
             -v $(pwd)/logs:/app/logs \
             -p 8080:8080 \
