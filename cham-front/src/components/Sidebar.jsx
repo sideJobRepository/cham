@@ -53,18 +53,6 @@ const Wrapper = styled.aside`
   width: 100%;
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-
-  @media ${({ theme }) => theme.device.mobile} {
-    display: flex;
-    overflow-x: auto;
-    padding: 16px 0;
-    gap: 12px;
-
-    & > * {
-      flex: 0 0 calc(50% - 6px); // 한 화면에 2개씩 보이게
-      width: calc(50% - 6px);
-    }
-  }
 `;
 
 const EmptyMessage = styled.div`
