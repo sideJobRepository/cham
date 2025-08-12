@@ -1,6 +1,6 @@
 package com.cham.security.service.impl;
 
-import com.cham.security.service.KaKaoService;
+import com.cham.security.service.SocialService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClient;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class KaKaoServiceImpl implements KaKaoService {
+public class KaKaoServiceImpl implements SocialService {
     
     @Value("${kakao.clientId}")
     private String kakaoClientId; //값 넣어야함

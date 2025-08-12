@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
-public class KaKaoChamAuthenticationToken extends AbstractAuthenticationToken {
+public class SocialAuthenticationToken extends AbstractAuthenticationToken {
     
     private final Object principal;
     
@@ -20,7 +20,7 @@ public class KaKaoChamAuthenticationToken extends AbstractAuthenticationToken {
     
     
     
-    public KaKaoChamAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl) {
+    public SocialAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl) {
         super(null);
         this.principal = principal;
         this.credentials = credentials;
@@ -29,7 +29,7 @@ public class KaKaoChamAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
     
-    public KaKaoChamAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl,Collection<? extends GrantedAuthority> authorities) {
+    public SocialAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
         this.credentials = credentials;

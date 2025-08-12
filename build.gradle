@@ -49,6 +49,9 @@ dependencies {
     //스프링 시큐리티
     implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    //스프링 시큐리티 리소스 서버
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     
     // jwt 관련 라이브러리들
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -58,6 +61,8 @@ dependencies {
     //S3
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.0.0")
+
+
 }
 
 tasks.named('test') {

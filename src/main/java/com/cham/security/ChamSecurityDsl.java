@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 public class ChamSecurityDsl<H extends HttpSecurityBuilder<H>> extends AbstractAuthenticationFilterConfigurer<H, ChamSecurityDsl<H>, ChamAuthenticationFilter> {
@@ -17,8 +18,10 @@ public class ChamSecurityDsl<H extends HttpSecurityBuilder<H>> extends AbstractA
     
     private AuthenticationSuccessHandler successHandler;
     private AuthenticationFailureHandler failureHandler;
-    private AuthenticationEntryPoint entryPoint;
     
+    private static final RequestMatcher LOGIN_MATCHER = new OrRequestMatcher(
+            new AntPathRequestMatcher("/cham/kakao-login", "POST")
+    );
     
     
     public ChamSecurityDsl() {
@@ -54,14 +57,8 @@ public class ChamSecurityDsl<H extends HttpSecurityBuilder<H>> extends AbstractA
         return this;
     }
     
-    public ChamSecurityDsl<H> chamKaKaoEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
-        this.entryPoint = authenticationEntryPoint;
-        return this;
-    }
-    
-    
     @Override
     protected RequestMatcher createLoginProcessingUrlMatcher(String loginProcessingUrl) {
-        return new AntPathRequestMatcher(loginProcessingUrl, "POST");
+        return LOGIN_MATCHER;
     }
 }

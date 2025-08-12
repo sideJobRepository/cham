@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class UserServiceContext implements UserDetails {
+public class ChamMonimapMemberContext implements UserDetails {
     
     private final ChamMonimapMember member;
     private final List<GrantedAuthority> authorities;

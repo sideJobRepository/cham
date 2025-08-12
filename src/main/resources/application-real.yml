@@ -38,3 +38,6 @@ logging:
   logback:
     rollingpolicy:
       file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.log
+
+cookie:
+  secure: true

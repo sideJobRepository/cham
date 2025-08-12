@@ -4,7 +4,7 @@ import com.cham.entity.ChamMonimapMember;
 import com.cham.entity.enumeration.Role;
 import com.cham.entity.enumeration.SocialType;
 import com.cham.repository.ChamMonimapMemberRepository;
-import com.cham.security.context.UserServiceContext;
+import com.cham.security.context.ChamMonimapMemberContext;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,7 +45,7 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
         List<GrantedAuthority> authorities =
                 AuthorityUtils.createAuthorityList(member.getRole().name());
         
-        return new UserServiceContext(member, authorities);
+        return new ChamMonimapMemberContext(member, authorities);
     }
     
     private ChamMonimapMember toMember(KaKaoProfileResponse profile) {

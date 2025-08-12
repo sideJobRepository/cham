@@ -1,7 +1,7 @@
 package com.cham.security.filter;
 
 import com.cham.security.service.impl.request.KaKaoAuthorizeRequest;
-import com.cham.security.token.KaKaoChamAuthenticationToken;
+import com.cham.security.token.SocialAuthenticationToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 import java.io.IOException;
 
@@ -18,7 +19,9 @@ public class ChamAuthenticationFilter extends AbstractAuthenticationProcessingFi
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     public ChamAuthenticationFilter() {
-        super(new AntPathRequestMatcher("/cham/kakao-login", "POST"));
+        super(new OrRequestMatcher(
+                new AntPathRequestMatcher("/cham/kakao-login", "POST"))
+        );
     }
     
     @Override
@@ -29,7 +32,7 @@ public class ChamAuthenticationFilter extends AbstractAuthenticationProcessingFi
         
         String code = kaKaoAuthorizeRequest.getCode();
         
-        KaKaoChamAuthenticationToken kaKaoChamAuthenticationToken = new KaKaoChamAuthenticationToken(
+        SocialAuthenticationToken kaKaoChamAuthenticationToken = new SocialAuthenticationToken(
                 code,
                 null,
                 null,

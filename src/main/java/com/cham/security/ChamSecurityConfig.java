@@ -1,18 +1,22 @@
 package com.cham.security;
 
-import com.cham.security.jwt.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -38,7 +42,8 @@ public class ChamSecurityConfig {
     private final AuthenticationSuccessHandler chamAuthenticationSuccessHandler;
     private final AuthenticationFailureHandler chamAuthenticationFailureHandler;
     private final AuthenticationEntryPoint chamAuthenticationEntryPoint;
-    private final JwtTokenFilter jwtTokenFilter;
+    private final AccessDeniedHandler chamMonimapAccessDeniedHandler;
+    private final AuthorizationManager<RequestAuthorizationContext> chamMonimapAuthorizationManager;
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,23 +54,24 @@ public class ChamSecurityConfig {
         
         
         http
-                .securityMatcher("/cham/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(resource).permitAll()
+                        .anyRequest().access(chamMonimapAuthorizationManager)
+                )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationManager(authenticationManager)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(resource).permitAll()
-                        .anyRequest().permitAll()
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(chamAuthenticationEntryPoint)
+                        .accessDeniedHandler(chamMonimapAccessDeniedHandler)
                 )
-                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .with(new ChamSecurityDsl<>(), chamSecurityDsl -> chamSecurityDsl
                         .chamKaKaoSuccessHandler(chamAuthenticationSuccessHandler)
                         .chamKaKaoFailureHandler(chamAuthenticationFailureHandler)
-                        .chamKaKaoEntryPoint(chamAuthenticationEntryPoint)
-                        .loginProcessingUrl("/cham/kakao-login")
                 )
         ;
         
@@ -78,11 +84,21 @@ public class ChamSecurityConfig {
         corsConfiguration.setAllowedOrigins(url);
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
+        corsConfiguration.setExposedHeaders(List.of("Set-Cookie", "Content-Disposition"));
         corsConfiguration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
     }
-    
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        authoritiesConverter.setAuthorityPrefix("");
+        authoritiesConverter.setAuthoritiesClaimName("roles");
+        
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        return converter;
+    }
 
 }
