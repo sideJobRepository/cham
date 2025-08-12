@@ -15,7 +15,6 @@ export default function MapPanel() {
   const { mapData } = useSearchMapState();
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
-  const mapKey = import.meta.env.VITE_KAKAO_MAP_ID;
 
   const searchCondition = useRecoilValue(mapSearchFilterState);
 
@@ -84,6 +83,8 @@ export default function MapPanel() {
     const loadScript = () => {
       return new Promise(resolve => {
         const script = document.createElement('script');
+        const mapKey = import.meta.env.VITE_KAKAO_MAP_ID;
+
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${mapKey}&autoload=false&libraries=services`;
         script.async = true;
         document.head.appendChild(script);
