@@ -3,14 +3,13 @@ package com.cham.service.impl;
 import com.cham.RepositoryAndServiceTestSupport;
 import com.cham.controller.request.ReplyCreateRequest;
 import com.cham.controller.request.ReplyModifyRequest;
-import com.cham.service.ReplyService;
+import com.cham.service.ChamMonimapReplyService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ class ReplyServiceImplTest extends RepositoryAndServiceTestSupport {
     
     
     @Autowired
-    private ReplyService replyService;
+    private ChamMonimapReplyService replyService;
     
     
     @DisplayName("")

@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
-public interface CardUseService {
+public interface ChamMonimapCardUseService {
     
     Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request);
     

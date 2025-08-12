@@ -1,6 +1,6 @@
 package com.cham.security.context;
 
-import com.cham.entity.Member;
+import com.cham.entity.ChamMonimapMember;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceContext implements UserDetails {
     
-    private final Member member;
+    private final ChamMonimapMember member;
     private final List<GrantedAuthority> authorities;
     
     @Override
@@ -28,6 +28,6 @@ public class UserServiceContext implements UserDetails {
     
     @Override
     public String getUsername() {
-        return member.getMemberName();
+        return member.getChamMonimapMemberName();
     }
 }

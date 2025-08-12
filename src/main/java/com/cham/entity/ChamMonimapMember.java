@@ -9,48 +9,48 @@ import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
-@Table(name = "MEMBER")
+@Table(name = "CHAM_MONIMAP_MEMBER")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @DynamicUpdate
-public class Member extends BaseData {
+public class ChamMonimapMember extends BaseData {
     // 회원 ID
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_ID")
-    private Long memberId;
+    @Column(name = "CHAM_MONIMAP_MEMBER_ID")
+    private Long chamMonimapMemberId;
     
     // 회원 이메일
-    @Column(name = "MEMBER_EMAIL")
-    private String memberEmail;
+    @Column(name = "CHAM_MONIMAP_MEMBER_EMAIL")
+    private String chamMonimapMemberEmail;
     
     // 회원 이름
-    @Column(name = "MEMBER_NAME")
-    private String memberName;
+    @Column(name = "CHAM_MONIMAP_MEMBER_NAME")
+    private String chamMonimapMemberName;
     
     // 회원 소셜 타입
-    @Column(name = "MEMBER_SOCIAL_TYPE")
+    @Column(name = "CHAM_MONIMAP_MEMBER_SOCIAL_TYPE")
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
     
-    @Column(name = "MEMBER_SUB_ID")
-    private String memberSubId;
+    @Column(name = "CHAM_MONIMAP_MEMBER_SUB_ID")
+    private String chamMonimapMemberSubId;
     
-    @Column(name = "MEMBER_ROLE")
+    @Column(name = "CHAM_MONIMAP_MEMBER_ROLE")
     @Enumerated(EnumType.STRING)
     private Role role;
     
-    @Column(name = "MEMBER_IMAGE_URL")
-    private String memberImageUrl;
+    @Column(name = "CHAM_MONIMAP_MEMBER_IMAGE_URL")
+    private String chamMonimapMemberImageUrl;
     
-    public Member(Long memberId) {
-        this.memberId = memberId;
+    public ChamMonimapMember(Long memberId) {
+        this.chamMonimapMemberId = memberId;
     }
     
     
     public void modifyMemberImageUrl(String memberImageUrl) {
-        this.memberImageUrl = memberImageUrl;
+        this.chamMonimapMemberImageUrl = memberImageUrl;
     }
     
 }

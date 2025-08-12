@@ -1,13 +1,13 @@
 package com.cham.repository;
 
-import com.cham.entity.CardUseAddr;
+import com.cham.entity.ChamMonimapCardUseAddr;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface CardUseAddrRepository extends JpaRepository<CardUseAddr, Long> {
+public interface ChamMonimapCardUseAddrRepository extends JpaRepository<ChamMonimapCardUseAddr, Long> {
     
-    @Query("SELECT A.cardUseImageUrl FROM CardUseAddr A WHERE A.cardUseAddrId = :cardUseAddrId")
+    @Query("SELECT A.chamMonimapCardUseImageUrl FROM ChamMonimapCardUseAddr A WHERE A.chamMonimapCardUseAddrId = :cardUseAddrId")
     String findByImageUrl(@Param("cardUseAddrId") Long cardUseAddrId);
     
 }

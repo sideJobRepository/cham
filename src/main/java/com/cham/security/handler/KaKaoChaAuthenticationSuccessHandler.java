@@ -1,6 +1,6 @@
 package com.cham.security.handler;
 
-import com.cham.entity.Member;
+import com.cham.entity.ChamMonimapMember;
 import com.cham.security.jwt.JwtTokenProvider;
 import com.cham.security.token.KaKaoChamAuthenticationToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,12 +26,12 @@ public class KaKaoChaAuthenticationSuccessHandler implements AuthenticationSucce
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         KaKaoChamAuthenticationToken kakaoToken = (KaKaoChamAuthenticationToken) authentication;
-        Member member = (Member) kakaoToken.getPrincipal();
+        ChamMonimapMember member = (ChamMonimapMember) kakaoToken.getPrincipal();
         String profileImageUrl = kakaoToken.getProfileImageUrl();
         String thumbnailImageUrl = kakaoToken.getThumbnailImageUrl();
-        String token = jwtTokenProvider.createToken(member.getMemberId(), member.getMemberEmail(), member.getRole().name(),   profileImageUrl, thumbnailImageUrl, member.getMemberName(),member.getMemberSubId());
+        String token = jwtTokenProvider.createToken(member.getChamMonimapMemberId(), member.getChamMonimapMemberEmail(), member.getRole().name(),   profileImageUrl, thumbnailImageUrl, member.getChamMonimapMemberName(),member.getChamMonimapMemberSubId());
         Map<String,Object> map = new HashMap<>();
-        map.put("id",member.getMemberId());
+        map.put("id",member.getChamMonimapMemberId());
         map.put("token",token);
         String jwtToken = objectMapper.writeValueAsString(map);
         response.getWriter().write(jwtToken);

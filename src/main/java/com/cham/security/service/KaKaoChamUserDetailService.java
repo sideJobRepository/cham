@@ -1,9 +1,9 @@
 package com.cham.security.service;
 
-import com.cham.entity.Member;
+import com.cham.entity.ChamMonimapMember;
 import com.cham.entity.enumeration.Role;
 import com.cham.entity.enumeration.SocialType;
-import com.cham.repository.MemberRepository;
+import com.cham.repository.ChamMonimapMemberRepository;
 import com.cham.security.context.UserServiceContext;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -24,7 +23,7 @@ import java.util.Optional;
 @Transactional
 public class KaKaoChamUserDetailService implements UserDetailsService {
     
-    private final MemberRepository memberRepository;
+    private final ChamMonimapMemberRepository memberRepository;
     
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -33,14 +32,14 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     }
     
     public UserDetails loadUserByUsername(KaKaoProfileResponse kaKaoProfile) {
-        Member member = memberRepository.findByMemberSubId(String.valueOf(kaKaoProfile.getId()))
+        ChamMonimapMember member = memberRepository.findBychamMonimapMemberSubId(String.valueOf(kaKaoProfile.getId()))
                 .map(existingMember -> {
                     String thumbnailImageUrl = kaKaoProfile.getKakaoAccount().getProfile().getThumbnailImageUrl();
                     existingMember.modifyMemberImageUrl(thumbnailImageUrl);
                     return existingMember;
                 })
                 .orElseGet(() -> {
-                    Member newMember = toMember(kaKaoProfile);
+                    ChamMonimapMember newMember = toMember(kaKaoProfile);
                     return memberRepository.save(newMember);
                 });
         List<GrantedAuthority> authorities =
@@ -49,13 +48,13 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
         return new UserServiceContext(member, authorities);
     }
     
-    private Member toMember(KaKaoProfileResponse profile) {
-        return Member.builder()
-                .memberEmail(profile.getKakaoAccount().getEmail())
-                .memberName(profile.getKakaoAccount().getProfile().getNickname())
+    private ChamMonimapMember toMember(KaKaoProfileResponse profile) {
+        return ChamMonimapMember.builder()
+                .chamMonimapMemberEmail(profile.getKakaoAccount().getEmail())
+                .chamMonimapMemberName(profile.getKakaoAccount().getProfile().getNickname())
                 .socialType(SocialType.KAKAO)
-                .memberSubId(String.valueOf(profile.getId()))
-                .memberImageUrl(profile.getKakaoAccount().getProfile().getThumbnailImageUrl())
+                .chamMonimapMemberSubId(String.valueOf(profile.getId()))
+                .chamMonimapMemberImageUrl(profile.getKakaoAccount().getProfile().getThumbnailImageUrl())
                 .role(Role.USER)          // 신규 가입 시 기본 권한
                 .build();
     }

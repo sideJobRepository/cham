@@ -4,7 +4,7 @@ import com.cham.controller.request.ReplyModifyRequest;
 import com.cham.controller.request.ReplyCreateRequest;
 import com.cham.controller.response.ApiResponse;
 
-public interface ReplyService {
+public interface ChamMonimapReplyService {
     
     
     ApiResponse insertReply(ReplyCreateRequest request);

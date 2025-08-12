@@ -1,20 +1,19 @@
 package com.cham.controller;
 
 
-import com.cham.controller.request.ReplyDeleteRequest;
-import com.cham.controller.request.ReplyModifyRequest;
 import com.cham.controller.request.ReplyCreateRequest;
+import com.cham.controller.request.ReplyModifyRequest;
 import com.cham.controller.response.ApiResponse;
-import com.cham.service.ReplyService;
+import com.cham.service.ChamMonimapReplyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/cham")
 @RequiredArgsConstructor
-public class ReplyController {
+public class ChamMonimapReplyController {
     
-    private final ReplyService replyService;
+    private final ChamMonimapReplyService replyService;
     
     @PostMapping("/reply")
     public ApiResponse createReply(@ModelAttribute ReplyCreateRequest request) {

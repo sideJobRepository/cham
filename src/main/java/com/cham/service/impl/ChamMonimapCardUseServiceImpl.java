@@ -10,11 +10,11 @@ import com.cham.entity.*;
 import com.cham.entity.dto.CardOwnerPositionDto;
 import com.cham.entity.dto.CardUseAddrDto;
 import com.cham.excel.PoiUtil;
-import com.cham.repository.CardOwnerPositionRepository;
-import com.cham.repository.CardUseAddrRepository;
-import com.cham.repository.CardUseRepository;
-import com.cham.service.CardUseAddrService;
-import com.cham.service.CardUseService;
+import com.cham.repository.ChamMonimapCardOwnerPositionRepository;
+import com.cham.repository.ChamMonimapCardUseAddrRepository;
+import com.cham.repository.ChamMonimapCardUseRepository;
+import com.cham.service.ChamMonimapCardUseAddrService;
+import com.cham.service.ChamMonimapCardUseService;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,139 +28,143 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.cham.entity.QCardOwnerPosition.cardOwnerPosition;
-import static com.cham.entity.QCardUse.cardUse;
-import static com.cham.entity.QCardUseAddr.cardUseAddr;
-import static com.cham.entity.QReply.*;
-import static com.cham.entity.QReplyImage.*;
+import static com.cham.entity.QChamMonimapCardOwnerPosition.*;
+import static com.cham.entity.QChamMonimapCardUse.*;
+
+import static com.cham.entity.QChamMonimapCardUseAddr.*;
+import static com.cham.entity.QChamMonimapReply.*;
+import static com.cham.entity.QChamMonimapReplyImage.*;
 
 
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class CardUseServiceImpl implements CardUseService {
+public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService {
     
-    private final CardUseRepository cardUseRepository;
+    private final ChamMonimapCardUseRepository cardUseRepository;
     
-    private final CardUseAddrRepository cardUseAddrRepository;
+    private final ChamMonimapCardUseAddrRepository cardUseAddrRepository;
     
-    private final CardUseAddrService cardUseAddrService;
+    private final ChamMonimapCardUseAddrService cardUseAddrService;
     
-    private final CardOwnerPositionRepository cardOwnerPositionRepository;
+    private final ChamMonimapCardOwnerPositionRepository cardOwnerPositionRepository;
     
     private final JPAQueryFactory queryFactory;
     
     
     @Override
     public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
-        
+        QChamMonimapCardUse cardUse = chamMonimapCardUse;
+        QChamMonimapReply reply = chamMonimapReply;
+        QChamMonimapReplyImage replyImage = chamMonimapReplyImage;
+        QChamMonimapCardUseAddr cardUseAddr = chamMonimapCardUseAddr;
         BooleanBuilder booleanBuilder = new BooleanBuilder();
+
         if (request.getCardOwnerPositionId() != null) {
-            booleanBuilder.and(cardUse.cardOwnerPosition.cardOwnerPositionId.eq(request.getCardOwnerPositionId()));
+            booleanBuilder.and(cardUse.chamMonimapCardOwnerPosition.chamMonimapCardOwnerPositionId.eq(request.getCardOwnerPositionId()));
         }
         if (StringUtils.hasText(request.getCardUseName())) {
-            booleanBuilder.and(cardUse.cardUseName.like("%" + request.getCardUseName().trim() + "%"));
+            booleanBuilder.and(cardUse.chamMonimapCardUseName.like("%" + request.getCardUseName().trim() + "%"));
         }
         
         if (StringUtils.hasText(request.getAddrDetail())) {
-            booleanBuilder.and(cardUse.cardUseAddr.cardUseDetailAddr.like("%" + request.getAddrDetail().trim() + "%"));
+            booleanBuilder.and(cardUse.cardUseAddr.chamMonimapCardUseDetailAddr.like("%" + request.getAddrDetail().trim() + "%"));
         }
         
         if(StringUtils.hasText(request.getAddrName())) {
-            booleanBuilder.and(cardUse.cardUseAddr.cardUseAddrName.like("%"+ request.getAddrName().trim() +"%"));
+            booleanBuilder.and(cardUse.cardUseAddr.chamMonimapCardUseAddrName.like("%"+ request.getAddrName().trim() +"%"));
         }
         
         // 날짜 필터 조건 처리
         if (request.getStartDate() != null && request.getEndDate() != null) {
-            booleanBuilder.and(cardUse.cardUseDate.between(request.getStartDate(), request.getEndDate()));
+            booleanBuilder.and(cardUse.chamMonimapCardUseDate.between(request.getStartDate(), request.getEndDate()));
         } else if (request.getStartDate() != null) {
-            booleanBuilder.and(cardUse.cardUseDate.goe(request.getStartDate()));
+            booleanBuilder.and(cardUse.chamMonimapCardUseDate.goe(request.getStartDate()));
         } else if (request.getEndDate() != null) {
-            booleanBuilder.and(cardUse.cardUseDate.loe(request.getEndDate()));
+            booleanBuilder.and(cardUse.chamMonimapCardUseDate.loe(request.getEndDate()));
         }
         
         // 1. 카드사용 + 카드사용장소 + 댓글 조회
-        List<CardUse> cardUses = queryFactory
+        List<ChamMonimapCardUse> cardUses = queryFactory
                 .selectFrom(cardUse)
                 .join(cardUse.cardUseAddr, cardUseAddr).fetchJoin()
                 .where(booleanBuilder)
                 .fetch();
         
-        List<Reply> replies = queryFactory
+        List<ChamMonimapReply> replies = queryFactory
                 .selectFrom(reply)
-                .join(reply.cardUseAddr, cardUseAddr).fetchJoin()
+                .join(reply.chamMonimapCardUseAddr, cardUseAddr).fetchJoin()
                 .fetch();
         
-        List<ReplyImage> replyImages = queryFactory
+        List<ChamMonimapReplyImage> replyImages = queryFactory
                 .selectFrom(replyImage)
-                .join(replyImage.reply, reply).fetchJoin()
+                .join(replyImage.chamMonimapReply, reply).fetchJoin()
                 .fetch();
         
         // 2. 그룹핑: 장소별 카드사용, 장소별 댓글
-        Map<Long, List<CardUse>> groupedByAddrId = cardUses.stream()
-                .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getCardUseAddrId()));
+        Map<Long, List<ChamMonimapCardUse>> groupedByAddrId = cardUses.stream()
+                .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getChamMonimapCardUseAddrId()));
         
-        Map<Long, List<Reply>> repliesGroupedByAddrId = replies.stream()
-                .collect(Collectors.groupingBy(reply -> reply.getCardUseAddr().getCardUseAddrId()));
+        Map<Long, List<ChamMonimapReply>> repliesGroupedByAddrId = replies.stream()
+                .collect(Collectors.groupingBy(r -> r.getChamMonimapCardUseAddr().getChamMonimapCardUseAddrId()));
         
-        Map<Long, List<ReplyImage>> replyImageGroup = replyImages.stream()
-                .collect(Collectors.groupingBy(img -> img.getReply().getReplyId()));
+        Map<Long, List<ChamMonimapReplyImage>> replyImageGroup = replyImages.stream()
+                .collect(Collectors.groupingBy(img -> img.getChamMonimapReply().getChamMonimapReplyId()));
         
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
         
-        for (Map.Entry<Long, List<CardUse>> entry : groupedByAddrId.entrySet()) {
+        for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : groupedByAddrId.entrySet()) {
             Long addrId = entry.getKey();
-            List<CardUse> cardUseList = entry.getValue();
+            List<ChamMonimapCardUse> cardUseList = entry.getValue();
             
             // 방문 횟수 조건 필터링
             if (request.getNumberOfVisits() != null && cardUseList.size() < request.getNumberOfVisits()) {
                 continue;
             }
             
-            CardUse first = cardUseList.get(0);
-            String addrName = first.getCardUseAddr().getCardUseAddrName();
+            ChamMonimapCardUse first = cardUseList.get(0);
+            String addrName = first.getCardUseAddr().getChamMonimapCardUseAddrName();
             int visitCount = cardUseList.size();
-            String cardUseRegion = first.getCardUseRegion();
-            String cardUseUser = first.getCardUseUser();
+            String cardUseRegion = first.getChamMonimapCardUseRegion();
+            String cardUseUser = first.getChamMonimapCardUseUser();
             
             // visitMember 설정 로직
             Set<String> uniqueNames = cardUseList.stream()
-                    .map(CardUse::getCardUseName)
+                    .map(ChamMonimapCardUse::getChamMonimapCardUseName)
                     .collect(Collectors.toSet());
             
             String visitMember = uniqueNames.size() == 1
                     ? uniqueNames.iterator().next()
-                    : String.format("%s 외 %d명", first.getCardUseName(), uniqueNames.size() - 1);
+                    : String.format("%s 외 %d명", first.getChamMonimapCardUseName(), uniqueNames.size() - 1);
             
             int totalSum = cardUseList.stream()
-                    .mapToInt(CardUse::getCardUseAmount)
+                    .mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount)
                     .sum();
             
             List<CardUseGroupedResponse> groupedResponses = cardUseList.stream()
                     .map(use -> new CardUseGroupedResponse(
-                            use.getCardUseName(),
+                            use.getChamMonimapCardUseName(),
                             use.getAmountPerPerson(),
-                            use.getCardUseMethod(),
-                            use.getCardUseAmount(),
-                            use.getCardUsePurpose(),
-                            use.getCardUsePersonnel(),
-                            use.getCardUseDate(),
-                            use.getCardUseTime()
+                            use.getChamMonimapCardUseMethod(),
+                            use.getChamMonimapCardUseAmount(),
+                            use.getChamMonimapCardUsePurpose(),
+                            use.getChamMonimapCardUsePersonnel(),
+                            use.getChamMonimapCardUseDate(),
+                            use.getChamMonimapCardUseTime()
                     ))
                     .collect(Collectors.toList());
             
             LocalDate useDate = cardUseList.stream()
-                    .map(CardUse::getCardUseDate)
+                    .map(ChamMonimapCardUse::getChamMonimapCardUseDate)
                     .max(Comparator.naturalOrder())
                     .orElse(null);
             
             String addrDetail = cardUseList.stream()
-                    .map(item -> item.getCardUseAddr().getCardUseDetailAddr())
+                    .map(item -> item.getCardUseAddr().getChamMonimapCardUseDetailAddr())
                     .findFirst()
                     .orElse("");
             
@@ -171,19 +175,19 @@ public class CardUseServiceImpl implements CardUseService {
                     .getOrDefault(addrId, Collections.emptyList())
                     .stream()
                     .map(item -> {
-                        Long replyId = item.getReplyId();
+                        Long replyId = item.getChamMonimapReplyId();
                         
                         List<String> imageUrls = replyImageGroup.getOrDefault(replyId, Collections.emptyList())
                                 .stream()
-                                .map(ReplyImage::getReplyImageUrl)
+                                .map(ChamMonimapReplyImage::getChamMonimapReplyImageUrl)
                                 .collect(Collectors.toList());
                         
                         return new ReplyResponse(
                                 replyId,
-                                item.getReplyCont(),
-                                item.getMember().getMemberName(),
-                                item.getMember().getMemberImageUrl(),
-                                item.getMember().getMemberEmail(),
+                                item.getChamMonimapReplyCont(),
+                                item.getChamMonimapMember().getChamMonimapMemberName(),
+                                item.getChamMonimapMember().getChamMonimapMemberImageUrl(),
+                                item.getChamMonimapMember().getChamMonimapMemberEmail(),
                                 imageUrls
                         );
                     })
@@ -228,11 +232,13 @@ public class CardUseServiceImpl implements CardUseService {
     
     @Override
     public ApiResponse insertCardUse(MultipartFile multipartFile) {
+        QChamMonimapCardOwnerPosition cardOwnerPosition = chamMonimapCardOwnerPosition;
+        QChamMonimapCardUseAddr cardUseAddr = chamMonimapCardUseAddr;
         List<CardOwnerPositionDto> cardOwnerPositionDtos = queryFactory
                 .select(Projections.constructor(
                         CardOwnerPositionDto.class,
-                        cardOwnerPosition.cardOwnerPositionId,
-                        cardOwnerPosition.cardOwnerPositionName
+                        cardOwnerPosition.chamMonimapCardOwnerPositionId,
+                        cardOwnerPosition.chamMonimapCardOwnerPositionName
                 ))
                 .from(cardOwnerPosition)
                 .fetch();
@@ -240,9 +246,9 @@ public class CardUseServiceImpl implements CardUseService {
         List<CardUseAddrDto> cardUseAddrDtos = queryFactory
                 .select(Projections.constructor(
                         CardUseAddrDto.class,
-                        cardUseAddr.cardUseAddrId,
-                        cardUseAddr.cardUseAddrName,
-                        cardUseAddr.cardUseDetailAddr
+                        cardUseAddr.chamMonimapCardUseAddrId,
+                        cardUseAddr.chamMonimapCardUseAddrName,
+                        cardUseAddr.chamMonimapCardUseDetailAddr
                 ))
                 .from(cardUseAddr)
                 .fetch();
@@ -253,7 +259,7 @@ public class CardUseServiceImpl implements CardUseService {
             
             Sheet sheet = workbook.getSheetAt(0);
             String deleKeyValue = sheet.getRow(1).getCell(13).getStringCellValue();
-            boolean exists = cardUseRepository.existsByCardUseDelkey(deleKeyValue);
+            boolean exists = cardUseRepository.existsByChamMonimapCardUseDelkey(deleKeyValue);
             if(exists) {
                 throw new CustomException("이미 존재하는 삭제키입니다.", 400);
             }
@@ -267,12 +273,12 @@ public class CardUseServiceImpl implements CardUseService {
                 
                 String cellValue = PoiUtil.getCellValue(row, 0); // 기관
                 
-                Optional<CardOwnerPosition> existing = cardOwnerPositionRepository.findByCardOwnerPositionName(cellValue);
+                Optional<ChamMonimapCardOwnerPosition> existing = cardOwnerPositionRepository.findByChamMonimapCardOwnerPositionName(cellValue);
                 
                 if (existing.isEmpty()) {
-                    CardOwnerPosition newEntity = new CardOwnerPosition(cellValue);
-                    CardOwnerPosition save = cardOwnerPositionRepository.save(newEntity);
-                    cardOwnerPositionDtos.add(new CardOwnerPositionDto(save.getCardOwnerPositionId(), save.getCardOwnerPositionName()));
+                    ChamMonimapCardOwnerPosition newEntity = new ChamMonimapCardOwnerPosition(cellValue);
+                    ChamMonimapCardOwnerPosition save = cardOwnerPositionRepository.save(newEntity);
+                    cardOwnerPositionDtos.add(new CardOwnerPositionDto(save.getChamMonimapCardOwnerPositionId(), save.getChamMonimapCardOwnerPositionName()));
                 }
                 
                 Long cardOwnerPositionId = cardOwnerPositionDtos.stream()
@@ -281,7 +287,7 @@ public class CardUseServiceImpl implements CardUseService {
                         .findFirst()
                         .orElseThrow(() -> new CustomException("직책 이름에 해당하는 ID를 찾을 수 없습니다: " + cellValue, 400));
                 
-                CardOwnerPosition cardOwnerPosition = new CardOwnerPosition(cardOwnerPositionId);
+                ChamMonimapCardOwnerPosition newCardOwnerPosition = new ChamMonimapCardOwnerPosition(cardOwnerPositionId);
                 
                 
                 Cell region = row.getCell(1);
@@ -311,19 +317,19 @@ public class CardUseServiceImpl implements CardUseService {
                     default -> "";
                 };
                 
-                CardUseAddr cardUserAddr = cardUseAddrDtos.stream()
+                ChamMonimapCardUseAddr cardUserAddr = cardUseAddrDtos.stream()
                         .filter(dto -> addrDetailValue.equals(dto.getCardUseDetailAddr().trim()))
                         .findFirst()
-                        .map(dto -> new CardUseAddr(dto.getCardUseAddrId()))
+                        .map(dto -> new ChamMonimapCardUseAddr(dto.getCardUseAddrId()))
                         .orElseGet(() -> {
-                            CardUseAddr inserted = cardUseAddrService.insertCardUseAddr(
-                                    new CardUseAddr(addrSell.getStringCellValue(), addrDetailValue)
+                            ChamMonimapCardUseAddr inserted = cardUseAddrService.insertCardUseAddr(
+                                    new ChamMonimapCardUseAddr(addrSell.getStringCellValue(), addrDetailValue)
                             );
                             // 추가로 메모리에도 넣어줘야 이후 중복 insert 방지됨
                             cardUseAddrDtos.add(new CardUseAddrDto(
-                                    inserted.getCardUseAddrId(),
-                                    inserted.getCardUseAddrName(),
-                                    inserted.getCardUseDetailAddr()
+                                    inserted.getChamMonimapCardUseAddrId(),
+                                    inserted.getChamMonimapCardUseAddrName(),
+                                    inserted.getChamMonimapCardUseDetailAddr()
                             ));
                             return inserted;
                         });
@@ -332,8 +338,8 @@ public class CardUseServiceImpl implements CardUseService {
                 LocalDate dateValue = PoiUtil.getLocalDateFromCell(dateCell);
                 LocalTime timeValue = PoiUtil.getLocalTimeFromCell(timeSell);
                 
-                CardUse cardUse = new CardUse(
-                        cardOwnerPosition,
+                ChamMonimapCardUse cardUse = new ChamMonimapCardUse(
+                        newCardOwnerPosition,
                         cardUserAddr,
                         userSell.getStringCellValue(),
                         nameSell,
@@ -357,7 +363,7 @@ public class CardUseServiceImpl implements CardUseService {
     
     @Override
     public ApiResponse deleteExcel(String deleteKey) {
-        boolean exists = cardUseRepository.existsByCardUseDelkey(deleteKey);
+        boolean exists = cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey);
         if (!exists) {
             throw new CustomException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
         }
