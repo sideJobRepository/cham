@@ -24,8 +24,10 @@ CREATE TABLE CHAM.CHAM_MONIMAP_MEMBER
     `CHAM_MONIMAP_MEMBER_ID`           BIGINT          NOT NULL    AUTO_INCREMENT COMMENT '자치연대 예산감시 회원 ID',
     `CHAM_MONIMAP_MEMBER_EMAIL`        VARCHAR(100)    NULL        COMMENT '자치연대 예산감시 회원 이메일',
     `CHAM_MONIMAP_MEMBER_NAME`         VARCHAR(100)    NULL        COMMENT '자치연대 예산감시 회원 이름',
+    `CHAM_MONIMAP_MEMBER_NICKNAME`     VARCHAR(100)    NULL        COMMENT '자치연대 예산감시 회원 닉네임',
     `CHAM_MONIMAP_MEMBER_SOCIAL_TYPE`  VARCHAR(50)     NULL        COMMENT '자치연대 예산감시 회원 소셜 타입',
     `CHAM_MONIMAP_MEMBER_SUB_ID`       VARCHAR(100)    NULL        COMMENT '자치연대 예산감시 회원 SUB ID',
+    `CHAM_MONIMAP_MEMBER_PHONE_NO`     VARCHAR(100)    NULL        COMMENT '자치연대 예산감시 회원 전화 번호',
     `CHAM_MONIMAP_MEMBER_IMAGE_URL`    VARCHAR(500)    NULL        COMMENT '자치연대 예산감시 회원 이미지 URL',
     `REGIST_DATE`                      DATETIME        NULL        COMMENT '생성 일시',
     `MODIFY_DATE`                      DATETIME        NULL        COMMENT '수정 일시',
@@ -121,12 +123,12 @@ ALTER TABLE CHAM.CHAM_MONIMAP_URL_RESOURCES COMMENT '자치연대_예산감시_U
 -- 테이블 생성 SQL - CHAM.CHAM_MONIMAP_URL_RESOURCES_ROLE
 CREATE TABLE CHAM.CHAM_MONIMAP_URL_RESOURCES_ROLE
 (
-    `CHAM_MONIMAP_URL__RESOURCES_ROLE_ID`  BIGINT      NOT NULL    AUTO_INCREMENT COMMENT '자치연대 예산감시 URL  리소스 권한 ID',
-    `CHAM_MONIMAP_ROLE_ID`                 BIGINT      NULL        COMMENT '자치연대 예산감시 권한 ID',
-    `CHAM_MONIMAP_URL_RESOURCES_ID`        BIGINT      NULL        COMMENT '자치연대 예산감시 URL 리소스 ID',
-    `REGIST_DATE`                          DATETIME    NULL        COMMENT '생성 일시',
-    `MODIFY_DATE`                          DATETIME    NULL        COMMENT '수정 일시',
-    PRIMARY KEY (CHAM_MONIMAP_URL__RESOURCES_ROLE_ID)
+    `CHAM_MONIMAP_URL_PHONE_RESOURCES_ROLE_ID`  BIGINT      NOT NULL    AUTO_INCREMENT COMMENT '자치연대 예산감시 URL 전화 리소스 권한 ID',
+    `CHAM_MONIMAP_ROLE_ID`                      BIGINT      NULL        COMMENT '자치연대 예산감시 권한 ID',
+    `CHAM_MONIMAP_URL_RESOURCES_ID`             BIGINT      NULL        COMMENT '자치연대 예산감시 URL 리소스 ID',
+    `REGIST_DATE`                               DATETIME    NULL        COMMENT '생성 일시',
+    `MODIFY_DATE`                               DATETIME    NULL        COMMENT '수정 일시',
+    PRIMARY KEY (CHAM_MONIMAP_URL_PHONE_RESOURCES_ROLE_ID)
 );
 
 -- 테이블 Comment 설정 SQL - CHAM.CHAM_MONIMAP_URL_RESOURCES_ROLE

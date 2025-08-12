@@ -56,7 +56,7 @@ public class ChamMonimapSuccessHandler implements AuthenticationSuccessHandler {
             );
             
             // Refresh Token은 HttpOnly 쿠키로 설정
-            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenPair.getRefreshToken())
+            ResponseCookie refreshCookie = ResponseCookie.from("chamRefreshToken", tokenPair.getRefreshToken())
                     .httpOnly(true)
                     .secure(secure) // 로컬일 경우 secure=false
                     .path("/")

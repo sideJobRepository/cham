@@ -29,4 +29,9 @@ public class ChamMonimapMemberRole extends BaseData {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CHAM_MONIMAP_ROLE_ID")
     private ChamMonimapRole chamMonimapRole;
+    
+    public ChamMonimapMemberRole(ChamMonimapMember chamMonimapMember, ChamMonimapRole chamMonimapRole) {
+        this.chamMonimapMember = chamMonimapMember;
+        this.chamMonimapRole = chamMonimapRole;
+    }
 }

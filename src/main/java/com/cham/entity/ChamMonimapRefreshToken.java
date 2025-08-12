@@ -22,19 +22,19 @@ public class ChamMonimapRefreshToken extends BaseData {
     
     // 자치연대 예산감시 회원 ID
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chamMonimapMemberId")
+    @JoinColumn(name = "CHAM_MONIMAP_MEMBER_ID")
     private ChamMonimapMember chamMonimapMember;
     
     // 자치연대 예산감시 리프레쉬 토큰 값
-    @Column(name = "chamMonimapRefreshTokenValue")
+    @Column(name = "CHAM_MONIMAP_REFRESH_TOKEN_VALUE")
     private String chamMonimapRefreshTokenValue;
     
     // 자치연대 예산감시 토큰 리프레쉬 만료 일시
-    @Column(name = "chamMonimapTokenRefreshExpiresDate")
+    @Column(name = "CHAM_MONIMAP_TOKEN_REFRESH_EXPIRES_DATE")
     private LocalDateTime chamMonimapTokenRefreshExpiresDate;
     
     // 자치연대 예산감시 리프레쉬 플랫폼 ID
-    @Column(name = "chamMonimapRefreshPlatformId")
+    @Column(name = "CHAM_MONIMAP_REFRESH_PLATFORM_ID")
     private String chamMonimapRefreshPlatformId;
     
     public void updateToken(String refreshTokenValue, LocalDateTime expiresAt) {

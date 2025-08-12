@@ -25,12 +25,17 @@ public class KaKaoProfileResponse {
         private String email;
         
         private Profile profile;
+        @JsonProperty("name")
+        private String name;
+        @JsonProperty("phone_number")
+        private String phoneNumber;
     }
     
     @Getter
     @NoArgsConstructor
     public static class Profile {
         
+        @JsonProperty("nickname")
         private String nickname;
         
         @JsonProperty("profile_image_url")

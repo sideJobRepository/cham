@@ -1,11 +1,13 @@
 package com.cham.security.service;
 
-import com.cham.entity.ChamMonimapMember;
-import com.cham.entity.enumeration.Role;
+import com.cham.entity.*;
 import com.cham.entity.enumeration.SocialType;
 import com.cham.repository.ChamMonimapMemberRepository;
+import com.cham.repository.ChamMonimapMemberRoleRepository;
+import com.cham.repository.ChamMonimapRoleRepository;
 import com.cham.security.context.ChamMonimapMemberContext;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -17,13 +19,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.cham.entity.QChamMonimapMember.*;
+import static com.cham.entity.QChamMonimapMemberRole.*;
+import static com.cham.entity.QChamMonimapRole.*;
+
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class KaKaoChamUserDetailService implements UserDetailsService {
     
-    private final ChamMonimapMemberRepository memberRepository;
+    private final ChamMonimapMemberRepository chamMonimapMemberRepository;
+    
+    private final ChamMonimapRoleRepository chamMonimapRoleRepository;
+    
+    private final ChamMonimapMemberRoleRepository chamMonimapMemberRoleRepository;
+    
+    private final JPAQueryFactory queryFactory;
     
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -32,30 +44,31 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     }
     
     public UserDetails loadUserByUsername(KaKaoProfileResponse kaKaoProfile) {
-        ChamMonimapMember member = memberRepository.findBychamMonimapMemberSubId(String.valueOf(kaKaoProfile.getId()))
-                .map(existingMember -> {
-                    String thumbnailImageUrl = kaKaoProfile.getKakaoAccount().getProfile().getThumbnailImageUrl();
-                    existingMember.modifyMemberImageUrl(thumbnailImageUrl);
-                    return existingMember;
-                })
+        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findBychamMonimapMemberSubId(String.valueOf(kaKaoProfile.getId()))
                 .orElseGet(() -> {
-                    ChamMonimapMember newMember = toMember(kaKaoProfile);
-                    return memberRepository.save(newMember);
+                    ChamMonimapMember agitMember = new ChamMonimapMember(kaKaoProfile);
+                    ChamMonimapMember saveMember = chamMonimapMemberRepository.save(agitMember);
+                    
+                    ChamMonimapRole findChamMonimapRole = chamMonimapRoleRepository.findByChamMonimapRoleName("USER");
+                    
+                    ChamMonimapMemberRole chamMonimapMemberRole = new ChamMonimapMemberRole(saveMember, findChamMonimapRole);
+                    
+                    chamMonimapMemberRoleRepository.save(chamMonimapMemberRole);
+                    return saveMember;
                 });
-        List<GrantedAuthority> authorities =
-                AuthorityUtils.createAuthorityList(member.getRole().name());
         
-        return new ChamMonimapMemberContext(member, authorities);
+        
+        List<String> roleNames = queryFactory
+                .select(chamMonimapRole.chamMonimapRoleName)
+                .from(chamMonimapMember)
+                .join(chamMonimapMemberRole).on(chamMonimapMember.eq(chamMonimapMemberRole.chamMonimapMember))
+                .join(chamMonimapRole).on(chamMonimapRole.eq(chamMonimapMemberRole.chamMonimapRole))
+                .where(chamMonimapMember.chamMonimapMemberId.eq(findChamMoniMapMember.getChamMonimapMemberId()))
+                .fetch();
+        
+        List<GrantedAuthority> authorityList = AuthorityUtils.createAuthorityList(roleNames);
+        
+        return new ChamMonimapMemberContext(findChamMoniMapMember, authorityList);
     }
     
-    private ChamMonimapMember toMember(KaKaoProfileResponse profile) {
-        return ChamMonimapMember.builder()
-                .chamMonimapMemberEmail(profile.getKakaoAccount().getEmail())
-                .chamMonimapMemberName(profile.getKakaoAccount().getProfile().getNickname())
-                .socialType(SocialType.KAKAO)
-                .chamMonimapMemberSubId(String.valueOf(profile.getId()))
-                .chamMonimapMemberImageUrl(profile.getKakaoAccount().getProfile().getThumbnailImageUrl())
-                .role(Role.USER)          // 신규 가입 시 기본 권한
-                .build();
-    }
 }
