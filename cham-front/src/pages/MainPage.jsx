@@ -131,11 +131,10 @@ const ListContent = styled.div`
 const MapSection = styled.div`
   width: 80%;
   height: 100%;
-  position: relative; /* ← 바텀시트/버튼 배치용 */
+  position: relative;
   @media ${({ theme }) => theme.device.mobile} {
     flex: none;
     width: 100%;
-    /* 모바일에서 지도가 안 보이는 이슈 방지: 명시적 높이 */
     height: calc(100vh - 258px);
   }
 `;
@@ -154,15 +153,14 @@ const BottomSheet = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-
-  height: 65vh;
+  height: 90%;
   max-height: 80vh;
   background: #fff;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
 
-  transform: ${({ $open }) => ($open ? 'translateY(0%)' : 'translateY(100%)')};
+  transform: ${({ $open }) => ($open ? 'translateY(0%)' : 'translateY(150%)')};
   transition: transform 260ms ease;
   z-index: 40;
 
@@ -174,14 +172,6 @@ const SheetHeader = styled.div`
   position: relative;
   padding: 10px 44px 6px;
   border-bottom: 1px solid #eee;
-`;
-
-const SheetGrab = styled.div`
-  width: 36px;
-  height: 4px;
-  background: #ddd;
-  border-radius: 999px;
-  margin: 6px auto 10px;
 `;
 
 const SheetTitle = styled.h3`

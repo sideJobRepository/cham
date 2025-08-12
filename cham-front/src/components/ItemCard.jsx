@@ -136,6 +136,10 @@ const Card = styled.article`
       opacity: 0.5;
     }
   }
+
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const CardBody = styled.div`
