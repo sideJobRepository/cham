@@ -73,17 +73,19 @@ jobs:
             mv /home/cham/cham-server/tobe/project.jar /home/cham/cham-server/target
             cd /home/cham/cham-server/target
             sudo fuser -k -n tcp 8080 || true
+            
+            DB_USERNAME='${{ secrets.DB_USERNAME }}' \
+            DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            AWS_ACCESS_KEY='${{ secrets.AWS_ACCESS_KEY }}' \
+            AWS_SECRET_KEY='${{ secrets.AWS_SECRET_KEY }}' \
+            AWS_REGION='${{ secrets.AWS_REGION }}' \
+            AWS_BUCKET='${{ secrets.AWS_BUCKET }}' \
+            CLIENT_SECRET='${{ secrets.CLIENT_SECRET }}' \
             nohup java \
-            -Dspring.cloud.aws.credentials.accessKey=${{ secrets.AWS_ACCESS_KEY }} \
-            -Dspring.cloud.aws.credentials.secretKey=${{ secrets.AWS_SECRET_KEY }} \
-            -Dspring.cloud.aws.region.static=${{ secrets.AWS_REGION }} \
-            -Dspring.cloud.aws.s3.bucket=${{ secrets.AWS_BUCKET }} \
-            -Ddb.username=${{ secrets.DB_USERNAME }} \
-            -Ddb.password=${{ secrets.DB_PASSWORD }} \
-            -Dclient.secret=${{ secrets.CLIENT_SECRET }} \
             -Dspring.profiles.active=real \
             -Duser.timezone=Asia/Seoul \
             -jar project.jar > /dev/null 2>&1 &
+            
             rm -rf /home/cham/cham-server/tobe
 
   build-frontend:

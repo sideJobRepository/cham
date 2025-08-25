@@ -20,7 +20,7 @@ public class ChamMonimapCardUseAddrServiceImpl implements ChamMonimapCardUseAddr
     
     private final ChamMonimapCardUseAddrRepository cardUseAddrRepository;
     
-     private final S3FileUtils s3FileUtils;
+    private final S3FileUtils s3FileUtils;
     
     @Override
     public ChamMonimapCardUseAddr insertCardUseAddr(ChamMonimapCardUseAddr cardUseAddr) {
