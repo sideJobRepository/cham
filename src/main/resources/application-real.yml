@@ -32,7 +32,7 @@ kakao:
 
 logging:
   file:
-    name: /app/logs/cham.log
+    name: /logs/cham.log
     level:
       root: INFO
   logback:
