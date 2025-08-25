@@ -42,49 +42,49 @@ jobs:
           java-version: '17'
 
 
-      - name: Grant execute permission to gradlew
-        run: chmod +x ./gradlew
+      - name: gradle 권한 추가 및 빌드
+        run: chmod +x ./gradlew && ./gradlew clean build -x test
 
-      - name: gradle 빌드
-        run: ./gradlew clean build -x test
+      - name: 빌드된 파일 이름 변경
+        run: mv ./build/libs/*SNAPSHOT.jar ./project.jar
 
-      - name: 도커 빌드
-        run: docker build -t peachcoolpis/cham-server .
-
-      - name: 도커 허브 로그인
-        uses: docker/login-action@v3
+      - name: SCP로 전송
+        uses: appleboy/scp-action@v0.1.7
         with:
-          username: ${{secrets.DOCKERHUB_USERNAME}}
-          password: ${{secrets.DOCKERHUB_TOKEN}}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: '22'
+          source: project.jar
+          target: /home/cham/cham-server/tobe
 
-      - name: 도커 허브 푸쉬
-        run: docker push peachcoolpis/cham-server
 
       - name: ssh 접속
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
+          password: ${{ secrets.PASSWORD }}
           script_stop: true
           port: 22
           script: |
-            docker stop cham-server || true
-            docker rm cham-server || true
-            docker pull peachcoolpis/cham-server:latest
-            docker run -d --name cham-server \
-            -e SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }} \
-            -e SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }} \
-            -e SPRING_CLOUD_AWS_REGION_STATIC=${{ secrets.AWS_REGION }} \
-            -e SPRING_CLOUD_AWS_S3_BUCKET=${{ secrets.AWS_BUCKET }} \
-            -e DB_USERNAME=${{ secrets.DB_USERNAME }}  \
-            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
-            -e SPRING_PROFILES_ACTIVE=real \
-            -v $(pwd)/logs:/app/logs \
-            -p 8080:8080 \
-            peachcoolpis/cham-server:latest
-            docker image prune -f
+            rm -rf /home/cham/cham-server/target
+            mkdir -p /home/cham/cham-server/target
+            mv /home/cham/cham-server/tobe/project.jar /home/cham/cham-server/target
+            cd /home/cham/cham-server/target
+            sudo fuser -k -n tcp 8080 || true
+            nohup java \
+            -Dspring.cloud.aws.credentials.accessKey=${{ secrets.AWS_ACCESS_KEY }} \
+            -Dspring.cloud.aws.credentials.secretKey=${{ secrets.AWS_SECRET_KEY }} \
+            -Dspring.cloud.aws.region.static=${{ secrets.AWS_REGION }} \
+            -Dspring.cloud.aws.s3.bucket=${{ secrets.AWS_BUCKET }} \
+            -Ddb.username=${{ secrets.DB_USERNAME }} \
+            -Ddb.password=${{ secrets.DB_PASSWORD }} \
+            -Dclient.secret=${{ secrets.CLIENT_SECRET }} \
+            -Dspring.profiles.active=real \
+            -Duser.timezone=Asia/Seoul \
+            -jar project.jar > /dev/null 2>&1 &
+            rm -rf /home/cham/cham-server/tobe
 
   build-frontend:
     needs: detect-changes
@@ -106,19 +106,19 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
+          password: ${{ secrets.PASSWORD }}
           port: 22
           source: cham-front/dist/*
-          target: /home/ubuntu/deploy/front-dist-temp
+          target: /home/cham/deploy/front-dist-temp
 
       - name: ssh 접속
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
+          password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
             sudo rm -rf /usr/share/nginx/cham-front
-            sudo mv /home/ubuntu/deploy/front-dist-temp/* /usr/share/nginx/cham-front/
-            sudo systemctl restart nginx
+            sudo mv /home/cham/deploy/front-dist-temp/* /usr/share/nginx/cham-front/
+            sudo systemctl reload nginx
