@@ -1,7 +1,7 @@
 package com.cham.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
-import com.cham.service.ChamMonimapCardUseService;
+import com.cham.caruse.service.ChamMonimapCardUseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

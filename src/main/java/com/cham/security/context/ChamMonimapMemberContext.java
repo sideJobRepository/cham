@@ -1,6 +1,6 @@
 package com.cham.security.context;
 
-import com.cham.entity.ChamMonimapMember;
+import com.cham.member.entity.ChamMonimapMember;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

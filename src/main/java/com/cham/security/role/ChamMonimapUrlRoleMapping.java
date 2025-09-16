@@ -1,7 +1,6 @@
 package com.cham.security.role;
 
 
-
 import com.cham.security.role.response.RoleMapResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -12,9 +11,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.cham.entity.QChamMonimapRole.*;
-import static com.cham.entity.QChamMonimapUrlResources.*;
-import static com.cham.entity.QChamMonimapUrlResourcesRole.*;
+import static com.cham.role.entity.QChamMonimapRole.chamMonimapRole;
+import static com.cham.urlresource.entity.QChamMonimapUrlResources.chamMonimapUrlResources;
+import static com.cham.urlresourcesrole.entity.QChamMonimapUrlResourcesRole.chamMonimapUrlResourcesRole;
 
 
 @Service
@@ -27,10 +26,8 @@ public class ChamMonimapUrlRoleMapping {
     public ChamMonimapUrlRoleMapping(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
-    
     public Map<String,String> getRoleMappings() {
         urlRoleMappings.clear();
-        
         List<RoleMapResponse> resourcesList = queryFactory
                 .select(Projections.constructor(
                         RoleMapResponse.class,

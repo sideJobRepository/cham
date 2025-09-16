@@ -1,7 +1,7 @@
 package com.cham.security.jwt;
 
 
-import com.cham.entity.ChamMonimapMember;
+import com.cham.member.entity.ChamMonimapMember;
 import com.cham.security.handler.TokenPair;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSSigner;

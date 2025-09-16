@@ -1,12 +1,13 @@
 package com.cham.security.service;
 
-import com.cham.entity.*;
-import com.cham.entity.enumeration.SocialType;
-import com.cham.repository.ChamMonimapMemberRepository;
-import com.cham.repository.ChamMonimapMemberRoleRepository;
-import com.cham.repository.ChamMonimapRoleRepository;
+import com.cham.memberrole.entity.ChamMonimapMemberRole;
+import com.cham.member.entity.ChamMonimapMember;
+import com.cham.member.repository.ChamMonimapMemberRepository;
+import com.cham.role.entity.ChamMonimapRole;
+import com.cham.role.repository.ChamMonimapRoleRepository;
 import com.cham.security.context.ChamMonimapMemberContext;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
+import com.cham.memberrole.repository.ChamMonimapMemberRoleRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,9 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.cham.entity.QChamMonimapMember.*;
-import static com.cham.entity.QChamMonimapMemberRole.*;
-import static com.cham.entity.QChamMonimapRole.*;
+import static com.cham.member.entity.QChamMonimapMember.chamMonimapMember;
+import static com.cham.memberrole.entity.QChamMonimapMemberRole.*;
+import static com.cham.role.entity.QChamMonimapRole.chamMonimapRole;
 
 
 @Service
@@ -56,7 +57,6 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
                     chamMonimapMemberRoleRepository.save(chamMonimapMemberRole);
                     return saveMember;
                 });
-        
         
         List<String> roleNames = queryFactory
                 .select(chamMonimapRole.chamMonimapRoleName)

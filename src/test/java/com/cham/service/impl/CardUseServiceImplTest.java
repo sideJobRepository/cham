@@ -1,9 +1,9 @@
 package com.cham.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
-import com.cham.controller.request.CardUseConditionRequest;
-import com.cham.controller.response.CardUseResponse;
-import com.cham.service.ChamMonimapCardUseService;
+import com.cham.dto.request.CardUseConditionRequest;
+import com.cham.dto.response.CardUseResponse;
+import com.cham.caruse.service.ChamMonimapCardUseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

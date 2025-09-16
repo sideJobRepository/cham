@@ -1,6 +1,6 @@
 package com.cham.security.dto;
 
-import com.cham.entity.ChamMonimapMember;
+import com.cham.member.entity.ChamMonimapMember;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

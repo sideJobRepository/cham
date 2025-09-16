@@ -1,10 +1,10 @@
 package com.cham.security.handler;
 
-import com.cham.entity.ChamMonimapMember;
+import com.cham.member.entity.ChamMonimapMember;
 import com.cham.security.dto.ChamMonimapMemberResponseDto;
 import com.cham.security.jwt.RsaSecuritySigner;
 import com.cham.security.token.SocialAuthenticationToken;
-import com.cham.service.ChamMonimapRefreshTokenService;
+import com.cham.refeshtoken.service.ChamMonimapRefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;

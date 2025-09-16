@@ -1,9 +1,9 @@
 package com.cham.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
-import com.cham.controller.request.ReplyCreateRequest;
-import com.cham.controller.request.ReplyModifyRequest;
-import com.cham.service.ChamMonimapReplyService;
+import com.cham.dto.request.ReplyCreateRequest;
+import com.cham.dto.request.ReplyModifyRequest;
+import com.cham.reply.service.ChamMonimapReplyService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

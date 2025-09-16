@@ -1,7 +1,7 @@
 package com.cham.security.manager;
 
 
-import com.cham.service.impl.ChamMonimapDynamicAuthorizationServiceImpl;
+import com.cham.security.service.impl.ChamMonimapDynamicAuthorizationServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
