@@ -42,13 +42,13 @@ public class ChamMonimapReplyServiceImpl implements ChamMonimapReplyService {
         Long replyId = request.getReplyId();
         ChamMonimapReply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재하지 않는 댓글입니다."));
         reply.modifyReply(request);
-        replyRepository.flush();; // 왜 변경감지가 안되지?
+        //replyRepository.flush();; // 왜 변경감지가 안되지?
         request.getImages()
                 .stream().filter(img -> "delete".equals(img.getState()))
                 .forEach(item -> {
                     String imgUrl = item.getImgUrl();
                     s3FileUtils.deleteFile(imgUrl);
-                    replyImageRepository.deletebyImageUrl(imgUrl);
+                    replyImageRepository.deleteByImageUrl(imgUrl);
                 });
         
         request.getImages()
@@ -65,7 +65,7 @@ public class ChamMonimapReplyServiceImpl implements ChamMonimapReplyService {
         List<String> replyImageUrls= replyImageRepository.findByReplyImageUrlInReplyId(reply.getChamMonimapReplyId());
         if(!replyImageUrls.isEmpty()){
             replyImageUrls.forEach(s3FileUtils::deleteFile);
-            replyImageRepository.deletebyReplyImage(reply.getChamMonimapReplyId());
+            replyImageRepository.deleteByReplyImage(reply.getChamMonimapReplyId());
         }
         replyRepository.delete(reply);
         return new ApiResponse(200,true,"댓글이 삭제 되었습니다.");
