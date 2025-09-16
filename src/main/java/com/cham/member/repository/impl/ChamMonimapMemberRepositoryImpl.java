@@ -18,7 +18,7 @@ public class ChamMonimapMemberRepositoryImpl implements ChamMonimapMemberQueryRe
     private final JPAQueryFactory queryFactory;
     
     @Override
-    public Optional<ChamMonimapMember> findByChamMonimapMemberSubId(String subId) {
+    public Optional<ChamMonimapMember> findByMemberSubId(String subId) {
         ChamMonimapMember member = queryFactory
                 .selectFrom(chamMonimapMember)
                 .where(chamMonimapMember.chamMonimapMemberSubId.eq(subId))

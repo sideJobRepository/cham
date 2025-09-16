@@ -1,14 +1,13 @@
-package com.cham.security.service;
+package com.cham.security.service.impl;
 
-import com.cham.memberrole.entity.ChamMonimapMemberRole;
 import com.cham.member.entity.ChamMonimapMember;
 import com.cham.member.repository.ChamMonimapMemberRepository;
+import com.cham.memberrole.entity.ChamMonimapMemberRole;
+import com.cham.memberrole.repository.ChamMonimapMemberRoleRepository;
 import com.cham.role.entity.ChamMonimapRole;
 import com.cham.role.repository.ChamMonimapRoleRepository;
 import com.cham.security.context.ChamMonimapMemberContext;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
-import com.cham.memberrole.repository.ChamMonimapMemberRoleRepository;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -20,15 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.cham.member.entity.QChamMonimapMember.chamMonimapMember;
-import static com.cham.memberrole.entity.QChamMonimapMemberRole.*;
-import static com.cham.role.entity.QChamMonimapRole.chamMonimapRole;
-
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class KaKaoChamUserDetailService implements UserDetailsService {
+public class KaKaoChamUserDetailServiceImpl implements UserDetailsService {
     
     private final ChamMonimapMemberRepository chamMonimapMemberRepository;
     
@@ -36,7 +31,6 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     
     private final ChamMonimapMemberRoleRepository chamMonimapMemberRoleRepository;
     
-    private final JPAQueryFactory queryFactory;
     
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -45,12 +39,12 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     }
     
     public UserDetails loadUserByUsername(KaKaoProfileResponse kaKaoProfile) {
-        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findByChamMonimapMemberSubId(String.valueOf(kaKaoProfile.getId()))
+        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findByMemberSubId(String.valueOf(kaKaoProfile.getId()))
                 .orElseGet(() -> {
                     ChamMonimapMember agitMember = new ChamMonimapMember(kaKaoProfile);
                     ChamMonimapMember saveMember = chamMonimapMemberRepository.save(agitMember);
                     
-                    ChamMonimapRole findChamMonimapRole = chamMonimapRoleRepository.findByChamMonimapRoleName("USER");
+                    ChamMonimapRole findChamMonimapRole = chamMonimapRoleRepository.findByMemberRoleName("USER");
                     
                     ChamMonimapMemberRole chamMonimapMemberRole = new ChamMonimapMemberRole(saveMember, findChamMonimapRole);
                     
@@ -58,13 +52,7 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
                     return saveMember;
                 });
         
-        List<String> roleNames = queryFactory
-                .select(chamMonimapRole.chamMonimapRoleName)
-                .from(chamMonimapMember)
-                .join(chamMonimapMemberRole).on(chamMonimapMember.eq(chamMonimapMemberRole.chamMonimapMember))
-                .join(chamMonimapRole).on(chamMonimapRole.eq(chamMonimapMemberRole.chamMonimapRole))
-                .where(chamMonimapMember.chamMonimapMemberId.eq(findChamMoniMapMember.getChamMonimapMemberId()))
-                .fetch();
+        List<String> roleNames = chamMonimapMemberRoleRepository.findByRoleName(findChamMoniMapMember.getChamMonimapMemberId());
         
         List<GrantedAuthority> authorityList = AuthorityUtils.createAuthorityList(roleNames);
         

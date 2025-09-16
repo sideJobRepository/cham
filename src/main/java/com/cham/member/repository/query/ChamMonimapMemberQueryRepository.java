@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface ChamMonimapMemberQueryRepository {
     
-    Optional<ChamMonimapMember> findByChamMonimapMemberSubId(String subId);
+    Optional<ChamMonimapMember> findByMemberSubId(String subId);
 }

@@ -35,7 +35,7 @@ public class ChamMonimapRefreshTokenServiceImpl implements ChamMonimapRefreshTok
     public void refreshTokenSaveOrUpdate(ChamMonimapMember member, String refreshTokenValue, LocalDateTime expiresAt) {
         
         ChamMonimapRefreshToken token = chamMonimapRefreshTokenRepository
-                .findByChamMonimapMember(member)
+                .findByMemberToken(member)
                 .orElse(ChamMonimapRefreshToken.builder()
                         .chamMonimapMember(member)
                         .chamMonimapRefreshTokenValue(refreshTokenValue)
@@ -51,7 +51,7 @@ public class ChamMonimapRefreshTokenServiceImpl implements ChamMonimapRefreshTok
     @Override
     public ChamMonimapMember validateRefreshToken(String refreshToken) {
         ChamMonimapRefreshToken token = chamMonimapRefreshTokenRepository
-                .findByChamMonimapRefreshTokenValue(refreshToken)
+                .findByTokenValue(refreshToken)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 리프레시 토큰입니다."));
         
         if (token.getChamMonimapTokenRefreshExpiresDate().isBefore(LocalDateTime.now())) {
@@ -69,7 +69,7 @@ public class ChamMonimapRefreshTokenServiceImpl implements ChamMonimapRefreshTok
         
         ChamMonimapMember member = validateRefreshToken(refreshToken);
         
-        String roleName = chamMonimapMemberRoleRepository.findByChamMonimapMember_ChamMonimapMemberId(member.getChamMonimapMemberId()).orElseThrow(() -> new RuntimeException("존재 하지 않는 권한"))
+        String roleName = chamMonimapMemberRoleRepository.findByMemberRole(member.getChamMonimapMemberId()).orElseThrow(() -> new RuntimeException("존재 하지 않는 권한"))
                 .getChamMonimapRole()
                 .getChamMonimapRoleName();
         
@@ -95,7 +95,7 @@ public class ChamMonimapRefreshTokenServiceImpl implements ChamMonimapRefreshTok
     
     @Override
     public ApiResponse deleteRefresh(String refreshToken) {
-        ChamMonimapRefreshToken chamMonimapRefreshToken = chamMonimapRefreshTokenRepository.findByChamMonimapRefreshTokenValue(refreshToken).orElseThrow(() -> new RuntimeException("존재하지않는 리프레쉬 토큰입니다."));
+        ChamMonimapRefreshToken chamMonimapRefreshToken = chamMonimapRefreshTokenRepository.findByTokenValue(refreshToken).orElseThrow(() -> new RuntimeException("존재하지않는 리프레쉬 토큰입니다."));
         chamMonimapRefreshTokenRepository.delete(chamMonimapRefreshToken);
         return new ApiResponse(200,true,"정상 삭제");
     }

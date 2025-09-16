@@ -1,7 +1,7 @@
 package com.cham.security.provider;
 
 import com.cham.security.context.ChamMonimapMemberContext;
-import com.cham.security.service.KaKaoChamUserDetailService;
+import com.cham.security.service.impl.KaKaoChamUserDetailServiceImpl;
 import com.cham.security.service.SocialService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
 import com.cham.security.service.impl.response.KaKaoProfileResponse;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class SocialAuthenticationProvider implements AuthenticationProvider {
     
     private final SocialService kaKaoService;
-    private final KaKaoChamUserDetailService chamUserDetailService;
+    private final KaKaoChamUserDetailServiceImpl chamUserDetailService;
     
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
