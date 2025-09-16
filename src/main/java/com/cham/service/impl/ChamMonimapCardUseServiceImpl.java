@@ -273,7 +273,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 
                 String cellValue = PoiUtil.getCellValue(row, 0); // 기관
                 
-                Optional<ChamMonimapCardOwnerPosition> existing = cardOwnerPositionRepository.findByChamMonimapCardOwnerPositionName(cellValue);
+                Optional<ChamMonimapCardOwnerPosition> existing = cardOwnerPositionRepository.findByCardOwnerPositionName(cellValue);
                 
                 if (existing.isEmpty()) {
                     ChamMonimapCardOwnerPosition newEntity = new ChamMonimapCardOwnerPosition(cellValue);

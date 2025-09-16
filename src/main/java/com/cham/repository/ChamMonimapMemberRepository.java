@@ -1,11 +1,9 @@
 package com.cham.repository;
 
 import com.cham.entity.ChamMonimapMember;
+import com.cham.repository.query.ChamMonimapMemberQueryRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
-
-public interface ChamMonimapMemberRepository extends JpaRepository<ChamMonimapMember,Long> {
+public interface ChamMonimapMemberRepository extends JpaRepository<ChamMonimapMember,Long> , ChamMonimapMemberQueryRepository {
     
-    Optional<ChamMonimapMember> findBychamMonimapMemberSubId(String subId);
 }

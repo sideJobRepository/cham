@@ -44,7 +44,7 @@ public class KaKaoChamUserDetailService implements UserDetailsService {
     }
     
     public UserDetails loadUserByUsername(KaKaoProfileResponse kaKaoProfile) {
-        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findBychamMonimapMemberSubId(String.valueOf(kaKaoProfile.getId()))
+        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findByChamMonimapMemberSubId(String.valueOf(kaKaoProfile.getId()))
                 .orElseGet(() -> {
                     ChamMonimapMember agitMember = new ChamMonimapMember(kaKaoProfile);
                     ChamMonimapMember saveMember = chamMonimapMemberRepository.save(agitMember);
