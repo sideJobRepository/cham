@@ -73,7 +73,6 @@ jobs:
             mv /home/cham/cham-server/tobe/project.jar /home/cham/cham-server/target
             cd /home/cham/cham-server/target
             sudo fuser -k -n tcp 8080 || true
-            
             DB_USERNAME='${{ secrets.DB_USERNAME }}' \
             DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
             DB_URL='${{ secrets.DB_URL }}' \

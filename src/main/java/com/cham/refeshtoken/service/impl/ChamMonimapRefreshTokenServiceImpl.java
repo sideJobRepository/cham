@@ -52,7 +52,10 @@ public class ChamMonimapRefreshTokenServiceImpl implements ChamMonimapRefreshTok
     public ChamMonimapMember validateRefreshToken(String refreshToken) {
         ChamMonimapRefreshToken token = chamMonimapRefreshTokenRepository
                 .findByTokenValue(refreshToken)
-                .orElseThrow(() -> new RuntimeException("유효하지 않은 리프레시 토큰입니다."));
+                .orElse(null);
+        if(token == null) {
+            return null;
+        }
         
         if (token.getChamMonimapTokenRefreshExpiresDate().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("리프레시 토큰이 만료되었습니다.");

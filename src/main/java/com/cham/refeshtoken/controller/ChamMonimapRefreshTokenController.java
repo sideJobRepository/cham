@@ -23,14 +23,17 @@ public class ChamMonimapRefreshTokenController {
     private boolean secure;
     
     @PostMapping("/refresh")
-    public Map<String, Object> refreshToken(@CookieValue(value = "chamRefreshToken", required = false) String refreshToken
+    public Map<String, Object> refreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken
             , HttpServletResponse response
     ) {
         if(refreshToken == null) {
             return null;
         }
         TokenAndUser tokenPair = chamMonimapRefreshTokenService.reissueTokenWithUser(refreshToken);
-        ResponseCookie newRefreshCookie = ResponseCookie.from("chamRefreshToken", tokenPair.token().getRefreshToken())
+        if(tokenPair == null) {
+            return null;
+        }
+        ResponseCookie newRefreshCookie = ResponseCookie.from("refreshToken", tokenPair.token().getRefreshToken())
                 .httpOnly(true)
                 .secure(secure)
                 .path("/")
@@ -45,13 +48,13 @@ public class ChamMonimapRefreshTokenController {
     }
     
     @DeleteMapping("/refresh")
-    public ApiResponse deleteRefreshToken(@CookieValue(value = "chamRefreshToken", required = false) String refreshToken
+    public ApiResponse deleteRefreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken
             , HttpServletResponse response) {
         if (refreshToken == null) {
             return null;
         }
         ApiResponse apiResponse = chamMonimapRefreshTokenService.deleteRefresh(refreshToken);
-        ResponseCookie deleteCookie = ResponseCookie.from("chamRefreshToken", "")
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(secure)
                 .path("/")
