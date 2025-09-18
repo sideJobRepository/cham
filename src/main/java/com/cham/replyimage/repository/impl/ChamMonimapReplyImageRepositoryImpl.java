@@ -1,5 +1,6 @@
 package com.cham.replyimage.repository.impl;
 
+import com.cham.replyimage.entity.ChamMonimapReplyImage;
 import com.cham.replyimage.repository.query.ChamMonimapReplyImageQueryRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import static com.cham.reply.entity.QChamMonimapReply.chamMonimapReply;
 import static com.cham.replyimage.entity.QChamMonimapReplyImage.*;
 
 
@@ -46,5 +48,13 @@ public class ChamMonimapReplyImageRepositoryImpl implements ChamMonimapReplyImag
                 .where(chamMonimapReplyImage.chamMonimapReply.chamMonimapReplyId.eq(replyId))
                 .execute();
         em.clear();
+    }
+    
+    @Override
+    public List<ChamMonimapReplyImage> findByReplyImages() {
+        return queryFactory
+                .selectFrom(chamMonimapReplyImage)
+                .join(chamMonimapReplyImage.chamMonimapReply, chamMonimapReply).fetchJoin()
+                .fetch();
     }
 }

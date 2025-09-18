@@ -1,9 +1,13 @@
 package com.cham.carduseaddr.repository.impl;
 
 import com.cham.carduseaddr.repository.query.ChamMonimapCardUseAddrQueryRepository;
+import com.cham.dto.response.CardUseAddrDto;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 import static com.cham.carduseaddr.entity.QChamMonimapCardUseAddr.chamMonimapCardUseAddr;
 
@@ -20,5 +24,18 @@ public class ChamMonimapCardUseAddrRepositoryImpl implements ChamMonimapCardUseA
                 .from(chamMonimapCardUseAddr)
                 .where(chamMonimapCardUseAddr.chamMonimapCardUseAddrId.eq(cardUseAddrId))
                 .fetchOne();
+    }
+    
+    @Override
+    public List<CardUseAddrDto> findByCardUseAddrDtos() {
+        return queryFactory
+                .select(Projections.constructor(
+                        CardUseAddrDto.class,
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrId,
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName,
+                        chamMonimapCardUseAddr.chamMonimapCardUseDetailAddr
+                ))
+                .from(chamMonimapCardUseAddr)
+                .fetch();
     }
 }
