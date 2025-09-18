@@ -85,4 +85,18 @@ public class PoiUtil {
         return true;
     }
     
+    public static String parsePersonnel(Cell c) {
+        if (c == null) return "";
+        return switch (c.getCellType()) {
+            case STRING -> sanitize(c.getStringCellValue());
+            case NUMERIC -> String.valueOf((int) c.getNumericCellValue());
+            case FORMULA -> switch (c.getCachedFormulaResultType()) {
+                case STRING  -> sanitize(c.getStringCellValue());
+                case NUMERIC -> String.valueOf((int) c.getNumericCellValue());
+                default -> "";
+            };
+            default -> "";
+        };
+    }
+    
 }

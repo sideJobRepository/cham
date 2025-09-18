@@ -231,18 +231,8 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 Cell remarkCell = row.getCell(12); // 비고
                 Cell delKeyCell = row.getCell(13);
                 
-             
                 
-                String personnelStr = switch (personnelSell.getCellType()) {
-                    case STRING -> personnelSell.getStringCellValue();
-                    case NUMERIC -> String.valueOf((int) personnelSell.getNumericCellValue());
-                    case FORMULA -> switch (personnelSell.getCachedFormulaResultType()) {
-                        case STRING -> personnelSell.getStringCellValue();
-                        case NUMERIC -> String.valueOf((int) personnelSell.getNumericCellValue());
-                        default -> ""; // 혹시 모를 대비
-                    };
-                    default -> "";
-                };
+                String personnelStr = PoiUtil.parsePersonnel(personnelSell);
                 
                 ChamMonimapCardUseAddr cardUserAddr = cardUseAddrDtos.stream()
                         .filter(dto -> addrDetailValue.equals(dto.getCardUseDetailAddr().trim()))
