@@ -48,8 +48,10 @@ export default function DetailPage() {
   const [lightboxImages, setLightboxImages] = useState([]);
 
   const handleCreate = async () => {
+    console.log('user', user);
+
     const replyCont = inputRef.current.value;
-    const memberId = user?.memberId;
+    const memberId = user?.id;
     const cardUseAddrId = detail.cardUseAddrId;
 
     const formData = new FormData();
