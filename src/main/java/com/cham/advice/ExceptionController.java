@@ -1,6 +1,6 @@
 package com.cham.advice;
 
-import com.cham.advice.exception.CustomException;
+import com.cham.advice.exception.ExcelException;
 import com.cham.advice.response.ErrorMessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -60,8 +60,8 @@ public class ExceptionController {
     }
     
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(CustomException.class)
-    public ErrorMessageResponse handleCustomException(CustomException e) {
+    @ExceptionHandler(ExcelException.class)
+    public ErrorMessageResponse handleCustomException(ExcelException e) {
         log.warn("비즈니스 예외 발생: {}", e.getMessage());
         
         ErrorMessageResponse body = new ErrorMessageResponse(

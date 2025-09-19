@@ -1,6 +1,6 @@
 package com.cham.caruse.service.impl;
 
-import com.cham.advice.exception.CustomException;
+import com.cham.advice.exception.ExcelException;
 import com.cham.cardowner.entity.ChamMonimapCardOwnerPosition;
 import com.cham.cardowner.repository.ChamMonimapCardOwnerPositionRepository;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
@@ -15,12 +15,13 @@ import com.cham.reply.entity.ChamMonimapReply;
 import com.cham.reply.repository.ChamMonimapReplyRepository;
 import com.cham.replyimage.entity.ChamMonimapReplyImage;
 import com.cham.replyimage.repository.ChamMonimapReplyImageRepository;
+import com.cham.util.ExcelColumns;
 import com.cham.util.PoiUtil;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -47,7 +49,6 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     private final ChamMonimapCardUseAddrService cardUseAddrService;
     
     private final ChamMonimapCardOwnerPositionRepository cardOwnerPositionRepository;
-    
     
     @Override
     public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
@@ -178,113 +179,137 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     
     @Override
     public ApiResponse insertCardUse(MultipartFile multipartFile) {
-        List<CardOwnerPositionDto> cardOwnerPositionDtos = cardOwnerPositionRepository.findByCardOwnerPositionDtos();
-        List<CardUseAddrDto> cardUseAddrDtos = cardUseAddrRepository.findByCardUseAddrDtos();
+        Map<String, Long> positionIdByName = cardOwnerPositionRepository.findByCardOwnerPositionDtos().stream()
+                .collect(Collectors.toMap(CardOwnerPositionDto::getCardOwnerPositionName,
+                        CardOwnerPositionDto::getCardOwnerPositionId, (a, b) -> a, LinkedHashMap::new));
         
-        try (InputStream is = multipartFile.getInputStream()) {
-            Workbook workbook = WorkbookFactory.create(is);
+        Map<String, CardUseAddrDto> addrByDetail = cardUseAddrRepository.findByCardUseAddrDtos().stream()
+                .collect(Collectors.toMap(dto -> safeTrim(dto.getCardUseDetailAddr()),
+                        Function.identity(), (a, b) -> a, LinkedHashMap::new));
+        
+        // 1) 엑셀 열기
+        try (InputStream is = multipartFile.getInputStream();
+             Workbook workbook = WorkbookFactory.create(is)) {
             
             Sheet sheet = workbook.getSheetAt(0);
-            String deleKeyValue = sheet.getRow(1).getCell(13).getStringCellValue();
-            boolean exists = cardUseRepository.existsByChamMonimapCardUseDelkey(deleKeyValue);
-            if(exists) {
-                throw new CustomException("이미 존재하는 삭제키입니다.", 400);
+            
+            // 2) 파일 레벨 삭제키 중복 체크 (시트의 2행 14열 = row1 col13)
+            String deleteKey = PoiUtil.getString(sheet.getRow(1), ExcelColumns.DELKEY);
+            if (deleteKey == null || deleteKey.isBlank()) {
+                throw new ExcelException("삭제키가 비어 있습니다.", 400);
             }
+            if (cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey)) {
+                throw new ExcelException("이미 존재하는 삭제키입니다.", 400);
+            }
+            
+            // 3) 본문 파싱 → 엔티티 리스트로 모아 배치 저장
+            List<ChamMonimapCardUse> toInsert = new ArrayList<>();
+            
             for (Row row : sheet) {
-                if (row.getRowNum() == 0) {
-                    continue;
-                }
-                if (PoiUtil.isRowEmpty(row)) {
-                    continue;
+                int r = row.getRowNum();
+                if (r == 0) {
+                    continue;// 헤더 스킵
                 }
                 
-                String cellValue = PoiUtil.getCellValue(row, 0); // 기관
+                if (PoiUtil.isRowEmpty(row)) continue; // 빈행 스킵
                 
-                Optional<ChamMonimapCardOwnerPosition> existing = cardOwnerPositionRepository.findByCardOwnerPositionName(cellValue);
-                
-                if (existing.isEmpty()) {
-                    ChamMonimapCardOwnerPosition newEntity = new ChamMonimapCardOwnerPosition(cellValue);
-                    ChamMonimapCardOwnerPosition save = cardOwnerPositionRepository.save(newEntity);
-                    cardOwnerPositionDtos.add(new CardOwnerPositionDto(save.getChamMonimapCardOwnerPositionId(), save.getChamMonimapCardOwnerPositionName()));
+                // (a) 기본 필드 파싱 (널 안전)
+                String ownerPositionName = PoiUtil.getString(row, ExcelColumns.OWNER_POSITION);
+                if (!StringUtils.hasText(ownerPositionName)) {
+                    // 필수값 미기재 시 스킵/예외 중 택1. 여기선 예외.
+                    throw new ExcelException("직책/기관명이 비어 있습니다. row=" + (r + 1), 400);
                 }
                 
-                Long cardOwnerPositionId = cardOwnerPositionDtos.stream()
-                        .filter(dto -> dto.getCardOwnerPositionName().equals(cellValue))
-                        .map(CardOwnerPositionDto::getCardOwnerPositionId)
-                        .findFirst()
-                        .orElseThrow(() -> new CustomException("직책 이름에 해당하는 ID를 찾을 수 없습니다: " + cellValue, 400));
+                Long positionId = getOrCreatePositionId(ownerPositionName, positionIdByName);
+                ChamMonimapCardOwnerPosition ownerPositionRef = new ChamMonimapCardOwnerPosition(positionId);
                 
-                ChamMonimapCardOwnerPosition newCardOwnerPosition = new ChamMonimapCardOwnerPosition(cardOwnerPositionId);
+                String region = PoiUtil.getString(row, ExcelColumns.REGION);
+                String userSell = PoiUtil.getString(row, ExcelColumns.USER_SELL);
+                String nameSell = PoiUtil.getString(row, ExcelColumns.NAME_SELL);
+                LocalDate useDate = PoiUtil.getLocalDateFromCell(row.getCell(ExcelColumns.DATE));
+                LocalTime useTime = PoiUtil.getLocalTimeFromCell(row.getCell(ExcelColumns.TIME));
                 
+                String addrName   = PoiUtil.getString(row, ExcelColumns.ADDR_NAME);
+                String addrDetail = safeTrim(PoiUtil.getString(row, ExcelColumns.ADDR_DETAIL));
+                String purpose    = PoiUtil.getString(row, ExcelColumns.PURPOSE);
+                String personnel  = PoiUtil.parsePersonnel(row.getCell(ExcelColumns.PERSONNEL));
                 
-                Cell region = row.getCell(1);
-                Cell userSell = row.getCell(2);
-                String nameSell = PoiUtil.getCellValue(row, 3);
-                Cell dateCell = row.getCell(4); // 집행일자
-                Cell timeSell = row.getCell(5); // 시간
-                Cell addrSell = row.getCell(6); // 사용장소
-                String addrDetailValue = PoiUtil.getCellValue(row,7).trim(); // 상세주소
-                Cell purposeSell = row.getCell(8); // 집행목적
-                Cell personnelSell = row.getCell(9); //대상인원
-                Cell amountCell = row.getCell(10); // 금액
-                Cell methodCell = row.getCell(11); // 금액
-                Cell remarkCell = row.getCell(12); // 비고
-                Cell delKeyCell = row.getCell(13);
+                Double amount     = PoiUtil.getNumeric(row, ExcelColumns.AMOUNT); // 숫자/문자 혼용 안정화
+                String method     = PoiUtil.getString(row, ExcelColumns.METHOD);
+                String remark     = PoiUtil.getString(row, ExcelColumns.REMARK);
                 
+                // (b) 주소 upsert (상세주소 기준으로 동일)
+                ChamMonimapCardUseAddr addrRef = getOrCreateAddr(addrName, addrDetail, addrByDetail);
                 
-                String personnelStr = PoiUtil.parsePersonnel(personnelSell);
-                
-                ChamMonimapCardUseAddr cardUserAddr = cardUseAddrDtos.stream()
-                        .filter(dto -> addrDetailValue.equals(dto.getCardUseDetailAddr().trim()))
-                        .findFirst()
-                        .map(dto -> new ChamMonimapCardUseAddr(dto.getCardUseAddrId()))
-                        .orElseGet(() -> {
-                            ChamMonimapCardUseAddr inserted = cardUseAddrService.insertCardUseAddr(
-                                    new ChamMonimapCardUseAddr(addrSell.getStringCellValue(), addrDetailValue)
-                            );
-                            // 추가로 메모리에도 넣어줘야 이후 중복 insert 방지됨
-                            cardUseAddrDtos.add(new CardUseAddrDto(
-                                    inserted.getChamMonimapCardUseAddrId(),
-                                    inserted.getChamMonimapCardUseAddrName(),
-                                    inserted.getChamMonimapCardUseDetailAddr()
-                            ));
-                            return inserted;
-                        });
-                
-                
-                LocalDate dateValue = PoiUtil.getLocalDateFromCell(dateCell);
-                LocalTime timeValue = PoiUtil.getLocalTimeFromCell(timeSell);
-                
-                ChamMonimapCardUse cardUse = new ChamMonimapCardUse(
-                        newCardOwnerPosition,
-                        cardUserAddr,
-                        userSell.getStringCellValue(),
+                // (c) 행 단위 delKey: 파일레벨 deleteKey 고정 사용
+                ChamMonimapCardUse entity = new ChamMonimapCardUse(
+                        ownerPositionRef,
+                        addrRef,
+                        userSell,
                         nameSell,
-                        dateValue,
-                        timeValue,
-                        purposeSell.getStringCellValue(),
-                        personnelStr,
-                        amountCell.getNumericCellValue(),
-                        methodCell.getStringCellValue(),
-                        remarkCell.getStringCellValue(),
-                        delKeyCell.getStringCellValue(),
-                        region.getStringCellValue()
+                        useDate,
+                        useTime,
+                        purpose,
+                        personnel,
+                        amount != null ? amount : 0.0,
+                        method,
+                        remark,
+                        deleteKey,
+                        region
                 );
-                cardUseRepository.save(cardUse);
+                toInsert.add(entity);
             }
+            // 4) 배치 저장
+            if (!toInsert.isEmpty()) {
+                cardUseRepository.saveAll(toInsert);
+            }
+            return new ApiResponse(200, true, "성공");
+            
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("엑셀 읽기 실패: " + e.getMessage(), e);
         }
-        return new ApiResponse(200 , true,"성공");
     }
     
     @Override
     public ApiResponse deleteExcel(String deleteKey) {
         boolean exists = cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey);
         if (!exists) {
-            throw new CustomException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
+            throw new ExcelException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
         }
         cardUseRepository.deleteByCardUseDelkey(deleteKey);
         return new ApiResponse(200 , true,"삭제 되었습니다.");
     }
+    
+    
+    /** 직책/기관명 → ID 캐시 조회 후 없으면 생성 */
+    private Long getOrCreatePositionId(String name, Map<String, Long> cache) {
+        return cache.computeIfAbsent(name, key -> {
+            ChamMonimapCardOwnerPosition saved = cardOwnerPositionRepository.save(
+                    new ChamMonimapCardOwnerPosition(key));
+            return saved.getChamMonimapCardOwnerPositionId();
+        });
+    }
+    
+    private ChamMonimapCardUseAddr getOrCreateAddr(String addrName, String addrDetail, Map<String, CardUseAddrDto> cache) {
+        String detailKey = safeTrim(addrDetail);
+        CardUseAddrDto hit = cache.get(detailKey);
+        if (hit != null) {
+            return new ChamMonimapCardUseAddr(hit.getCardUseAddrId());
+        }
+        // 없으면 생성
+        ChamMonimapCardUseAddr inserted = cardUseAddrService.insertCardUseAddr(
+                new ChamMonimapCardUseAddr(addrName, addrDetail));
+        // 캐시에도 반영
+        cache.put(detailKey, new CardUseAddrDto(
+                inserted.getChamMonimapCardUseAddrId(),
+                inserted.getChamMonimapCardUseAddrName(),
+                inserted.getChamMonimapCardUseDetailAddr()
+        ));
+        return inserted;
+    }
+    
+    private static String safeTrim(String s) {
+        return s == null ? null : s.trim();
+    }
+    
 }
