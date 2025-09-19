@@ -52,54 +52,60 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     
     @Override
     public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
-        // 1. 카드사용 + 카드사용장소 + 댓글 조회
-        List<ChamMonimapCardUse> cardUses = cardUseRepository.findByCardUses(request);
+        // 1) 데이터 조회
+        List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUses(request);
+        List<ChamMonimapReply> replies     = replyRepository.findByReplys();
+        List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
         
-        List<ChamMonimapReply> replies = replyRepository.findByReplys();
+        // 2) 그룹핑
+        Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
+                .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
         
-        List<ChamMonimapReplyImage> replyImages = replyImageRepository.findByReplyImages();
-        
-        // 2. 그룹핑: 장소별 카드사용, 장소별 댓글
-        Map<Long, List<ChamMonimapCardUse>> groupedByAddrId = cardUses.stream()
-                .collect(Collectors.groupingBy(use -> use.getCardUseAddr().getChamMonimapCardUseAddrId()));
-        
-        Map<Long, List<ChamMonimapReply>> repliesGroupedByAddrId = replies.stream()
+        Map<Long, List<ChamMonimapReply>> repliesByAddrId = replies.stream()
                 .collect(Collectors.groupingBy(r -> r.getChamMonimapCardUseAddr().getChamMonimapCardUseAddrId()));
         
-        Map<Long, List<ChamMonimapReplyImage>> replyImageGroup = replyImages.stream()
+        Map<Long, List<ChamMonimapReplyImage>> imagesByReplyId = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getChamMonimapReply().getChamMonimapReplyId()));
         
+        // 3) 주소별 이미지 URL 벌크 조회 → Map<Long, String>
+        Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
+        if (!usesByAddrId.isEmpty()) {
+            List<ChamMonimapCardUseAddr> rows =
+                    cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
+            for (ChamMonimapCardUseAddr r : rows) {
+                imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
+            }
+        }
+        // 4) 결과 맵 생성
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
+        Integer minVisits = request.getNumberOfVisits();
         
-        for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : groupedByAddrId.entrySet()) {
+        for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
             Long addrId = entry.getKey();
-            List<ChamMonimapCardUse> cardUseList = entry.getValue();
-            
-            // 방문 횟수 조건 필터링
-            if (request.getNumberOfVisits() != null && cardUseList.size() < request.getNumberOfVisits()) {
+            List<ChamMonimapCardUse> list = entry.getValue();
+            if (list == null || list.isEmpty()) {
+                continue;
+            }
+            // 방문 횟수 조건 필터
+            if (minVisits != null && list.size() < minVisits){
                 continue;
             }
             
-            ChamMonimapCardUse first = cardUseList.get(0);
-            String addrName = first.getCardUseAddr().getChamMonimapCardUseAddrName();
-            int visitCount = cardUseList.size();
-            String cardUseRegion = first.getChamMonimapCardUseRegion();
-            String cardUseUser = first.getChamMonimapCardUseUser();
+            ChamMonimapCardUse first = list.get(0);
             
-            // visitMember 설정 로직
-            Set<String> uniqueNames = cardUseList.stream()
-                    .map(ChamMonimapCardUse::getChamMonimapCardUseName)
-                    .collect(Collectors.toSet());
+            // 방문자 합계/명단
+            int totalSum = 0;
+            Set<String> uniqueNames = new LinkedHashSet<>();
+            for (ChamMonimapCardUse use : list) {
+                totalSum += use.getChamMonimapCardUseAmount();
+                uniqueNames.add(use.getChamMonimapCardUseName());
+            }
             
-            String visitMember = uniqueNames.size() == 1
-                    ? uniqueNames.iterator().next()
-                    : String.format("%s 외 %d명", first.getChamMonimapCardUseName(), uniqueNames.size() - 1);
+            String visitMember = buildVisitMember(uniqueNames);
             
-            int totalSum = cardUseList.stream()
-                    .mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount)
-                    .sum();
             
-            List<CardUseGroupedResponse> groupedResponses = cardUseList.stream()
+            // 상세 행 응답
+            List<CardUseGroupedResponse> groupedResponses = list.stream()
                     .map(use -> new CardUseGroupedResponse(
                             use.getChamMonimapCardUseName(),
                             use.getAmountPerPerson(),
@@ -110,69 +116,67 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                             use.getChamMonimapCardUseDate(),
                             use.getChamMonimapCardUseTime()
                     ))
-                    .collect(Collectors.toList());
+                    .toList();
             
-            LocalDate useDate = cardUseList.stream()
-                    .map(ChamMonimapCardUse::getChamMonimapCardUseDate)
-                    .max(Comparator.naturalOrder())
-                    .orElse(null);
+            String addrName   = first.getCardUseAddr().getChamMonimapCardUseAddrName();
+            String addrDetail = first.getCardUseAddr().getChamMonimapCardUseDetailAddr();
+            String region     = first.getChamMonimapCardUseRegion();
+            String user       = first.getChamMonimapCardUseUser();
             
-            String addrDetail = cardUseList.stream()
-                    .map(item -> item.getCardUseAddr().getChamMonimapCardUseDetailAddr())
-                    .findFirst()
-                    .orElse("");
+            String imageUrl = imageUrlByAddrId.get(addrId);
             
-            String imageUrl = cardUseAddrRepository.findByImageUrl(addrId);
-            
-            // 댓글 내용 리스트
-            List<ReplyResponse> replyList = repliesGroupedByAddrId
-                    .getOrDefault(addrId, Collections.emptyList())
+            // 댓글 응답
+            List<ReplyResponse> replyList = repliesByAddrId.getOrDefault(addrId, Collections.emptyList())
                     .stream()
-                    .map(item -> {
-                        Long replyId = item.getChamMonimapReplyId();
-                        
-                        List<String> imageUrls = replyImageGroup.getOrDefault(replyId, Collections.emptyList())
+                    .map(rep -> {
+                        Long rid = rep.getChamMonimapReplyId();
+                        List<String> urls = imagesByReplyId.getOrDefault(rid, Collections.emptyList())
                                 .stream()
                                 .map(ChamMonimapReplyImage::getChamMonimapReplyImageUrl)
-                                .collect(Collectors.toList());
-                        
+                                .toList();
                         return new ReplyResponse(
-                                replyId,
-                                item.getChamMonimapReplyCont(),
-                                item.getChamMonimapMember().getChamMonimapMemberName(),
-                                item.getChamMonimapMember().getChamMonimapMemberImageUrl(),
-                                item.getChamMonimapMember().getChamMonimapMemberEmail(),
-                                imageUrls
+                                rid,
+                                rep.getChamMonimapReplyCont(),
+                                rep.getChamMonimapMember().getChamMonimapMemberName(),
+                                rep.getChamMonimapMember().getChamMonimapMemberImageUrl(),
+                                rep.getChamMonimapMember().getChamMonimapMemberEmail(),
+                                urls
                         );
                     })
-                    .collect(Collectors.toList());
+                    .toList();
             
-            // 응답 생성
-            CardUseResponse response = new CardUseResponse(
+            CardUseResponse resp = new CardUseResponse(
                     addrName,
-                    cardUseRegion,
-                    cardUseUser,
-                    visitCount,
+                    region,
+                    user,
+                    list.size(),   // visitCount
                     visitMember,
                     totalSum,
                     addrDetail,
                     imageUrl,
                     addrId,
-                    useDate,
+                    list.stream().map(ChamMonimapCardUse::getChamMonimapCardUseDate).max(Comparator.naturalOrder()).orElse(null),
                     groupedResponses,
-                    replyList // 댓글 포함
+                    replyList
             );
             
-            resultMap.put(addrId, response);
+            resultMap.put(addrId, resp);
         }
-        // 날짜 내림차순 정렬 후 반환
-        return resultMap.entrySet()
-                .stream()
+        
+        return resultMap.entrySet().stream()
+                .sorted((e1, e2) -> {
+                    LocalDate d1 = e1.getValue().getUseDate();
+                    LocalDate d2 = e2.getValue().getUseDate();
+                    if (d1 == null && d2 == null) return 0;
+                    if (d1 == null) return 1;   // null 은 뒤로
+                    if (d2 == null) return -1;
+                    return d1.compareTo(d2);    // 오름차순
+                })
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         (a, b) -> a,
-                        LinkedHashMap::new
+                        LinkedHashMap::new // 정렬 유지
                 ));
     }
     
@@ -308,8 +312,20 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         return inserted;
     }
     
-    private static String safeTrim(String s) {
+    private String safeTrim(String s) {
         return s == null ? null : s.trim();
     }
+    
+    private String buildVisitMember(Set<String> names) {
+        if (names == null || names.isEmpty()) {
+            return "";
+        }
+        if (names.size() == 1) {
+            return names.iterator().next();
+        }
+        String firstName = names.iterator().next();
+        return String.format("%s 외 %d명", firstName, names.size() - 1);
+    }
+    
     
 }
