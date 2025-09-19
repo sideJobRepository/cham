@@ -14,35 +14,18 @@ export default function Layout() {
   const [isMobile, setIsMobile] = useState(null);
 
   useEffect(() => {
+    const handler = e => {
+      console.log('e', e);
+      if (e.detail?.user) {
+        setUser(e.detail.user);
+      }
+    };
+    window.addEventListener('auth:refreshed', handler);
+    return () => window.removeEventListener('auth:refreshed', handler);
+  }, [setUser]);
+
+  useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
-  }, []);
-
-  //유저정보
-  useEffect(() => {
-    const stored = sessionStorage.getItem('user');
-    if (!user) {
-      setUser(JSON.parse(stored));
-    }
-  }, []);
-
-  useEffect(() => {
-    const channel = new BroadcastChannel('auth');
-
-    channel.onmessage = event => {
-      if (event.data === 'logout') {
-        sessionStorage.clear();
-        setUser(null);
-      }
-
-      if (event.data.type === 'login') {
-        sessionStorage.setItem('user', JSON.stringify(event.data.user));
-        setUser(event.data.user);
-      }
-    };
-
-    return () => {
-      channel.close();
-    };
   }, []);
 
   useEffect(() => {

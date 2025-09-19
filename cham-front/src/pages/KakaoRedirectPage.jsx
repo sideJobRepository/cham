@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useSetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
 import { toast } from 'react-toastify';
+import { tokenStore } from '@/utils/axiosInstance.js';
 
 export default function KakaoRedirectPage() {
   const navigate = useNavigate();
@@ -22,16 +23,11 @@ export default function KakaoRedirectPage() {
     axios
       .post('/cham/kakao-login', { code })
       .then(res => {
-        const decoded = jwtDecode(res.data.token);
+        console.log('res', res);
 
-        sessionStorage.setItem('user', JSON.stringify(decoded));
-        sessionStorage.setItem('token', res.data.token);
-        setUser(decoded);
+        tokenStore.set(res.data.token);
+        setUser(res.data.user);
 
-        //탭 전역 저장
-        const channel = new BroadcastChannel('auth');
-        channel.postMessage({ type: 'login', user: decoded });
-        channel.close();
         // 토큰 저장 및 홈 이동 등
         navigate('/');
         toast.update(toastId, {
