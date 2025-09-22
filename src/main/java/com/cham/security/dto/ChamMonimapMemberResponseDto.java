@@ -18,6 +18,7 @@ public class ChamMonimapMemberResponseDto {
     private Long id;
     private String name;
     private String nickname;
+    private String email;
     private List<String> roles;
     private String socialId;
     private String sub;
@@ -28,6 +29,7 @@ public class ChamMonimapMemberResponseDto {
         ChamMonimapMemberResponseDto dto = new ChamMonimapMemberResponseDto();
         dto.setId(member.getChamMonimapMemberId());
         dto.setName(member.getChamMonimapMemberName());
+        dto.setEmail(member.getChamMonimapMemberEmail());
         dto.setNickname(member.getChamMonimapMemberNickname());
         List<String> roleList = new ArrayList<>();
         if (authorities != null && !authorities.isEmpty()) {
