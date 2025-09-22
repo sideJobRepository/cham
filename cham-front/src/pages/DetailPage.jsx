@@ -200,10 +200,10 @@ export default function DetailPage() {
                 )}
               </ImageBox>
               <InfoBox>
-                <Title>{detail.visitMember} 방문</Title>
+                <Title>{detail.addrName}</Title>
                 <SubMeta>방문횟수 {detail.visits}</SubMeta>
                 <MetaGroup>
-                  <strong>{detail.addrName}</strong>
+                  <strong>{detail.visitMember} 방문</strong>
                   <span>{detail.addrDetail}</span>
                 </MetaGroup>
                 <TotalPrice>

@@ -105,10 +105,10 @@ export default function ItemCard({ data }) {
         ) : null}
       </ImageWrapper>
       <CardBody>
-        <Title>{data.visitMember} 방문</Title>
+        <Title>{data.addrName}</Title>
         <Stats>방문횟수 {data.visits}</Stats>
         <Price>총 {data.totalSum.toLocaleString()}원</Price>
-        <Menu>{data.addrName}</Menu>
+        <Menu>{data.visitMember} 방문</Menu>
         <Address>{data.addrDetail}</Address>
       </CardBody>
     </Card>
