@@ -7,11 +7,10 @@ import com.cham.role.dto.MemberRoleGetResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.support.PageableUtils;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 class ChamMonimapMemberRoleServiceImplTest extends RepositoryAndServiceTestSupport {
     
@@ -27,7 +26,12 @@ class ChamMonimapMemberRoleServiceImplTest extends RepositoryAndServiceTestSuppo
         PageRequest pageRequest = PageRequest.of(0, 10);
         
         PageResponse<MemberRoleGetResponse> byMemberRoles = chamMonimapMemberRoleService.findByMemberRoles(pageRequest);
-        System.out.println("byMemberRoles = " + byMemberRoles);
+        
+        assertThat(byMemberRoles.content())
+                .extracting("memberId","memberRoleId","memberRoleName")
+                .contains(
+                        tuple(1L,1L,"USER")
+                );
         
     }
     
