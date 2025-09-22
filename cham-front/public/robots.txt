@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /cham/
+
+
+User-agent: Yeti
+Disallow: /cham/
+
+
+Sitemap:https://cham-monimap.com/sitemap.xml
