@@ -263,7 +263,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 );
                 toInsert.add(entity);
             }
-            // 4) 배치 저장
+            // 4) 저장
             if (!toInsert.isEmpty()) {
                 cardUseRepository.saveAll(toInsert);
             }

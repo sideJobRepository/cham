@@ -44,6 +44,7 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .selectFrom(chamMonimapCardUse)
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr).fetchJoin()
                 .where(
+                        chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
                         cardOwnerPositionEq(request),
                         cardUseNameLike(request),
                         cardUseDetailAddrLike(request),
