@@ -28,7 +28,7 @@ import java.util.Map;
 @Component(value = "chamMonimapSuccessHandler")
 @RequiredArgsConstructor
 public class ChamMonimapSuccessHandler implements AuthenticationSuccessHandler {
-
+    
     private final ObjectMapper objectMapper;
     private final RsaSecuritySigner rsaSecuritySigner;
     private final ChamMonimapRefreshTokenService chamMonimapRefreshTokenService;

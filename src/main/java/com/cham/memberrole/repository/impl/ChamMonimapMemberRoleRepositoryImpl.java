@@ -2,8 +2,12 @@ package com.cham.memberrole.repository.impl;
 
 import com.cham.memberrole.entity.ChamMonimapMemberRole;
 import com.cham.memberrole.repository.query.ChamMonimapMemberRoleQueryRepository;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,4 +44,24 @@ public class ChamMonimapMemberRoleRepositoryImpl implements ChamMonimapMemberRol
                 .where(chamMonimapMemberRole.chamMonimapMember.chamMonimapMemberId.eq(id))
                 .fetch();
     }
+    
+    @Override
+    public Page<ChamMonimapMemberRole> findByMemberRoles(Pageable pageable) {
+        List<ChamMonimapMemberRole> result = queryFactory
+                .select(chamMonimapMemberRole)
+                .from(chamMonimapMemberRole)
+                .join(chamMonimapMemberRole.chamMonimapMember, chamMonimapMember).fetchJoin()
+                .join(chamMonimapMemberRole.chamMonimapRole, chamMonimapRole).fetchJoin()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        
+        JPAQuery<Long> countQuery = queryFactory
+                .select(chamMonimapMemberRole.count())
+                .from(chamMonimapMemberRole)
+                .join(chamMonimapMemberRole.chamMonimapMember, chamMonimapMember).fetchJoin()
+                .join(chamMonimapMemberRole.chamMonimapRole, chamMonimapRole).fetchJoin();
+        return PageableExecutionUtils.getPage(result,pageable,countQuery::fetchOne);
+    }
+    
 }
