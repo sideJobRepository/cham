@@ -8,7 +8,6 @@ import { useMapSearch } from '@/recoil/fetchAppState.js';
 import { useDetailMapState } from '@/recoil/useAppState.js';
 import { useRecoilValue } from 'recoil';
 import { userState } from '@/recoil/appState.js';
-import { useSearchParams } from 'react-router-dom';
 import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
@@ -19,9 +18,9 @@ import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { MdDelete } from 'react-icons/md';
 
-export default function DetailPage() {
-  const [searchParams] = useSearchParams();
+export default function DetailPage({ initialParams }) {
   const { mapDetailData } = useDetailMapState();
+  console.log('mapDetailData', mapDetailData);
   const [detail, SetDetail] = useState(null);
 
   const [editingReplyId, setEditingReplyId] = useState(null);
@@ -32,13 +31,12 @@ export default function DetailPage() {
 
   const [editImage, setEditImage] = useState({});
 
-  //수정시 이미지 복사
+  // 수정시 이미지 복사
   const [editingImageUrls, setEditingImageUrls] = useState({});
-
-  const paramsObj = Object.fromEntries(searchParams.entries());
 
   const user = useRecoilValue(userState);
 
+  console.log('user', user);
   const detailSearch = useMapSearch();
 
   const [showInput, setShowInput] = useState(false);
@@ -48,8 +46,6 @@ export default function DetailPage() {
   const [lightboxImages, setLightboxImages] = useState([]);
 
   const handleCreate = async () => {
-    console.log('user', user);
-
     const replyCont = inputRef.current.value;
     const memberId = user?.id;
     const cardUseAddrId = detail.cardUseAddrId;
@@ -58,6 +54,8 @@ export default function DetailPage() {
     formData.append('cardUseAddrId', cardUseAddrId);
     formData.append('memberId', memberId);
     formData.append('replyCont', replyCont);
+
+    console.log('userId', memberId);
 
     imageFiles.forEach(file => {
       formData.append('fileList', file); // key 이름은 반드시 fileList!
@@ -72,9 +70,7 @@ export default function DetailPage() {
 
     try {
       await api.post('/cham/reply', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setShowInput(false);
       toast.update(toastId, {
@@ -83,9 +79,9 @@ export default function DetailPage() {
         isLoading: false,
         autoClose: 1000,
       });
-      await detailSearch(paramsObj);
+      await detailSearch(initialParams);
 
-      // 입력 상태 초기화 추가
+      // 입력 상태 초기화
       setEditingText('');
       setImageFiles([]);
       setImagePreviews([]);
@@ -139,9 +135,7 @@ export default function DetailPage() {
 
     try {
       await api.put('/cham/reply', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       toast.update(toastId, {
@@ -165,7 +159,7 @@ export default function DetailPage() {
         return newMap;
       });
 
-      await detailSearch(paramsObj);
+      await detailSearch(initialParams);
     } catch (e) {
       toast.update(toastId, {
         render: '댓글 수정이 실패했습니다.',
@@ -176,10 +170,14 @@ export default function DetailPage() {
     }
   };
 
+  // 초기/파라미터 변경 시 조회
   useEffect(() => {
-    detailSearch(paramsObj);
-  }, []);
+    if (initialParams) {
+      detailSearch(initialParams);
+    }
+  }, [initialParams]);
 
+  // recoil detail 상태 반영
   useEffect(() => {
     if (mapDetailData) {
       SetDetail(Object.values(mapDetailData)[0]);
@@ -251,14 +249,8 @@ export default function DetailPage() {
                               confirmAlert({
                                 message: '해당 댓글을 수정하시겠습니까?',
                                 buttons: [
-                                  {
-                                    label: '수정',
-                                    onClick: () => handleUpdate(reply),
-                                  },
-                                  {
-                                    label: '취소',
-                                    onClick: () => {},
-                                  },
+                                  { label: '수정', onClick: () => handleUpdate(reply) },
+                                  { label: '취소', onClick: () => {} },
                                 ],
                               });
                             }}
@@ -307,16 +299,13 @@ export default function DetailPage() {
                                           try {
                                             await api.delete(`/cham/reply/${reply.replyId}`);
                                             toast.success('댓글이 삭제되었습니다.');
-                                            await detailSearch(paramsObj);
+                                            await detailSearch(initialParams);
                                           } catch (e) {
                                             toast.error('댓글 삭제가 실패했습니다.');
                                           }
                                         },
                                       },
-                                      {
-                                        label: '취소',
-                                        onClick: () => {},
-                                      },
+                                      { label: '취소', onClick: () => {} },
                                     ],
                                   });
                                 }}
@@ -361,7 +350,7 @@ export default function DetailPage() {
                                   src={imgUrl}
                                   alt={`이미지 ${idx + 1}`}
                                   onClick={() => {
-                                    setLightboxImages(reply.replyImageUrls); // or editingImageUrls[reply.replyId]
+                                    setLightboxImages(reply.replyImageUrls);
                                     setLightboxIndex(idx);
                                   }}
                                 />
@@ -398,9 +387,7 @@ export default function DetailPage() {
                               onChange={e => {
                                 const existingUrls = editingImageUrls[reply.replyId] || [];
                                 const currentFiles = editImage[reply.replyId]?.files || [];
-
                                 const selectedFiles = Array.from(e.target.files || []);
-
                                 const totalCount = existingUrls.length + currentFiles.length;
                                 const allowedCount = Math.max(0, 3 - totalCount);
 
@@ -504,8 +491,6 @@ export default function DetailPage() {
         render={{
           buttonPrev: lightboxIndex > 0 ? undefined : () => null,
           buttonNext: lightboxIndex < lightboxImages.length - 1 ? undefined : () => null,
-
-          // 👉 이미지 드래그/스와이프 차단
           slide: ({ slide }) => (
             <div
               style={{
@@ -555,7 +540,7 @@ const DetailWrapper = styled.section`
     max-width: 100%;
     min-width: 100%;
     min-height: unset;
-    overflow-y: unset;
+    overflow-y: auto;
   }
 `;
 
@@ -687,7 +672,7 @@ const BottomCards = styled.div`
   max-width: 100%;
 
   & > * {
-    flex: 0 0 calc(50% - 6px); /* gap 고려해서 반씩 */
+    flex: 0 0 calc(50% - 6px);
     width: calc(50% - 6px);
   }
 
@@ -788,6 +773,7 @@ const CommentTop = styled.div`
   display: flex;
   align-items: center;
 `;
+
 const TextareaBox = styled.div`
   display: flex;
   flex-direction: column;

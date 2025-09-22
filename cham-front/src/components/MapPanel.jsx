@@ -9,6 +9,8 @@ import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
 import { AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
+import Modal from '@/components/modal/Modal.jsx';
+import DetailPage from '@/pages/DetailPage.jsx';
 
 export default function MapPanel() {
   const theme = useTheme();
@@ -29,6 +31,10 @@ export default function MapPanel() {
   const fileInputRef = useRef(null);
 
   const mapSearch = useMapSearch();
+
+  //모달
+  const [open, setOpen] = useState(false);
+  const [detailParams, setDetailParams] = useState(null);
 
   const handleSearch = () => {
     const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
@@ -284,7 +290,7 @@ export default function MapPanel() {
           div.innerHTML = `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;<i class="fa fa-comment"></i>&nbsp;${raw.replies ?? replies}`;
 
           div.addEventListener('click', () => {
-            const query = new URLSearchParams({
+            const params = {
               cardOwnerPositionId: searchCondition.selectedRole?.value,
               cardUseName: searchCondition.cardUseName,
               numberOfVisits: searchCondition.numberOfVisits,
@@ -294,8 +300,9 @@ export default function MapPanel() {
               sortOrder: searchCondition.sortOrder,
               addrDetail: raw.addrDetail,
               detail: true,
-            }).toString();
-            window.open(`/detail?${query}`, '_blank');
+            };
+            setDetailParams(params);
+            setOpen(true);
           });
 
           const overlay = new window.kakao.maps.CustomOverlay({
@@ -398,6 +405,9 @@ export default function MapPanel() {
         )}
         <MapContainer $hasHeader={user?.role === 'ADMIN'} id="map" />
       </MapBox>
+      <Modal open={open} onClose={() => setOpen(false)} title="상세보기">
+        <DetailPage initialParams={detailParams} />
+      </Modal>
     </>
   );
 }

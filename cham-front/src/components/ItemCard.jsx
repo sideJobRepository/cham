@@ -2,26 +2,28 @@ import styled from 'styled-components';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
 import { useRecoilValue } from 'recoil';
 import { mapSearchFilterState, userState } from '@/recoil/appState.js';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import axios from 'axios';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 import { toast } from 'react-toastify';
 import basicLogo from '/basicLogo.png';
+import Modal from '@/components/modal/Modal.jsx';
+import DetailPage from '@/pages/DetailPage.jsx';
 
 export default function ItemCard({ data }) {
   const searchCondition = useRecoilValue(mapSearchFilterState);
-
   const mapSearch = useMapSearch();
-
   const fileInputRef = useRef();
-
   const user = useRecoilValue(userState);
 
+  const [open, setOpen] = useState(false);
+  const [detailParams, setDetailParams] = useState(null);
+
   const handlePlusClick = e => {
-    fileInputRef.current.click(); // input 클릭 유도
+    fileInputRef.current.click();
   };
 
-  //이미지 업로드
+  // 이미지 업로드
   const handleFileChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -55,8 +57,9 @@ export default function ItemCard({ data }) {
     }
   };
 
+  // 디테일 열기 → 모달
   const handleClick = data => {
-    const query = new URLSearchParams({
+    const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
       cardUseName: searchCondition.cardUseName,
       numberOfVisits: searchCondition.numberOfVisits,
@@ -66,52 +69,58 @@ export default function ItemCard({ data }) {
       sortOrder: searchCondition.sortOrder,
       addrDetail: data.addrDetail,
       detail: true,
-      // 필요한 필드 추가
-    }).toString();
-    window.open(`/detail?${query}`, '_blank');
+    };
+    setDetailParams(params);
+    setOpen(true);
   };
 
   return (
-    <Card
-      onClick={() => {
-        handleClick(data);
-      }}
-    >
-      <ImageWrapper>
-        {data?.cardUseImageUrl ? (
-          <img src={data?.cardUseImageUrl} alt="식당 대표 이미지" />
-        ) : (
-          <img src={basicLogo} alt="기본 로고 이미지" />
-        )}
-        <ImageText>
-          {data?.cardUseRegion} {data.cardUseUser} {data.visitMember}
-        </ImageText>
-        {user?.role === 'ADMIN' ? (
-          <PlusButtonWrapper
-            onClick={e => {
-              e.stopPropagation();
-              handlePlusClick();
-            }}
-          >
-            <PlusButton size={30} />
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              ref={fileInputRef}
-              onChange={handleFileChange}
-            />
-          </PlusButtonWrapper>
-        ) : null}
-      </ImageWrapper>
-      <CardBody>
-        <Title>{data.addrName}</Title>
-        <Stats>방문횟수 {data.visits}</Stats>
-        <Price>총 {data.totalSum.toLocaleString()}원</Price>
-        <Menu>{data.visitMember} 방문</Menu>
-        <Address>{data.addrDetail}</Address>
-      </CardBody>
-    </Card>
+    <>
+      <Card
+        onClick={() => {
+          handleClick(data);
+        }}
+      >
+        <ImageWrapper>
+          {data?.cardUseImageUrl ? (
+            <img src={data?.cardUseImageUrl} alt="식당 대표 이미지" />
+          ) : (
+            <img src={basicLogo} alt="기본 로고 이미지" />
+          )}
+          <ImageText>
+            {data?.cardUseRegion} {data.cardUseUser} {data.visitMember}
+          </ImageText>
+          {user?.role === 'ADMIN' ? (
+            <PlusButtonWrapper
+              onClick={e => {
+                e.stopPropagation();
+                handlePlusClick();
+              }}
+            >
+              <PlusButton size={30} />
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
+            </PlusButtonWrapper>
+          ) : null}
+        </ImageWrapper>
+        <CardBody>
+          <Title>{data.addrName}</Title>
+          <Stats>방문횟수 {data.visits}</Stats>
+          <Price>총 {data.totalSum.toLocaleString()}원</Price>
+          <Menu>{data.visitMember} 방문</Menu>
+          <Address>{data.addrDetail}</Address>
+        </CardBody>
+      </Card>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="상세보기">
+        <DetailPage initialParams={detailParams} />
+      </Modal>
+    </>
   );
 }
 
