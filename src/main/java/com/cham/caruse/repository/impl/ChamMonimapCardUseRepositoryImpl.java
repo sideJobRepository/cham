@@ -45,6 +45,9 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr).fetchJoin()
                 .where(
                         chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
+                        chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
+                                .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("경조사비")) //경조사비 제외
+                                .not(),
                         cardOwnerPositionEq(request),
                         cardUseNameLike(request),
                         cardUseDetailAddrLike(request),
