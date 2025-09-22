@@ -163,7 +163,7 @@ export default function MapPanel() {
           address: item.addrDetail,
           amount: item.totalSum,
           raw: item,
-          replies: item.replies?.length ?? 0,
+          visits: item.visits?.length ?? 0,
         }))
         .filter(p => !!p.address);
 
@@ -272,7 +272,7 @@ export default function MapPanel() {
 
       // 4) 오버레이: 재사용 + 토글만
       const visibleItems = [];
-      for (const { address, amount, replies, raw } of points) {
+      for (const { address, amount, visits, raw } of points) {
         const cached = globalThis._geoCache.get(address);
         if (!cached?.lat || !cached?.lng) continue;
 
@@ -287,7 +287,7 @@ export default function MapPanel() {
       white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
       will-change: transform; transform: translateZ(0);
     `;
-          div.innerHTML = `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;<i class="fa fa-comment"></i>&nbsp;${raw.replies ?? replies}`;
+          div.innerHTML = `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
 
           div.addEventListener('click', () => {
             const params = {
