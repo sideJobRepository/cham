@@ -39,4 +39,17 @@ public class ChamMonimapCheckLog  extends BaseData {
     @Column(name = "CHAM_MONIMAP_SUSPICIOUSED")
     private String chamMonimapSuspicioused;
     
+    public ChamMonimapCheckLog(ChamMonimapMember chamMonimapMember, ChamMonimapCardUseAddr chamMonimapCardUseAddr, String chamMonimapVisited, String chamMonimapSuspicioused) {
+        this.chamMonimapMember = chamMonimapMember;
+        this.chamMonimapCardUseAddr = chamMonimapCardUseAddr;
+        this.chamMonimapVisited = chamMonimapVisited;
+        this.chamMonimapSuspicioused = chamMonimapSuspicioused;
+    }
+    
+    public void modifyVisited(String visited) {
+        this.chamMonimapVisited = visited;
+    }
+    public void modifySuspicioused(String suspicioused) {
+        this.chamMonimapSuspicioused = suspicioused;
+    }
 }
