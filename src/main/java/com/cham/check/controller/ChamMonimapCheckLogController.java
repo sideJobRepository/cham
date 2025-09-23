@@ -17,7 +17,7 @@ public class ChamMonimapCheckLogController {
     private final ChamMonimapCheckLogService chamMonimapCheckLogService;
     
     @GetMapping("/check")
-    public CheckLogGetResponse getCheckLog(@RequestParam(name = "addrId") Long addrId , @RequestParam(name = "memberId") Long memberId) {
+    public CheckLogGetResponse getCheckLog(@RequestParam(name = "addrId") Long addrId , @RequestParam(name = "memberId",required = false) Long memberId) {
         return chamMonimapCheckLogService.findByCheckAggregation(addrId, memberId);
     }
     
