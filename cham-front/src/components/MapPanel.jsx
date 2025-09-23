@@ -12,6 +12,23 @@ import { useMapSearch } from '@/recoil/fetchAppState.js';
 import Modal from '@/components/modal/Modal.jsx';
 import DetailPage from '@/pages/DetailPage.jsx';
 
+// === ADD: 상세표시 임계 줌 레벨 ===
+const DETAIL_MAX_LEVEL = 6;
+
+// === ADD: content 구성 함수 ===
+function renderOverlayContent({ div, raw, amount, visits, map, theme }) {
+  const level = map.getLevel();
+  if (level <= DETAIL_MAX_LEVEL) {
+    // 상세(금액 + 방문횟수)
+    div.innerHTML =
+      `<span>${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;</span>` +
+      `<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
+  } else {
+    // 거점(간단)
+    div.innerHTML = `<i class="fa fa-map-marker"></i>`;
+  }
+}
+
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState();
@@ -19,7 +36,6 @@ export default function MapPanel() {
   const [mapReady, setMapReady] = useState(false);
 
   const searchCondition = useRecoilValue(mapSearchFilterState);
-
   const user = useRecoilValue(userState);
 
   //지도 로딩
@@ -29,7 +45,6 @@ export default function MapPanel() {
   const [deleteText, setDeleteText] = useState('');
 
   const fileInputRef = useRef(null);
-
   const mapSearch = useMapSearch();
 
   //모달
@@ -53,7 +68,7 @@ export default function MapPanel() {
   };
 
   const handleExcelUploadClick = () => {
-    fileInputRef.current?.click(); // 엑셀 업로드 버튼 클릭 시 input 클릭
+    fileInputRef.current?.click();
   };
 
   const handleExcelFileChange = async e => {
@@ -106,7 +121,6 @@ export default function MapPanel() {
           level: 9,
         });
 
-        //확대 축소 버튼
         const zoomControl = new window.kakao.maps.ZoomControl();
         map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
 
@@ -117,7 +131,7 @@ export default function MapPanel() {
         bounds.extend(new window.kakao.maps.LatLng(36.281, 127.493));
         map.setBounds(bounds);
 
-        setMapReady(true); // 지도 준비 완료 표시
+        setMapReady(true);
       });
     };
 
@@ -129,11 +143,9 @@ export default function MapPanel() {
   }, []);
 
   useEffect(() => {
-    // 지도 데이터 준비
     if (!window.kakao?.maps || !window.mapInstance || !mapReady) return;
     if (!mapData) return;
 
-    // 검색결과 없을 때
     if (Object.keys(mapData).length === 0) {
       if (globalThis._overlays) {
         globalThis._overlays.forEach(e => e.overlay.setMap(null));
@@ -149,14 +161,12 @@ export default function MapPanel() {
 
     const map = window.mapInstance;
 
-    // 전역 캐시/락 (styled-components의 Map 충돌 피하려고 globalThis.Map 사용)
-    if (!globalThis._geoCache) globalThis._geoCache = new globalThis.Map(); // addr -> {lat,lng} | null
+    if (!globalThis._geoCache) globalThis._geoCache = new globalThis.Map();
     if (globalThis._geocodingBusy == null) globalThis._geocodingBusy = false;
 
     const doOnce = async () => {
-      // 저장소 준비
-      if (!globalThis._geoCache) globalThis._geoCache = new Map(); // addr -> {lat,lng}|null
-      if (!globalThis._overlays) globalThis._overlays = new Map(); // addr -> {overlay,lat,lng,raw,isVisible}
+      if (!globalThis._geoCache) globalThis._geoCache = new Map();
+      if (!globalThis._overlays) globalThis._overlays = new Map();
 
       const points = Object.values(mapData || {})
         .map(item => ({
@@ -167,7 +177,6 @@ export default function MapPanel() {
         }))
         .filter(p => !!p.address);
 
-      //검색결과 반영
       const addrSet = new Set(points.map(p => p.address));
       if (globalThis._overlays) {
         globalThis._overlays.forEach((entry, addr) => {
@@ -184,26 +193,22 @@ export default function MapPanel() {
       const inViewByLatLng = (lat, lng) =>
         lat >= sw.getLat() && lat <= ne.getLat() && lng >= sw.getLng() && lng <= ne.getLng();
 
-      // 1) 캐시에 없는 주소만 추리되, "뷰포트 안일 가능성 높은 것" 우선
       const need = points.filter(p => !globalThis._geoCache.has(p.address)).map(p => p.address);
 
-      // 뷰포트 우선 정렬(대충 주소 문자열 해시로 섞임 방지 + 앞쪽 N개 먼저)
       const MAX_FIRST_BATCH = 40;
       const first = need.slice(0, MAX_FIRST_BATCH);
       const rest = need.slice(MAX_FIRST_BATCH);
       const ordered = [...first, ...rest];
 
-      // 2) 동시성 제한 큐
       const geocoder = new window.kakao.maps.services.Geocoder();
-      const CONCURRENCY = 40; // 동시 실행 수
-      const BATCH_DELAY = 50; // 배치 간 휴식(ms)
-      const MAX_RETRY = 2; // 실패시 재시도 횟수
-      const BASE_DELAY = 120; // 재시도 backoff base(ms)
+      const CONCURRENCY = 40;
+      const BATCH_DELAY = 50;
+      const MAX_RETRY = 2;
+      const BASE_DELAY = 120;
 
       const sleep = ms => new Promise(r => setTimeout(r, ms));
 
       const geocodeOne = async addr => {
-        // 이미 누가 캐시했다면 스킵
         if (globalThis._geoCache.has(addr)) return;
 
         for (let attempt = 0; attempt <= MAX_RETRY; attempt++) {
@@ -225,23 +230,19 @@ export default function MapPanel() {
             return;
           }
 
-          // 실패 → backoff 후 재시도
           if (attempt < MAX_RETRY) {
-            await sleep(BASE_DELAY * (attempt + 1)); // 120ms, 240ms...
+            await sleep(BASE_DELAY * (attempt + 1));
           } else {
-            globalThis._geoCache.set(addr, null); // 최종 실패도 기록해서 재폭주 방지
+            globalThis._geoCache.set(addr, null);
           }
         }
       };
 
       const runQueue = async addresses => {
-        // 주소가 하나도 없으면(전부 캐시됨) 바로 종료: 로딩/토스트 X
         if (!addresses || addresses.length === 0) return;
-
         const isFirst = firstGeocodeRef.current;
         let toastId;
 
-        // 최초에만 로딩 UI
         if (isFirst) {
           toastId = toast.loading('지도 위치를 불러오는 중 입니다.');
         }
@@ -263,14 +264,12 @@ export default function MapPanel() {
               autoClose: 1000,
             });
           }
-          firstGeocodeRef.current = false; // 이후부터는 토스트 안함
+          firstGeocodeRef.current = false;
         }
       };
 
-      // 3) 실행
       await runQueue(ordered);
 
-      // 4) 오버레이: 재사용 + 토글만
       const visibleItems = [];
       for (const { address, amount, visits, raw } of points) {
         const cached = globalThis._geoCache.get(address);
@@ -278,16 +277,17 @@ export default function MapPanel() {
 
         let entry = globalThis._overlays.get(address);
         if (!entry) {
-          // 최초 1회 생성
           const div = document.createElement('div');
           div.style.cssText = `
       display:flex;align-items:center;justify-content:center;
-      background:${theme.colors.primary};color:white;padding:5px 12px;
+      background:${theme.colors.primary};color:white;padding:10px;
       border-radius:20px;font-weight:bold;font-size:${theme.sizes.medium};
       white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
       will-change: transform; transform: translateZ(0);
     `;
-          div.innerHTML = `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
+
+          // === ADD: content 구성 ===
+          renderOverlayContent({ div, raw, amount, visits, map, theme });
 
           div.addEventListener('click', () => {
             const params = {
@@ -311,10 +311,10 @@ export default function MapPanel() {
             yAnchor: 1,
           });
 
-          entry = { overlay, lat: cached.lat, lng: cached.lng, raw, isVisible: false };
+          // === ADD: div를 entry에 보관 ===
+          entry = { overlay, lat: cached.lat, lng: cached.lng, raw, isVisible: false, el: div };
           globalThis._overlays.set(address, entry);
         } else {
-          // 좌표 최신화
           if (entry.lat !== cached.lat || entry.lng !== cached.lng) {
             entry.lat = cached.lat;
             entry.lng = cached.lng;
@@ -331,16 +331,18 @@ export default function MapPanel() {
           entry.isVisible = false;
         }
 
+        // === ADD: 보이는 항목은 매번 content 갱신 ===
+        if (show && entry.el) {
+          renderOverlayContent({ div: entry.el, raw: entry.raw, amount, visits, map, theme });
+        }
+
         if (show) visibleItems.push(raw);
       }
 
       setCenterAddr(visibleItems);
     };
 
-    // 최초 1회 실행
     doOnce();
-
-    // idle 때도 실행(락으로 동시성 제어)
     const idleHandler = () => doOnce();
     window.kakao.maps.event.addListener(map, 'idle', idleHandler);
 
@@ -469,6 +471,6 @@ const DeleteInput = styled.input`
   padding: 4px;
   &:focus {
     outline: none;
-    border-bottom: 2px solid ${({ theme }) => theme.colors.primary}; // 선택적으로 재지정
+    border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
   }
 `;
