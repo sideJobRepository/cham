@@ -27,6 +27,7 @@ public class ChamMonimapCheckLogServiceImpl implements ChamMonimapCheckLogServic
     private final ChamMonimapCardUseAddrRepository monimapCardUseAddrRepository;
     
     @Override
+    @Transactional(readOnly = true)
     public CheckLogGetResponse findByCheckAggregation(Long chamMonimapCardUseAddrId, Long memberId) {
         return chamMonimapCheckLogRepository.findByCheckAggregation(chamMonimapCardUseAddrId,memberId);
     }
