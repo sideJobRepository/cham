@@ -271,8 +271,8 @@ export default function MapPanel() {
           toastId = toast.loading('지도 위치를 불러오는 중 입니다.');
         }
 
-        const CONCURRENCY = 40;
-        const BATCH_DELAY = 50;
+        const CONCURRENCY = 5;
+        const BATCH_DELAY = 200;
 
         for (let i = 0; i < addresses.length; i += CONCURRENCY) {
           const slice = addresses.slice(i, i + CONCURRENCY);
