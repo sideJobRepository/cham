@@ -11,6 +11,7 @@ import Modal from '@/components/modal/Modal.jsx';
 import DetailPage from '@/pages/DetailPage.jsx';
 
 export default function ItemCard({ data }) {
+  console.log('sidedata---사이드바 데이터', data);
   const searchCondition = useRecoilValue(mapSearchFilterState);
   const mapSearch = useMapSearch();
   const fileInputRef = useRef();
@@ -69,6 +70,7 @@ export default function ItemCard({ data }) {
       sortOrder: searchCondition.sortOrder,
       addrDetail: data.addrDetail,
       detail: true,
+      catLabel: data.categoryLabel,
     };
     setDetailParams(params);
     setOpen(true);
@@ -109,7 +111,9 @@ export default function ItemCard({ data }) {
           ) : null}
         </ImageWrapper>
         <CardBody>
-          <Title>{data.addrName}</Title>
+          <Title>
+            {data.addrName} <span>{data.categoryLabel}</span>
+          </Title>
           <Stats>방문횟수 {data.visits}</Stats>
           <Price>총 {data.totalSum.toLocaleString()}원</Price>
           <Menu>{data.visitMember} 방문</Menu>
@@ -164,6 +168,11 @@ const Title = styled.span`
   font-weight: bold;
   color: ${({ theme }) => theme.colors.primary};
   margin: 0;
+
+  > span {
+    color: ${({ theme }) => theme.colors.liteGray};
+    font-size: ${({ theme }) => theme.sizes.medium};
+  }
 `;
 
 const Stats = styled.div`

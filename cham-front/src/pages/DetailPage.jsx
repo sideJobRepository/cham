@@ -20,7 +20,7 @@ import { MdDelete } from 'react-icons/md';
 
 export default function DetailPage({ initialParams }) {
   const { mapDetailData } = useDetailMapState();
-  console.log('mapDetailData', mapDetailData);
+  console.log('initialParams', initialParams);
   const [detail, SetDetail] = useState(null);
 
   const [editingReplyId, setEditingReplyId] = useState(null);
@@ -198,7 +198,9 @@ export default function DetailPage({ initialParams }) {
                 )}
               </ImageBox>
               <InfoBox>
-                <Title>{detail.addrName}</Title>
+                <Title>
+                  {detail.addrName} <span>{initialParams.catLabel}</span>
+                </Title>
                 <SubMeta>방문횟수 {detail.visits}</SubMeta>
                 <MetaGroup>
                   <strong>{detail.visitMember} 방문</strong>
@@ -591,6 +593,11 @@ const Title = styled.span`
   color: ${({ theme }) => theme.colors.primary};
   font-size: ${({ theme }) => theme.sizes.menu};
   font-weight: bold;
+
+  > span {
+    color: ${({ theme }) => theme.colors.liteGray};
+    font-size: ${({ theme }) => theme.sizes.medium};
+  }
 `;
 
 const SubMeta = styled.span`

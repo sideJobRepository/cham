@@ -2,7 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useSearchMapState } from '@/recoil/useAppState.js';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-
+import ReactDOMServer from 'react-dom/server';
+import {
+  FaUtensils, // 음식점
+  FaCoffee, // 카페
+  FaShoppingCart, // 대형마트
+  FaStore, // 편의점
+  FaHotel, // 숙박
+  FaTheaterMasks, // 문화시설
+  FaGasPump, // 주유/충전
+  FaHospital, // 병원
+  FaPrescriptionBottleAlt, // 약국
+  FaQuestionCircle, //기타
+} from 'react-icons/fa';
 import { mapCenterAddrState, mapSearchFilterState, userState } from '@/recoil/appState.js';
 import { confirmAlert } from 'react-confirm-alert';
 import api from '@/utils/axiosInstance.js';
@@ -11,6 +23,40 @@ import { AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 import Modal from '@/components/modal/Modal.jsx';
 import DetailPage from '@/pages/DetailPage.jsx';
+
+const CATEGORY_MAP = {
+  FD6: { label: '음식점', icon: <FaUtensils /> },
+  CE7: { label: '카페', icon: <FaCoffee /> },
+  MT1: { label: '대형마트', icon: <FaShoppingCart /> },
+  CS2: { label: '편의점', icon: <FaStore /> },
+  AD5: { label: '숙박', icon: <FaHotel /> },
+  CT1: { label: '문화시설', icon: <FaTheaterMasks /> },
+  OL7: { label: '주유/충전', icon: <FaGasPump /> },
+  HP8: { label: '병원', icon: <FaHospital /> },
+  PM9: { label: '약국', icon: <FaPrescriptionBottleAlt /> },
+  ETC: { label: '기타', icon: <FaQuestionCircle /> },
+};
+
+function categoryIconHtml(code) {
+  const meta = CATEGORY_MAP[code];
+  if (!meta) return '';
+
+  const svg = ReactDOMServer.renderToString(meta.icon);
+  return svg.replace(
+    '<svg',
+    '<svg width="16" height="16" style="vertical-align:middle;margin-right:6px"'
+  );
+}
+
+//카테고리 찾기
+const getCatFromCache = addr => {
+  const c = globalThis._geoCache?.get(addr);
+  const code = c?.category ?? 'ETC';
+  return {
+    category: code,
+    categoryLabel: CATEGORY_MAP[code]?.label ?? '기타',
+  };
+};
 
 // ===== 줌 기준 =====
 const DETAIL_MAX_LEVEL = 6; // <= 6 : 개별 상세 마커
@@ -256,9 +302,25 @@ export default function MapPanel() {
           });
         });
 
+        const categoryInfo = await fetch(
+          `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=FD6&x=${coords.lng}&y=${coords.lat}&radius=50`,
+          {
+            headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_CLIENT_ID}` },
+          }
+        )
+          .then(res => res.json())
+          .catch(() => null);
+
+        //카테고리 받아오기
+        let category = 'ETC'; // 기본값 기타
+        if (categoryInfo?.documents?.length) {
+          category = categoryInfo.documents[0].category_group_code || 'ETC';
+        }
+
         globalThis._geoCache.set(addr, {
           ...coords,
           ...regionInfo,
+          category,
         });
       };
 
@@ -313,6 +375,10 @@ export default function MapPanel() {
           if (!cached?.lat || !cached?.lng) continue;
           const show = inViewByLatLng(cached.lat, cached.lng);
           let entry = globalThis._overlays.get(address);
+          const catHTML = categoryIconHtml(cached?.category);
+
+          console.log('캐쉬카테고리;', cached?.category);
+
           if (!entry) {
             const div = document.createElement('div');
             div.style.cssText = `
@@ -322,8 +388,12 @@ export default function MapPanel() {
               white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
             `;
             div.innerHTML =
+              `${catHTML}` +
               `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;` +
               `<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
+
+            const catLabel = CATEGORY_MAP[cached?.category]?.label;
+
             div.addEventListener('click', () => {
               const params = {
                 cardOwnerPositionId: searchCondition.selectedRole?.value,
@@ -335,6 +405,7 @@ export default function MapPanel() {
                 sortOrder: searchCondition.sortOrder,
                 addrDetail: raw.addrDetail,
                 detail: true,
+                catLabel: catLabel,
               };
               setDetailParams(params);
               setOpen(true);
@@ -349,7 +420,13 @@ export default function MapPanel() {
           }
           if (show) {
             entry.overlay.setMap(map);
-            visibleItems.push(raw);
+
+            const { category, categoryLabel } = getCatFromCache(address);
+            visibleItems.push({
+              ...raw,
+              category,
+              categoryLabel,
+            });
           } else {
             entry.overlay.setMap(null);
           }
@@ -413,7 +490,13 @@ export default function MapPanel() {
             overlay.setMap(null);
           }
         });
-        setCenterAddr(visibleMembers);
+        console.log('visibleMembers', visibleMembers);
+        setCenterAddr(
+          visibleMembers.map(m => {
+            const { category, categoryLabel } = getCatFromCache(m.addrDetail);
+            return { ...m, category, categoryLabel };
+          })
+        );
       }
     };
 
