@@ -44,7 +44,7 @@ function categoryIconHtml(code) {
   const svg = ReactDOMServer.renderToString(meta.icon);
   return svg.replace(
     '<svg',
-    '<svg width="16" height="16" style="vertical-align:middle;margin-right:6px"'
+    '<svg width="14" height="14" style="vertical-align:middle;margin-right:6px"'
   );
 }
 
