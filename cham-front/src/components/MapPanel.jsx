@@ -271,6 +271,7 @@ export default function MapPanel() {
           toastId = toast.loading('지도 위치를 불러오는 중 입니다.');
         }
 
+        //api 요청 조절(무료일 경우 제한)
         const CONCURRENCY = 10;
         const BATCH_DELAY = 100;
 
@@ -282,7 +283,7 @@ export default function MapPanel() {
           }
         }
 
-        // ★ 안전을 위해 살짝 대기
+        // 안전을 위해 살짝 대기
         await sleep(200);
 
         if (isFirst) {
@@ -382,6 +383,18 @@ export default function MapPanel() {
         white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;
       `;
             div.innerHTML = `${g.key}&nbsp; &nbsp;<i class="fa fa-walking"></i>&nbsp; ${g.visits}회`;
+
+            //클릭시 줌 확장
+            div.addEventListener('click', () => {
+              const map = window.mapInstance;
+              const latlng = new window.kakao.maps.LatLng(g.lat, g.lng);
+
+              // 중심 이동
+              map.setCenter(latlng);
+              // 줌 인 (현재 레벨에서 -1 = 한 단계 확대)
+              map.setLevel(map.getLevel() - 1);
+            });
+
             overlay = new window.kakao.maps.CustomOverlay({
               position: new window.kakao.maps.LatLng(g.lat, g.lng),
               content: div,
