@@ -143,13 +143,6 @@ const Card = styled.article`
     object-fit: cover;
   }
 
-  &:hover {
-    p,
-    span {
-      opacity: 0.5;
-    }
-  }
-
   &:last-child {
     border-bottom: none;
   }

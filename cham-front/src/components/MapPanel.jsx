@@ -330,6 +330,10 @@ export default function MapPanel() {
         let toastId;
 
         if (isFirst) {
+          //클릭 막기
+          const el = document.getElementById('map');
+          el?.style.setProperty('pointer-events', 'none');
+          el?.style.setProperty('touch-action', 'none');
           toastId = toast.loading('지도 위치를 불러오는 중 입니다.');
         }
 
@@ -356,6 +360,11 @@ export default function MapPanel() {
               isLoading: false,
               autoClose: 1000,
             });
+
+            //클릭 해제
+            const el = document.getElementById('map');
+            el?.style.removeProperty('pointer-events');
+            el?.style.removeProperty('touch-action');
           }
           firstGeocodeRef.current = false;
         }
