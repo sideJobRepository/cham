@@ -23,11 +23,6 @@ public class ChamMonimapCardUseAddrServiceImpl implements ChamMonimapCardUseAddr
     private final S3FileUtils s3FileUtils;
     
     @Override
-    public ChamMonimapCardUseAddr insertCardUseAddr(ChamMonimapCardUseAddr cardUseAddr) {
-        return cardUseAddrRepository.save(cardUseAddr);
-    }
-    
-    @Override
     public ApiResponse  UpdateCardUseAddrImage(CardUseAddrImageRequest request) {
         
         MultipartFile cardUseImageUrl = request.getCardUseImageUrl();

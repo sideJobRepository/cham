@@ -5,7 +5,6 @@ import com.cham.cardowner.entity.ChamMonimapCardOwnerPosition;
 import com.cham.cardowner.repository.ChamMonimapCardOwnerPositionRepository;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
-import com.cham.carduseaddr.service.ChamMonimapCardUseAddrService;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
@@ -18,7 +17,10 @@ import com.cham.replyimage.repository.ChamMonimapReplyImageRepository;
 import com.cham.util.ExcelColumns;
 import com.cham.util.PoiUtil;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -46,11 +48,10 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     
     private final ChamMonimapCardUseAddrRepository cardUseAddrRepository;
     
-    private final ChamMonimapCardUseAddrService cardUseAddrService;
-    
     private final ChamMonimapCardOwnerPositionRepository cardOwnerPositionRepository;
     
     @Override
+    @Transactional(readOnly = true)
     public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
         // 1) 데이터 조회
         List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUses(request);
@@ -301,7 +302,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             return new ChamMonimapCardUseAddr(hit.getCardUseAddrId());
         }
         // 없으면 생성
-        ChamMonimapCardUseAddr inserted = cardUseAddrService.insertCardUseAddr(
+        ChamMonimapCardUseAddr inserted = cardUseAddrRepository.save(
                 new ChamMonimapCardUseAddr(addrName, addrDetail));
         // 캐시에도 반영
         cache.put(detailKey, new CardUseAddrDto(

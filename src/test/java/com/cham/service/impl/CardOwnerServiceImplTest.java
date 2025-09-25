@@ -22,7 +22,7 @@ class CardOwnerServiceImplTest extends RepositoryAndServiceTestSupport {
     void test() throws IOException {
         
         
-        try(FileInputStream file = new FileInputStream("src/test/java/com/cham/2025년 중구 구청장 업무추진비 업로드 (1).xlsx")) {
+        try(FileInputStream file = new FileInputStream("src/test/java/com/cham/2025년 서구 구청장 업무추진비 업로드.xlsx")) {
             MockMultipartFile mockMultipartFile = new MockMultipartFile(
                     "file",
                     "sample.xlsx",
