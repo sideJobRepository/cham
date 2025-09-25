@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import styled from 'styled-components';
+import { FaTimes } from 'react-icons/fa';
 
 export default function Modal({ open, onClose, title, children }) {
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function Modal({ open, onClose, title, children }) {
       <Dialog onClick={e => e.stopPropagation()}>
         <Header>
           <strong>{title}</strong>
-          <CloseBtn onClick={onClose}>×</CloseBtn>
+          <FaTimes onClick={onClose} />
         </Header>
         <Body>{children}</Body>
       </Dialog>
@@ -50,14 +51,20 @@ const Dialog = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  svg {
+    cursor: pointer;
+  }
 `;
 
 const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid #eee;
+  height: 50px;
+  padding: 0 20px;
+  color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.primary};
 `;
 
 const CloseBtn = styled.button`
