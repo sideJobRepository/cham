@@ -1,6 +1,6 @@
-import { useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import api from '@/utils/axiosInstance.js';
-import { selectSearchState, mapState, detailState } from './appState.js';
+import { selectSearchState, mapState, detailState, checkDataState, userState } from './appState.js';
 import { toast } from 'react-toastify';
 
 export function useFetchSelectSearch() {
@@ -55,6 +55,22 @@ export function useMapSearch() {
         data: [],
         mapLoading: false,
       });
+    }
+  };
+}
+
+export function useFetchCard() {
+  const user = useRecoilValue(userState);
+  console.log('user', user);
+  const setState = useSetRecoilState(checkDataState);
+
+  return async id => {
+    try {
+      const res = await api.get(`/cham/check?addrId=${id}&memberId=${user?.id}`);
+      setState(res.data);
+    } catch (e) {
+      console.error('초기 요청 실패:', e);
+      setState(null);
     }
   };
 }

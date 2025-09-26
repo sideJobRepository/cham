@@ -52,7 +52,7 @@ export const mapSearchFilterState = atom({
   },
 });
 
-export const selectedCardDataState = atom({
-  key: 'selectedCardDataState',
+export const checkDataState = atom({
+  key: 'checkDataState',
   default: null,
 });

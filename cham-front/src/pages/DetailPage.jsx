@@ -2,12 +2,13 @@ import styled from 'styled-components';
 import VisitCard from '../components/VisiitCard.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { FaCommentDots } from 'react-icons/fa';
-import { FaPen } from 'react-icons/fa';
+import { GiFootprint } from 'react-icons/gi';
+import { FaEye, FaPen } from 'react-icons/fa';
 
-import { useMapSearch } from '@/recoil/fetchAppState.js';
+import { useFetchCard, useMapSearch } from '@/recoil/fetchAppState.js';
 import { useDetailMapState } from '@/recoil/useAppState.js';
 import { useRecoilValue } from 'recoil';
-import { userState } from '@/recoil/appState.js';
+import { checkDataState, userState } from '@/recoil/appState.js';
 import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
@@ -20,6 +21,12 @@ import { MdDelete } from 'react-icons/md';
 
 export default function DetailPage({ initialParams }) {
   const { mapDetailData } = useDetailMapState();
+  //가봤어요, 의심돼요
+  const cardFetch = useFetchCard();
+  const cardData = useRecoilValue(checkDataState);
+
+  console.log('card', cardData);
+
   console.log('initialParams', initialParams);
   const [detail, SetDetail] = useState(null);
 
@@ -177,6 +184,16 @@ export default function DetailPage({ initialParams }) {
     }
   }, [initialParams]);
 
+  useEffect(() => {
+    if (mapDetailData) {
+      const first = Object.values(mapDetailData)[0];
+      const cardId = first?.cardUseAddrId;
+
+      console.log('mapDetailData 받고나서 호출', cardId);
+      cardFetch(cardId);
+    }
+  }, [mapDetailData]);
+
   // recoil detail 상태 반영
   useEffect(() => {
     if (mapDetailData) {
@@ -202,6 +219,18 @@ export default function DetailPage({ initialParams }) {
                   {detail.addrName} <span>{initialParams.catLabel}</span>
                 </Title>
                 <SubMeta>방문횟수 {detail.visits}</SubMeta>
+                <SubIconBox>
+                  <IconSpan $color="#1A7D55">
+                    가봤어요
+                    <GiFootprint />
+                    <span>2명</span>
+                  </IconSpan>
+                  <IconSpan $color="#FF5E57">
+                    의심돼요
+                    <FaEye />
+                    <span>3명</span>
+                  </IconSpan>
+                </SubIconBox>
                 <MetaGroup>
                   <strong>{detail.visitMember} 방문</strong>
                   <span>{detail.addrDetail}</span>
@@ -604,6 +633,25 @@ const SubMeta = styled.span`
   font-size: 14px;
   color: #666;
   margin: 6px 0;
+`;
+
+const SubIconBox = styled.div`
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+`;
+
+const IconSpan = styled.span`
+  display: flex;
+  gap: 4px;
+  color: ${({ $color }) => $color};
+  font-weight: bold;
+  cursor: pointer;
+
+  > span {
+    color: ${({ theme }) => theme.colors.text};
+    font-weight: normal;
+  }
 `;
 
 const MetaGroup = styled.div`

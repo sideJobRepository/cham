@@ -16,6 +16,7 @@ export default function ItemCard({ data }) {
   const mapSearch = useMapSearch();
   const fileInputRef = useRef();
   const user = useRecoilValue(userState);
+  console.log('user', user);
 
   const [open, setOpen] = useState(false);
   const [detailParams, setDetailParams] = useState(null);
