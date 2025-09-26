@@ -335,6 +335,8 @@ export default function MapPanel() {
           el?.style.setProperty('pointer-events', 'none');
           el?.style.setProperty('touch-action', 'none');
           toastId = toast.loading('지도 위치를 불러오는 중 입니다.');
+          document.body.style.pointerEvents = 'none';
+          document.body.style.touchAction = 'none';
         }
 
         //api 요청 조절(무료일 경우 제한)
@@ -365,6 +367,8 @@ export default function MapPanel() {
             const el = document.getElementById('map');
             el?.style.removeProperty('pointer-events');
             el?.style.removeProperty('touch-action');
+            document.body.style.pointerEvents = '';
+            document.body.style.touchAction = '';
           }
           firstGeocodeRef.current = false;
         }

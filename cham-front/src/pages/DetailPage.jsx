@@ -682,6 +682,10 @@ const IconSpan = styled.span`
   font-weight: bold;
   cursor: pointer;
 
+  svg {
+    display: block;
+  }
+
   > span {
     color: ${({ theme }) => theme.colors.text};
     font-weight: normal;
