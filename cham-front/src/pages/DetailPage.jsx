@@ -25,9 +25,6 @@ export default function DetailPage({ initialParams }) {
   const cardFetch = useFetchCard();
   const cardData = useRecoilValue(checkDataState);
 
-  console.log('card', cardData);
-
-  console.log('initialParams', initialParams);
   const [detail, SetDetail] = useState(null);
 
   const [editingReplyId, setEditingReplyId] = useState(null);
@@ -252,17 +249,26 @@ export default function DetailPage({ initialParams }) {
                 </Title>
                 <SubMeta>방문횟수 {detail.visits}</SubMeta>
                 <SubIconBox>
-                  <IconSpan $color="#1A7D55" onClick={() => handleSubCreate(true)}>
+                  <IconSpan
+                    $color="#1A7D55"
+                    data-active={cardData?.myVisited === 'Y'}
+                    onClick={() => handleSubCreate(true)}
+                  >
                     가봤어요
                     <GiFootprint />
                     <span>{cardData?.visitedCnt}명</span>
-                    {cardData?.myVisited === 'Y' && <FaCheckCircle />}
+                    <FaCheckCircle className="check" />
                   </IconSpan>
-                  <IconSpan $color="#FF5E57" onClick={() => handleSubCreate(false)}>
+
+                  <IconSpan
+                    $color="#FF5E57"
+                    data-active={cardData?.mySpicioused === 'Y'}
+                    onClick={() => handleSubCreate(false)}
+                  >
                     의심돼요
                     <FaEye />
                     <span>{cardData?.suspiciousedCnt}명</span>
-                    {cardData?.mySpicioused === 'Y' && <FaCheckCircle />}
+                    <FaCheckCircle className="check" />
                   </IconSpan>
                 </SubIconBox>
                 <MetaGroup>
@@ -683,8 +689,33 @@ const IconSpan = styled.span`
   cursor: pointer;
   align-items: center;
 
-  svg {
-    display: block;
+  .check {
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      transform 0.4s ease,
+      opacity 0.4s ease;
+  }
+
+  &[data-active='true'] .check {
+    opacity: 1;
+    transform: scale(1.3);
+    animation: popShrink 0.4s ease forwards;
+  }
+
+  @keyframes popShrink {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    40% {
+      transform: scale(1.4);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   > span {
