@@ -181,6 +181,11 @@ export default function DetailPage({ initialParams }) {
   const handleSubCreate = async gb => {
     const userId = user?.id;
 
+    if (!userId) {
+      toast.error('로그인 후 이용해주세요.');
+      return;
+    }
+
     const url = gb ? 'check-visited' : 'check-suspicious';
 
     const visitGb = cardData?.myVisited === 'Y' ? null : 'Y';
