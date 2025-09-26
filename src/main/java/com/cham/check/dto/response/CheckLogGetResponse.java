@@ -1,13 +1,11 @@
 package com.cham.check.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CheckLogGetResponse {
 
     private Long chamMonimapCardUseAddrId;
