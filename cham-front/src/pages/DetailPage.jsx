@@ -671,7 +671,7 @@ const SubMeta = styled.span`
 
 const SubIconBox = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 14px;
   font-size: 14px;
 `;
 
@@ -681,6 +681,7 @@ const IconSpan = styled.span`
   color: ${({ $color }) => $color};
   font-weight: bold;
   cursor: pointer;
+  align-items: center;
 
   svg {
     display: block;
