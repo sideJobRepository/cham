@@ -691,10 +691,9 @@ const IconSpan = styled.span`
 
   .check {
     opacity: 0;
-    transform: scale(0.6);
-    transition:
-      transform 0.4s ease,
-      opacity 0.4s ease;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   &[data-active='true'] .check {
