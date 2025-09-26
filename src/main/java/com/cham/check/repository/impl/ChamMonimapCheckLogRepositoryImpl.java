@@ -4,15 +4,13 @@ package com.cham.check.repository.impl;
 import com.cham.check.dto.response.CheckLogGetResponse;
 import com.cham.check.dto.response.QCheckLogGetResponse;
 import com.cham.check.entity.ChamMonimapCheckLog;
-import com.cham.check.entity.QChamMonimapCheckLog;
 import com.cham.check.repository.query.ChamMonimapCheckLogQueryRepository;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Objects;
 
 import static com.cham.check.entity.QChamMonimapCheckLog.chamMonimapCheckLog;
 
@@ -36,10 +34,7 @@ public class ChamMonimapCheckLogRepositoryImpl implements ChamMonimapCheckLogQue
                     .where(chamMonimapCheckLog.chamMonimapCardUseAddr.chamMonimapCardUseAddrId.eq(chamMonimapCardUseAddrId))
                     .groupBy(chamMonimapCheckLog.chamMonimapCardUseAddr.chamMonimapCardUseAddrId)
                     .fetchFirst();
-            if (checkLogGetResponse == null) {
-                return new CheckLogGetResponse(chamMonimapCardUseAddrId,0L,0L,null,null);
-            }
-            return checkLogGetResponse;
+            return Objects.requireNonNullElseGet(checkLogGetResponse, () -> new CheckLogGetResponse(chamMonimapCardUseAddrId, 0L, 0L, null, null));
         }
         
         CheckLogGetResponse checkLogGetResponse = queryFactory
@@ -73,10 +68,7 @@ public class ChamMonimapCheckLogRepositoryImpl implements ChamMonimapCheckLogQue
                 .groupBy(chamMonimapCheckLog.chamMonimapCardUseAddr.chamMonimapCardUseAddrId)
                 .fetchFirst();
         
-        if (checkLogGetResponse == null) {
-            return new CheckLogGetResponse(chamMonimapCardUseAddrId,0L,0L,null,null);
-        }
-        return checkLogGetResponse;
+        return Objects.requireNonNullElseGet(checkLogGetResponse, () -> new CheckLogGetResponse(chamMonimapCardUseAddrId, 0L, 0L, null, null));
         
     }
     
