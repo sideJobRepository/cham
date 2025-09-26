@@ -81,7 +81,7 @@ export default function DetailPage({ initialParams }) {
       });
       setShowInput(false);
       toast.update(toastId, {
-        render: '댓글 저장이 완료됐습니다..',
+        render: '댓글 저장이 완료됐습니다.',
         type: 'success',
         isLoading: false,
         autoClose: 1000,
@@ -177,6 +177,33 @@ export default function DetailPage({ initialParams }) {
     }
   };
 
+  //가봤어요, 의심돼요
+  const handleSubCreate = async gb => {
+    const userId = user?.id;
+
+    const url = gb ? 'check-visited' : 'check-suspicious';
+
+    const visitGb = cardData?.myVisited === 'Y' ? null : 'Y';
+    const suspiciousGb = cardData?.mySpicioused === 'Y' ? null : 'Y';
+
+    try {
+      await api.post(
+        `/cham/${url}`,
+        {
+          memberId: userId,
+          addrId: cardData?.chamMonimapCardUseAddrId,
+          visited: visitGb,
+          suspicioused: suspiciousGb,
+        },
+        {}
+      );
+
+      await cardFetch(cardData?.chamMonimapCardUseAddrId);
+    } catch (e) {
+      console.log('error', e);
+    }
+  };
+
   // 초기/파라미터 변경 시 조회
   useEffect(() => {
     if (initialParams) {
@@ -189,7 +216,7 @@ export default function DetailPage({ initialParams }) {
       const first = Object.values(mapDetailData)[0];
       const cardId = first?.cardUseAddrId;
 
-      console.log('mapDetailData 받고나서 호출', cardId);
+      console.log('mapDetailData 받고나서 호출', first);
       cardFetch(cardId);
     }
   }, [mapDetailData]);
@@ -220,15 +247,15 @@ export default function DetailPage({ initialParams }) {
                 </Title>
                 <SubMeta>방문횟수 {detail.visits}</SubMeta>
                 <SubIconBox>
-                  <IconSpan $color="#1A7D55">
+                  <IconSpan $color="#1A7D55" onClick={() => handleSubCreate(true)}>
                     가봤어요
                     <GiFootprint />
-                    <span>2명</span>
+                    <span>{cardData?.visitedCnt}명</span>
                   </IconSpan>
-                  <IconSpan $color="#FF5E57">
+                  <IconSpan $color="#FF5E57" onClick={() => handleSubCreate(false)}>
                     의심돼요
                     <FaEye />
-                    <span>3명</span>
+                    <span>{cardData?.suspiciousedCnt}명</span>
                   </IconSpan>
                 </SubIconBox>
                 <MetaGroup>

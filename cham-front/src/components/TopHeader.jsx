@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRecoilValue, useResetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
 import { toast } from 'react-toastify';
+import api, { tokenStore } from '@/utils/axiosInstance.js';
 
 export default function TopHeader() {
   const navigate = useNavigate();
@@ -39,14 +40,18 @@ export default function TopHeader() {
     setIsOpen(false);
   };
 
-  const logoutKakao = () => {
+  const logoutKakao = async () => {
     const channel = new BroadcastChannel('auth');
     channel.postMessage('logout');
     channel.close(); // 브라우저 리소스 정리
 
+    await api.delete('/cham/refresh', { withCredentials: true });
+
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     resetUser();
+    tokenStore.clear();
+
     setIsOpen(false);
     toast.success('로그아웃 되었습니다.');
   };

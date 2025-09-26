@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class CheckLogVisitedPostRequest {
-    
+
     private Long memberId;
     private Long addrId;
     private String visited;
-    private String suspicioused;
 }

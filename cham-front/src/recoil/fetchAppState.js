@@ -62,11 +62,16 @@ export function useMapSearch() {
 export function useFetchCard() {
   const user = useRecoilValue(userState);
   console.log('user', user);
+
+  const userId = user ? user?.id : null;
+
+  console.log('userId==============+!!@!@!@!@', userId);
   const setState = useSetRecoilState(checkDataState);
 
   return async id => {
     try {
-      const res = await api.get(`/cham/check?addrId=${id}&memberId=${user?.id}`);
+      const res = await api.get(`/cham/check?addrId=${id}&memberId=${userId}`);
+      console.log('red', res);
       setState(res.data);
     } catch (e) {
       console.error('초기 요청 실패:', e);
