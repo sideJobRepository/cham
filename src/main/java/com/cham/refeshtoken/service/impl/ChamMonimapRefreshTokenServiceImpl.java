@@ -71,6 +71,9 @@ public class ChamMonimapRefreshTokenServiceImpl implements ChamMonimapRefreshTok
         }
         
         ChamMonimapMember member = validateRefreshToken(refreshToken);
+        if(member == null) {
+            return null;
+        }
         
         String roleName = chamMonimapMemberRoleRepository.findByMemberRole(member.getChamMonimapMemberId()).orElseThrow(() -> new RuntimeException("존재 하지 않는 권한"))
                 .getChamMonimapRole()
