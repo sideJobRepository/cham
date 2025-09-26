@@ -3,7 +3,7 @@ import VisitCard from '../components/VisiitCard.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { FaCommentDots } from 'react-icons/fa';
 import { GiFootprint } from 'react-icons/gi';
-import { FaEye, FaPen } from 'react-icons/fa';
+import { FaEye, FaPen, FaCheckCircle } from 'react-icons/fa';
 
 import { useFetchCard, useMapSearch } from '@/recoil/fetchAppState.js';
 import { useDetailMapState } from '@/recoil/useAppState.js';
@@ -251,11 +251,13 @@ export default function DetailPage({ initialParams }) {
                     가봤어요
                     <GiFootprint />
                     <span>{cardData?.visitedCnt}명</span>
+                    {cardData?.myVisited === 'Y' && <FaCheckCircle />}
                   </IconSpan>
                   <IconSpan $color="#FF5E57" onClick={() => handleSubCreate(false)}>
                     의심돼요
                     <FaEye />
                     <span>{cardData?.suspiciousedCnt}명</span>
+                    {cardData?.mySpicioused === 'Y' && <FaCheckCircle />}
                   </IconSpan>
                 </SubIconBox>
                 <MetaGroup>
