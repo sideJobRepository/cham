@@ -115,10 +115,10 @@ export default function TopHeader() {
             <a href="http://www.cham.or.kr/app/main/index" target="_blank" rel="external">
               대전참여자치시민연대 홈페이지
             </a>
-            <Divider />
-            <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">
-              예산감시 플랫폼
-            </a>
+            {/*<Divider />*/}
+            {/*<a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">*/}
+            {/*  예산감시 플랫폼*/}
+            {/*</a>*/}
             <Divider />
             <a href="https://ddemocracy.stibee.com" target="_blank" rel="external">
               띠모크라시
@@ -171,11 +171,11 @@ export default function TopHeader() {
             대전참여자치시민연대 홈페이지
           </a>
         </LinkWrapper>
-        <LinkWrapper>
-          <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">
-            예산감시 플랫폼
-          </a>
-        </LinkWrapper>
+        {/*<LinkWrapper>*/}
+        {/*  <a href="http://moni-budget.cham.or.kr" target="_blank" rel="external">*/}
+        {/*    예산감시 플랫폼*/}
+        {/*  </a>*/}
+        {/*</LinkWrapper>*/}
         <LinkWrapper>
           <a href="https://ddemocracy.stibee.com" target="_blank" rel="external">
             띠모크라시
