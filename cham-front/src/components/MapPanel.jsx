@@ -59,7 +59,7 @@ const getCatFromCache = addr => {
 };
 
 // ===== 줌 기준 =====
-const DETAIL_MAX_LEVEL = 6; // <= 6 : 개별 상세 마커
+const DETAIL_MAX_LEVEL = 5; // <= 5 : 개별 상세 마커
 const DONG_MAX_LEVEL = 8; // 7~8 : 동 단위 집계, >=9 : 구 단위 집계
 
 // ===== (유틸) 그룹핑 & 센트로이드 =====
@@ -423,13 +423,28 @@ export default function MapPanel() {
               setDetailParams(params);
               setOpen(true);
             });
+
             const overlay = new window.kakao.maps.CustomOverlay({
               position: new window.kakao.maps.LatLng(cached.lat, cached.lng),
               content: div,
               yAnchor: 1,
+              zIndex: 1,
             });
             entry = { overlay };
             globalThis._overlays.set(address, entry);
+
+            //마우스 확대추가
+            div.addEventListener('mouseenter', () => {
+              div.style.transform = 'scale(1.25)';
+              overlay.setZIndex(9999);
+            });
+
+            //마우스 축소
+            div.addEventListener('mouseleave', () => {
+              div.style.transform = 'scale(1)';
+              div.style.zIndex = '1';
+              overlay.setZIndex(1);
+            });
           }
           if (show) {
             entry.overlay.setMap(map);
@@ -489,8 +504,22 @@ export default function MapPanel() {
               position: new window.kakao.maps.LatLng(g.lat, g.lng),
               content: div,
               yAnchor: 1,
+              zIndex: 1,
             });
             globalThis._aggOverlays.set(g.key, overlay);
+
+            //마우스 확대추가
+            div.addEventListener('mouseenter', () => {
+              div.style.transform = 'scale(1.25)';
+              overlay.setZIndex(9999);
+            });
+
+            //마우스 축소
+            div.addEventListener('mouseleave', () => {
+              div.style.transform = 'scale(1)';
+              div.style.zIndex = '1';
+              overlay.setZIndex(1);
+            });
           } else {
             overlay.setPosition(new window.kakao.maps.LatLng(g.lat, g.lng));
           }
