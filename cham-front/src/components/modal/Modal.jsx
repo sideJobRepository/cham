@@ -43,9 +43,7 @@ const Backdrop = styled.div`
 `;
 
 const Dialog = styled.div`
-  width: 100%;
-  max-width: 90%;
-  height: 90%;
+
   background: #fff;
   border-radius: 12px;
   overflow: hidden;

@@ -7,7 +7,7 @@ import { userState } from '@/recoil/appState.js';
 import { toast } from 'react-toastify';
 import { tokenStore } from '@/utils/axiosInstance.js';
 
-export default function KakaoRedirectPage() {
+export default function RedirectPage() {
   const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
 
@@ -19,9 +19,22 @@ export default function KakaoRedirectPage() {
       return;
     }
 
+    const pathname = window.location.pathname;
+    const provider = pathname.split('/')[2];
+
+    let url=null;
+
+    if(provider === "KAKAO"){
+      url = "kakao"
+    }else if(provider === "NAVER"){
+      url = "naver"
+    }else {
+      url = "google"
+    }
+
     // 인가코드를 서버로 보내기
     axios
-      .post('/cham/kakao-login', { code })
+      .post(`/cham/${url}-login`, { code })
       .then(res => {
         console.log('res', res);
 

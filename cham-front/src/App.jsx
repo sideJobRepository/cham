@@ -8,7 +8,7 @@ import Layout from './components/Layout.jsx';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import DetailPage from './pages/DetailPage.jsx';
 import { RecoilRoot } from 'recoil';
-import KakaoRedirectPage from '@/pages/KakaoRedirectPage.jsx';
+import RedirectPage from '@/pages/RedirectPage.jsx';
 import { ToastContainer } from 'react-toastify';
 
 function App() {
@@ -19,7 +19,7 @@ function App() {
         <ToastContainer position="top-center" autoClose={3000} />
         <BrowserRouter>
           <Routes>
-            <Route path="/oauth/kakao/callback" element={<KakaoRedirectPage />} />
+            <Route path="/oauth/:provider/callback" element={<RedirectPage />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<MainPage />} />
               <Route path="/contract" element={<ContractPage />} />

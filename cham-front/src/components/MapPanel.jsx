@@ -54,7 +54,6 @@ const getCatFromCache = addr => {
   const code = c?.category ?? 'ETC';
   return {
     category: code,
-    categoryLabel: CATEGORY_MAP[code]?.label ?? '기타',
   };
 };
 
@@ -312,10 +311,11 @@ export default function MapPanel() {
           .catch(() => null);
 
         //카테고리 받아오기
-        let category = 'ETC'; // 기본값 기타
+        let category = '기타'; // 기본값 기타
         if (categoryInfo?.documents?.length) {
-          category = categoryInfo.documents[0].category_group_code || 'ETC';
+          category = categoryInfo.documents[0] || '기타';
         }
+
 
         globalThis._geoCache.set(addr, {
           ...coords,
@@ -388,9 +388,15 @@ export default function MapPanel() {
           if (!cached?.lat || !cached?.lng) continue;
           const show = inViewByLatLng(cached.lat, cached.lng);
           let entry = globalThis._overlays.get(address);
-          const catHTML = categoryIconHtml(cached?.category);
+          const categoryName = cached?.category === '기타' ? '기타' : cached?.category?.category_name;
 
-          console.log('캐쉬카테고리;', cached?.category);
+          const parts = categoryName.split('>').map(s => s.trim());
+
+          //첫자리
+          const first = parts[0];
+          //셋째자리
+          const third = parts.slice(0, 3).join(' > ');
+
 
           if (!entry) {
             const div = document.createElement('div');
@@ -401,11 +407,11 @@ export default function MapPanel() {
               white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
             `;
             div.innerHTML =
-              `${catHTML}` +
+              `${first}` +
               `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;` +
               `<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
 
-            const catLabel = CATEGORY_MAP[cached?.category]?.label;
+            const catLabel = third;
 
             div.addEventListener('click', () => {
               const params = {
@@ -449,11 +455,13 @@ export default function MapPanel() {
           if (show) {
             entry.overlay.setMap(map);
 
-            const { category, categoryLabel } = getCatFromCache(address);
+            const { category } = getCatFromCache(address);
+
+            console.log("category", category, );
+
             visibleItems.push({
               ...raw,
-              category,
-              categoryLabel,
+              categoryLabel: category?.category_name,
             });
           } else {
             entry.overlay.setMap(null);
@@ -532,11 +540,11 @@ export default function MapPanel() {
             overlay.setMap(null);
           }
         });
-        console.log('visibleMembers', visibleMembers);
+
         setCenterAddr(
           visibleMembers.map(m => {
-            const { category, categoryLabel } = getCatFromCache(m.addrDetail);
-            return { ...m, category, categoryLabel };
+            const { category } = getCatFromCache(m.addrDetail);
+            return { ...m, categoryLabel };
           })
         );
       }

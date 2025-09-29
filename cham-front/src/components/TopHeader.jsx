@@ -11,6 +11,8 @@ import { useRecoilValue, useResetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
 import { toast } from 'react-toastify';
 import api, { tokenStore } from '@/utils/axiosInstance.js';
+import LoginMoadl from "@/components/modal/LoginModal.jsx";
+import Modal from "@/components/modal/Modal.jsx";
 
 export default function TopHeader() {
   const navigate = useNavigate();
@@ -20,6 +22,9 @@ export default function TopHeader() {
 
   const menuRef = useRef(null);
   const hamburgerRef = useRef(null);
+
+  //로그인 모달
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -126,13 +131,10 @@ export default function TopHeader() {
         </LinkGroup>
         {user ? (
           <KakaoButton onClick={logoutKakao}>
-            {/*<img src={user.thumbnailImageUrl} alt="카카오" />*/}
-            <img src={kakaoImg} alt="카카오" />
             로그아웃
           </KakaoButton>
         ) : (
-          <KakaoButton onClick={loginWithKakao}>
-            <img src={kakaoImg} alt="카카오" />
+          <KakaoButton onClick={() => setIsLoginModalOpen(true)}>
             로그인
           </KakaoButton>
         )}
@@ -156,13 +158,11 @@ export default function TopHeader() {
         ))}
         {user ? (
           <MenuButtonWrapper onClick={logoutKakao}>
-            <img src={kakaoImg} alt="카카오" />
-            카카오 로그아웃
+            로그아웃
           </MenuButtonWrapper>
         ) : (
-          <MenuButtonWrapper onClick={loginWithKakao}>
-            <img src={kakaoImg} alt="카카오" />
-            카카오 로그인
+          <MenuButtonWrapper onClick={() => setIsLoginModalOpen(true)}>
+            로그인
           </MenuButtonWrapper>
         )}
 
@@ -187,6 +187,9 @@ export default function TopHeader() {
           </a>
         </LinkWrapper>
       </MobileMenu>
+      {isLoginModalOpen && <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
+        <LoginMoadl/>
+      </Modal>}
     </Wrapper>
   );
 }
@@ -262,15 +265,15 @@ const Right = styled.div`
 const KakaoButton = styled.button`
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.kakao};
+  background: ${({ theme }) => theme.colors.primary};
+  color: #ffffff;
   border: none;
   border-radius: 50px;
-  padding: 8px 16px 8px 8px;
+  padding: 10px 14px;
   margin-left: 26px;
-  font-size: ${({ theme }) => theme.sizes.large};
+  font-size: ${({ theme }) => theme.sizes.medium};
   font-weight: bold;
   cursor: pointer;
-  color: black;
 
   img {
     height: 26px;
