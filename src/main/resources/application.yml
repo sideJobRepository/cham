@@ -27,7 +27,7 @@ spring:
 
 naver:
   redirecturi: http://localhost:5173/oauth/naver/callback
-  clientId: YFezvP_G0CAHGjV7Gh_J
+  clientId: 91cWDibxUKEhVvewsjk7
   client-secret: ${NAVER_CLIENT_SECRET}
 
 google:
