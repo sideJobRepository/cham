@@ -22,19 +22,10 @@ export default function RedirectPage() {
     const pathname = window.location.pathname;
     const provider = pathname.split('/')[2];
 
-    let url=null;
-
-    if(provider === "KAKAO"){
-      url = "kakao"
-    }else if(provider === "NAVER"){
-      url = "naver"
-    }else {
-      url = "google"
-    }
 
     // 인가코드를 서버로 보내기
     axios
-      .post(`/cham/${url}-login`, { code })
+      .post(`/cham/${provider}-login`, { code })
       .then(res => {
         console.log('res', res);
 
