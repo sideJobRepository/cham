@@ -18,22 +18,27 @@ public class SocialAuthenticationToken extends AbstractAuthenticationToken {
     @Getter
     private final String thumbnailImageUrl;
     
+    @Getter
+    private final String loginUrl;
     
     
-    public SocialAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl) {
+    
+    public SocialAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl, String loginUrl) {
         super(null);
         this.principal = principal;
         this.credentials = credentials;
         this.profileImageUrl = profileImageUrl;
         this.thumbnailImageUrl = thumbnailImageUrl;
+        this.loginUrl = loginUrl;
         setAuthenticated(false);
     }
     
-    public SocialAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl, Collection<? extends GrantedAuthority> authorities) {
+    public SocialAuthenticationToken(Object principal, Object credentials, String profileImageUrl , String thumbnailImageUrl, String loginUrl, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
         this.credentials = credentials;
         this.profileImageUrl = profileImageUrl;
+        this.loginUrl = loginUrl;
         this.thumbnailImageUrl = thumbnailImageUrl;
         setAuthenticated(true);
     }

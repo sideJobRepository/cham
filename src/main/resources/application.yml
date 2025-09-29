@@ -26,7 +26,7 @@ spring:
         bucket: ${AWS_BUCKET}
 
 naver:
-  redirecturi: http://localhost:5173/oauth/kakao/callback
+  redirecturi: http://localhost:5173/oauth/naver/callback
   clientId: YFezvP_G0CAHGjV7Gh_J
   client-secret: ${NAVER_CLIENT_SECRET}
 

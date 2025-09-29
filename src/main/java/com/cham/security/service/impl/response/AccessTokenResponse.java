@@ -15,4 +15,6 @@ public class AccessTokenResponse {
     private String expires_in;
     private String scope;
     private String id_token;
+    private String error;
+    private String error_description;
 }

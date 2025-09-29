@@ -1,8 +1,9 @@
 package com.cham.member.entity;
 
 import com.base.BaseData;
+import com.cham.security.service.impl.response.SocialProfile;
 import com.enumtype.SocialType;
-import com.cham.security.service.impl.response.KaKaoProfileResponse;
+import com.cham.security.service.impl.response.KakaoProfileResponse;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
@@ -48,14 +49,14 @@ public class ChamMonimapMember extends BaseData {
     @Column(name = "CHAM_MONIMAP_MEMBER_IMAGE_URL")
     private String chamMonimapMemberImageUrl;
     
-    public ChamMonimapMember(KaKaoProfileResponse kaKaoProfileResponse) {
-        this.chamMonimapMemberEmail = kaKaoProfileResponse.getKakaoAccount().getEmail();
-        this.chamMonimapMemberName = kaKaoProfileResponse.getKakaoAccount().getName();
-        this.socialType = SocialType.KAKAO;
-        this.chamMonimapMemberSubId = String.valueOf(kaKaoProfileResponse.getId());
-        this.chamMonimapMemberPhoneNo = kaKaoProfileResponse.getKakaoAccount().getPhoneNumber();
-        this.chamMonimapMemberImageUrl = kaKaoProfileResponse.getKakaoAccount().getProfile().getProfileImageUrl();
-        this.chamMonimapMemberNickname = kaKaoProfileResponse.getKakaoAccount().getProfile().getNickname();
+    public ChamMonimapMember(SocialProfile profile) {
+        this.chamMonimapMemberEmail = profile.email();
+        this.chamMonimapMemberName = profile.name();
+        this.socialType = profile.provider();
+        this.chamMonimapMemberSubId = String.valueOf(profile.sub());
+        this.chamMonimapMemberPhoneNo = profile.phone();
+        this.chamMonimapMemberImageUrl = profile.profileImageUrl();
+        this.chamMonimapMemberNickname = profile.nickname();
     }
     
     public ChamMonimapMember(Long chamMonimapMemberId) {

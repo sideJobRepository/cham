@@ -7,7 +7,8 @@ import com.cham.memberrole.repository.ChamMonimapMemberRoleRepository;
 import com.cham.role.entity.ChamMonimapRole;
 import com.cham.role.repository.ChamMonimapRoleRepository;
 import com.cham.security.context.ChamMonimapMemberContext;
-import com.cham.security.service.impl.response.KaKaoProfileResponse;
+import com.cham.security.service.impl.response.KakaoProfileResponse;
+import com.cham.security.service.impl.response.SocialProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -23,7 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class KaKaoChamUserDetailServiceImpl implements UserDetailsService {
+public class ChamUserDetailService implements UserDetailsService {
     
     private final ChamMonimapMemberRepository chamMonimapMemberRepository;
     
@@ -38,11 +39,11 @@ public class KaKaoChamUserDetailServiceImpl implements UserDetailsService {
         return null;
     }
     
-    public UserDetails loadUserByUsername(KaKaoProfileResponse kaKaoProfile) {
-        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findByMemberSubId(String.valueOf(kaKaoProfile.getId()))
+    public UserDetails loadUserByUsername(SocialProfile kaKaoProfile) {
+        ChamMonimapMember findChamMoniMapMember = chamMonimapMemberRepository.findByMemberSubId(String.valueOf(kaKaoProfile.sub()))
                 .orElseGet(() -> {
-                    ChamMonimapMember agitMember = new ChamMonimapMember(kaKaoProfile);
-                    ChamMonimapMember saveMember = chamMonimapMemberRepository.save(agitMember);
+                    ChamMonimapMember chamMember = new ChamMonimapMember(kaKaoProfile);
+                    ChamMonimapMember saveMember = chamMonimapMemberRepository.save(chamMember);
                     
                     ChamMonimapRole findChamMonimapRole = chamMonimapRoleRepository.findByMemberRoleName("USER");
                     

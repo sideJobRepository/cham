@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class KaKaoAuthorizeRequest {
+public class SocialAuthorizeRequest {
     
     private String code;
 }

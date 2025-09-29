@@ -1,6 +1,6 @@
 package com.cham.security.filter;
 
-import com.cham.security.service.impl.request.KaKaoAuthorizeRequest;
+import com.cham.security.service.impl.request.SocialAuthorizeRequest;
 import com.cham.security.token.SocialAuthenticationToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -20,25 +20,28 @@ public class ChamAuthenticationFilter extends AbstractAuthenticationProcessingFi
     
     public ChamAuthenticationFilter() {
         super(new OrRequestMatcher(
-                new AntPathRequestMatcher("/cham/kakao-login", "POST"))
-        );
+                new AntPathRequestMatcher("/cham/kakao-login", "POST"),
+                new AntPathRequestMatcher("/cham/naver-login", "POST"),
+                new AntPathRequestMatcher("/cham/google-login", "POST")
+        ));
     }
     
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
         
+        String url = request.getRequestURI();
+        SocialAuthorizeRequest socialAuthorizeRequest = objectMapper.readValue(request.getInputStream(), SocialAuthorizeRequest.class);
         
-        KaKaoAuthorizeRequest kaKaoAuthorizeRequest = objectMapper.readValue(request.getInputStream(), KaKaoAuthorizeRequest.class);
+        String code = socialAuthorizeRequest.getCode();
         
-        String code = kaKaoAuthorizeRequest.getCode();
-        
-        SocialAuthenticationToken kaKaoChamAuthenticationToken = new SocialAuthenticationToken(
+        SocialAuthenticationToken socialAuthenticationToken = new SocialAuthenticationToken(
                 code,
                 null,
                 null,
-                null
+                null,
+                url
         );
         
-        return this.getAuthenticationManager().authenticate(kaKaoChamAuthenticationToken);
+        return this.getAuthenticationManager().authenticate(socialAuthenticationToken);
     }
 }

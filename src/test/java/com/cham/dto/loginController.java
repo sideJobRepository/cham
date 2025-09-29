@@ -1,7 +1,7 @@
 package com.cham.dto;
 
 import com.cham.ControllerTestSupport;
-import com.cham.security.service.impl.request.KaKaoAuthorizeRequest;
+import com.cham.security.service.impl.request.SocialAuthorizeRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -19,7 +19,7 @@ public class loginController extends ControllerTestSupport {
     @DisplayName("")
     @Test
     void test() throws Exception {
-        KaKaoAuthorizeRequest dto = new KaKaoAuthorizeRequest("v8n_kwcU45NFh6KigNfy_B1PtkIeqihT8pTN7-NJFH8ZCcM62SKYHgAAAAQKFwFQAAABl4ZrIXotjdRiIM79qQ");
+        SocialAuthorizeRequest dto = new SocialAuthorizeRequest("v8n_kwcU45NFh6KigNfy_B1PtkIeqihT8pTN7-NJFH8ZCcM62SKYHgAAAAQKFwFQAAABl4ZrIXotjdRiIM79qQ");
         
         mockMvc.perform(post("/cham/kakao-login")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true) // 없는 필드는 자동으로 무시
-public class KaKaoProfileResponse {
+public class KakaoProfileResponse {
     
     private Long id;
     

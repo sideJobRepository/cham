@@ -3,11 +3,11 @@ package com.cham.security.service.impl;
 import com.cham.security.service.SocialService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
 import com.cham.security.service.impl.response.KakaoProfileResponse;
+import com.cham.security.service.impl.response.NaverProfileResponse;
 import com.cham.security.service.impl.response.SocialProfile;
 import com.enumtype.SocialType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,21 +15,24 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-@Service("kakaoService")
+import java.util.UUID;
+
+@Service("naverService")
 @Transactional
 @RequiredArgsConstructor
-public class KaKaoServiceImpl implements SocialService {
+public class NaverServiceImpl implements SocialService {
     
-    @Value("${kakao.clientId}")
-    private String kakaoClientId;
-    @Value("${kakao.redirecturi}")
-    private String kakaoRedirectUri;
-    @Value("${kakao.client-secret}")
-    private String kakaoClientSecret;
+    
+    @Value("${naver.clientId}")
+    private String naverClientId;
+    @Value("${naver.redirecturi}")
+    private String naverRedirectUri;
+    @Value("${naver.client-secret}")
+    private String naverClientSecret;
     
     @Override
     public SocialType type() {
-        return SocialType.KAKAO;
+        return SocialType.NAVER;
     }
     
     @Override
@@ -39,13 +42,14 @@ public class KaKaoServiceImpl implements SocialService {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         
         params.add("code", code);
-        params.add("client_id", kakaoClientId);
-        params.add("redirect_uri", kakaoRedirectUri);
+        params.add("client_id", naverClientId);
+        params.add("redirect_uri", naverRedirectUri);
         params.add("grant_type", "authorization_code");
-        params.add("client_secret",kakaoClientSecret);
+        params.add("client_secret",naverClientSecret);
+        params.add("state", UUID.randomUUID().toString());
         
         ResponseEntity<AccessTokenResponse> response = restClient.post()
-                .uri("https://kauth.kakao.com/oauth/token")
+                .uri("https://nid.naver.com/oauth2.0/token")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .body(params)
                 .retrieve()
@@ -56,29 +60,27 @@ public class KaKaoServiceImpl implements SocialService {
     
     @Override
     public SocialProfile getProfile(String accessToken) {
-        KakaoProfileResponse resp = RestClient.create().get()
-                .uri("https://kapi.kakao.com/v2/user/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+        RestClient restClient = RestClient.create();
+        
+        NaverProfileResponse np = restClient.get()
+                .uri("https://openapi.naver.com/v1/nid/me")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
-                .body(KakaoProfileResponse.class);   //  body만 받기
+                .body(NaverProfileResponse.class);
         
-        Long id = resp != null ? resp.getId() : null;
         
-        KakaoProfileResponse.KakaoAccount acc =
-                resp != null ? resp.getKakaoAccount() : null;
-        KakaoProfileResponse.Profile p =
-                acc != null ? acc.getProfile() : null;
-        
-        String nickname      = p   != null ? p.getNickname()         : null;
-        String profileImage  = p   != null ? p.getProfileImageUrl()  : null;
-        String thumbnail     = p   != null ? p.getThumbnailImageUrl(): null;
-        String email         = acc != null ? acc.getEmail()          : null;
-        String name          = acc != null ? acc.getName()           : null;
-        String phone         = acc != null ? acc.getPhoneNumber()    : null;
+        String id = np != null ? np.getResponse().getId() : null;
+        String nickname      = np   != null ? np.getResponse().getNickname() : null;
+        String profileImage      = np   != null ? np.getResponse().getProfile_image() : null;
+        String thumbnail = null;
+        String email = np   != null ? np.getResponse().getEmail() : null;
+        String name = np != null  ? np.getResponse().getName()  : null;
+        String phone = np != null  ? np.getResponse().getMobile() : null;
         
         return new SocialProfile(
-                SocialType.KAKAO,
-                id != null ? String.valueOf(id) : null,
+                SocialType.NAVER,
+                 id ,
                 email,
                 name,
                 nickname,
@@ -86,6 +88,7 @@ public class KaKaoServiceImpl implements SocialService {
                 profileImage,
                 thumbnail
         );
+        
         
     }
 }
