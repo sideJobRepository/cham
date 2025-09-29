@@ -63,8 +63,8 @@ const LoginModalWrapper = styled.div`
   gap: 30px;
 
   @media ${({ theme }) => theme.device.mobile} {
-    width: 90%;
-    height: 533px;
+    width: 100%;
+    height: 480px;
   }
 `;
 

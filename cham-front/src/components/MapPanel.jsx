@@ -544,7 +544,7 @@ export default function MapPanel() {
         setCenterAddr(
           visibleMembers.map(m => {
             const { category } = getCatFromCache(m.addrDetail);
-            return { ...m, categoryLabel };
+            return { ...m, categoryLabel: category?.category_name };
           })
         );
       }

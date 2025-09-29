@@ -43,12 +43,13 @@ const Backdrop = styled.div`
 `;
 
 const Dialog = styled.div`
-
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: auto;
+  margin: 0 20px;
 
   svg {
     cursor: pointer;

@@ -608,6 +608,7 @@ const DetailWrapper = styled.section`
     max-width: 100%;
     min-width: 100%;
     min-height: unset;
+    height: 600px;
     overflow-y: auto;
   }
 `;
