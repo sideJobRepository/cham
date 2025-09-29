@@ -20,7 +20,9 @@ public class ChamSecurityDsl<H extends HttpSecurityBuilder<H>> extends AbstractA
     private AuthenticationFailureHandler failureHandler;
     
     private static final RequestMatcher LOGIN_MATCHER = new OrRequestMatcher(
-            new AntPathRequestMatcher("/cham/kakao-login", "POST")
+            new AntPathRequestMatcher("/cham/kakao-login", "POST"),
+            new AntPathRequestMatcher("/cham/naver-login", "POST"),
+            new AntPathRequestMatcher("/cham/google-login", "POST")
     );
     
     
