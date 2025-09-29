@@ -39,8 +39,7 @@ export default function DetailPage({ initialParams }) {
   const [editingImageUrls, setEditingImageUrls] = useState({});
 
   const user = useRecoilValue(userState);
-
-  console.log('user', user);
+  
   const detailSearch = useMapSearch();
 
   const [showInput, setShowInput] = useState(false);
@@ -58,8 +57,6 @@ export default function DetailPage({ initialParams }) {
     formData.append('cardUseAddrId', cardUseAddrId);
     formData.append('memberId', memberId);
     formData.append('replyCont', replyCont);
-
-    console.log('userId', memberId);
 
     imageFiles.forEach(file => {
       formData.append('fileList', file); // key 이름은 반드시 fileList!
@@ -265,7 +262,7 @@ export default function DetailPage({ initialParams }) {
                     data-active={cardData?.mySpicioused === 'Y'}
                     onClick={() => handleSubCreate(false)}
                   >
-                    의심돼요
+                    궁금해요
                     <FaEye />
                     <span>{cardData?.suspiciousedCnt}명</span>
                     <FaCheckCircle className="check" />
@@ -720,6 +717,11 @@ const IconSpan = styled.span`
   > span {
     color: ${({ theme }) => theme.colors.text};
     font-weight: normal;
+  }
+  
+  &:hover {
+    transform: scale(1.2);
+    transform-origin: left center;
   }
 `;
 
