@@ -718,11 +718,15 @@ const IconSpan = styled.span`
     color: ${({ theme }) => theme.colors.text};
     font-weight: normal;
   }
-  
-  &:hover {
-    transform: scale(1.2);
-    transform-origin: left center;
+
+  @media ${({ theme }) => theme.device.device} {
+    &:hover {
+      transform: scale(1.1);
+      transform-origin: left center;
+    }
   }
+  
+
 `;
 
 const MetaGroup = styled.div`
