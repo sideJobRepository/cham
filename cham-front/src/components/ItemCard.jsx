@@ -71,7 +71,7 @@ export default function ItemCard({ data }) {
       sortOrder: searchCondition.sortOrder,
       addrDetail: data.addrDetail,
       detail: true,
-      catLabel: data.categoryLabel,
+      catLabel: data.categoryLabel?.split('>').map(s => s.trim())?.slice(0, 3)?.join(' > '),
     };
     setDetailParams(params);
     setOpen(true);
@@ -113,7 +113,7 @@ export default function ItemCard({ data }) {
         </ImageWrapper>
         <CardBody>
           <Title>
-            {data.addrName} <span>{data.categoryLabel}</span>
+            {data.addrName} <span>{data?.categoryLabel?.split('>').map(s => s.trim())[0]}</span>
           </Title>
           <Stats>방문횟수 {data.visits}</Stats>
           <Price>총 {data.totalSum.toLocaleString()}원</Price>

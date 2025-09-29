@@ -407,7 +407,7 @@ export default function MapPanel() {
               white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
             `;
             div.innerHTML =
-              `${first}` +
+              `${first}&nbsp;` +
               `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;` +
               `<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
 
@@ -544,7 +544,10 @@ export default function MapPanel() {
         setCenterAddr(
           visibleMembers.map(m => {
             const { category } = getCatFromCache(m.addrDetail);
-            return { ...m, categoryLabel: category?.category_name };
+
+            console.log("category--전체", category, );
+            
+            return { ...m, categoryLabel: category?.category_name ? category?.category_name : '기타'};
           })
         );
       }
