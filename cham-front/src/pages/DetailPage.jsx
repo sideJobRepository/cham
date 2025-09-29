@@ -244,7 +244,6 @@ export default function DetailPage({ initialParams }) {
                 <Title>
                   {detail.addrName} <span>{initialParams.catLabel}</span>
                 </Title>
-                <SubMeta>방문횟수 {detail.visits}</SubMeta>
                 <SubIconBox>
                   <IconSpan
                     $color="#1A7D55"
@@ -275,6 +274,7 @@ export default function DetailPage({ initialParams }) {
                 <TotalPrice>
                   총 이용 금액 <strong>{detail.totalSum.toLocaleString()}원</strong>
                 </TotalPrice>
+                <SubMeta>방문횟수 {detail.visits}</SubMeta>
                 <BottomCards>
                   {detail.cardUseGroupedResponses.map((item, i) => (
                     <VisitCard key={i} data={item} />
@@ -675,7 +675,6 @@ const SubMeta = styled.span`
 
 const SubIconBox = styled.div`
   display: flex;
-  gap: 14px;
   font-size: 14px;
 `;
 
@@ -698,6 +697,7 @@ const IconSpan = styled.span`
     opacity: 1;
     transform: scale(1.3);
     animation: popShrink 0.4s ease forwards;
+    margin-right: 10px;
   }
 
   @keyframes popShrink {
@@ -724,6 +724,7 @@ const IconSpan = styled.span`
     &:hover {
       transform: scale(1.1);
       transform-origin: left center;
+      margin-right: 10px;
     }
   }
   

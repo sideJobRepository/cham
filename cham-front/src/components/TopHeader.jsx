@@ -271,7 +271,7 @@ const KakaoButton = styled.button`
   border-radius: 50px;
   padding: 10px 14px;
   margin-left: 26px;
-  font-size: ${({ theme }) => theme.sizes.medium};
+  font-size: ${({ theme }) => theme.sizes.large};
   font-weight: bold;
   cursor: pointer;
 
