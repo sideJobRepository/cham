@@ -46,7 +46,12 @@ public class SocialAuthenticationProvider implements AuthenticationProvider {
             ChamMonimapMemberContext userServiceContext =(ChamMonimapMemberContext) chamUserDetailService.loadUserByUsername(naverProfile);
             return new SocialAuthenticationToken(userServiceContext.getMember(), null,profileImageUrl,null,null,userServiceContext.getAuthorities());
         }else if("/cham/google-login".equals(loginUrl)) {
-        
+            AccessTokenResponse accessToken = googleService.getAccessToken(authorizeCode);
+            SocialProfile googleProfile = googleService.getProfile(accessToken.getAccess_token());
+            String profileImageUrl = googleProfile.profileImageUrl();
+            String thumbnailImageUrl = googleProfile.thumbnailImageUrl();;
+            ChamMonimapMemberContext userServiceContext = (ChamMonimapMemberContext) chamUserDetailService.loadUserByUsername(googleProfile);
+            return new SocialAuthenticationToken(userServiceContext.getMember(), null,profileImageUrl,thumbnailImageUrl,null,userServiceContext.getAuthorities());
         }
         
         throw new BadCredentialsException("존재 하지 않는 소셜 로그인 url 입니다. " + loginUrl);
