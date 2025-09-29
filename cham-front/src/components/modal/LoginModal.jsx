@@ -58,13 +58,11 @@ const LoginModalWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 460px;
-  height: 500px;
-  padding: 10px 20px;
+  padding: 10px 30px;
   gap: 30px;
 
   @media ${({ theme }) => theme.device.mobile} {
     width: 100%;
-    height: 480px;
   }
 `;
 
@@ -93,6 +91,7 @@ const BottomModalBox = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 16px;
+    margin-bottom: 40px;
 
   button {
     display: flex;
