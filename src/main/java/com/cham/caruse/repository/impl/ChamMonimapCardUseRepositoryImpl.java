@@ -47,6 +47,7 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                         chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
                         chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
                                 .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("경조사비")) //경조사비 제외
+                                .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("직원")) //직원 제외
                                 .not(),
                         cardOwnerPositionEq(request),
                         cardUseNameLike(request),
