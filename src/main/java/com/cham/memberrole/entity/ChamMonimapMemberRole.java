@@ -36,4 +36,8 @@ public class ChamMonimapMemberRole extends BaseData {
         this.chamMonimapMember = chamMonimapMember;
         this.chamMonimapRole = chamMonimapRole;
     }
+    
+    public void modifyRole(ChamMonimapRole role) {
+        this.chamMonimapRole = role;
+    }
 }

@@ -4,17 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberRoleGetResponse {
-    
-    private Long memberId;
+@Data
+public class MemberRolePutRequest {
     private Long roleId;
     private Long memberRoleId;
-    private String memberName;
-    private String memberEmail;
-    private String memberRoleName;
-    private String memberPhoneNo;
-    
 }
