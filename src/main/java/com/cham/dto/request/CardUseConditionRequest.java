@@ -10,7 +10,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardUseConditionRequest {
-    
-    private Long cardOwnerPositionId; // 직위
-    private String input; // 기관 / 지역 /사용자 / 이름 / 집행목적
+    private Long cardOwnerPositionId;
+    private String cardUseName;
+    private Integer numberOfVisits;
+    private String addrDetail;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String addrName;
+    private Integer sortOrder; // 1: ASC, 2: DESC
 }
