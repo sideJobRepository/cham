@@ -87,6 +87,8 @@ const BaseButton = styled.button`
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  white-space: normal;
+  word-break: keep-all;
 `;
 
 const CancelButton = styled(BaseButton)`
