@@ -3,13 +3,12 @@ import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useFetchSelectSearch } from '@/recoil/fetchAppState.js';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
 
 export default function Layout() {
   const fetchSelect = useFetchSelectSearch();
   const setUser = useSetRecoilState(userState);
-  const user = useRecoilValue(userState);
   const theme = useTheme();
   const [isMobile, setIsMobile] = useState(null);
 

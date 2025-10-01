@@ -11,8 +11,9 @@ import { useRecoilValue, useResetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
 import { toast } from 'react-toastify';
 import api, { tokenStore } from '@/utils/axiosInstance.js';
-import LoginMoadl from "@/components/modal/LoginModal.jsx";
-import Modal from "@/components/modal/Modal.jsx";
+import LoginMoadl from '@/components/modal/LoginModal.jsx';
+import Modal from '@/components/modal/Modal.jsx';
+import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
 
 export default function TopHeader() {
   const navigate = useNavigate();
@@ -83,6 +84,59 @@ export default function TopHeader() {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    let timerId = null;
+
+    let title;
+    let message;
+    let gb = false;
+
+    if (user) {
+      title = <>업추비 맛집 지도가 정식 오픈할 수 있도록, 힘을 보태주세요!</>;
+      message = (
+        <>
+          업무추진비 맛집지도'는 시민 여러분의 참여로 완성되는 투명 사회 프로젝트입니다. <br />
+          안정적인 서비스 개발과 운영을 위해 여러분의 소중한 후원이 절실합니다. <br /> 함께 만드는
+          변화의 씨앗에 동참해주세요!
+        </>
+      );
+      gb = true;
+    } else {
+      title = <>맛집지도' 120% 활용하기</>;
+      message = (
+        <>
+          로그인하시면 [댓글, 가봤어요, 궁금해요 등 관심가게 등록] 더 많은 기능을 이용할 수
+          있습니다.
+        </>
+      );
+      gb = false;
+    }
+
+    const showConfirm = () => {
+      showConfirmModal({
+        title: title,
+        message: message,
+        gb: gb,
+        onConfirm: () => {
+          if (gb) {
+            console.log('후원하기로 이동');
+            window.open('https://secure.donus.org/djcham/pay/step1', '_blank');
+          } else {
+            setIsLoginModalOpen(true);
+          }
+        },
+      });
+
+      timerId = setTimeout(showConfirm, 3 * 60 * 1000);
+    };
+
+    timerId = setTimeout(showConfirm, 3 * 60 * 1000);
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [user]);
+
   return (
     <Wrapper>
       <Left
@@ -130,13 +184,9 @@ export default function TopHeader() {
           </FieldsWrapper>
         </LinkGroup>
         {user ? (
-          <KakaoButton onClick={logoutKakao}>
-            로그아웃
-          </KakaoButton>
+          <KakaoButton onClick={logoutKakao}>로그아웃</KakaoButton>
         ) : (
-          <KakaoButton onClick={() => setIsLoginModalOpen(true)}>
-            로그인
-          </KakaoButton>
+          <KakaoButton onClick={() => setIsLoginModalOpen(true)}>로그인</KakaoButton>
         )}
       </Right>
       <div ref={hamburgerRef}>
@@ -157,13 +207,9 @@ export default function TopHeader() {
           </MenuItemMobile>
         ))}
         {user ? (
-          <MenuButtonWrapper onClick={logoutKakao}>
-            로그아웃
-          </MenuButtonWrapper>
+          <MenuButtonWrapper onClick={logoutKakao}>로그아웃</MenuButtonWrapper>
         ) : (
-          <MenuButtonWrapper onClick={() => setIsLoginModalOpen(true)}>
-            로그인
-          </MenuButtonWrapper>
+          <MenuButtonWrapper onClick={() => setIsLoginModalOpen(true)}>로그인</MenuButtonWrapper>
         )}
 
         <LinkWrapper>
@@ -187,9 +233,11 @@ export default function TopHeader() {
           </a>
         </LinkWrapper>
       </MobileMenu>
-      {isLoginModalOpen && <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
-        <LoginMoadl/>
-      </Modal>}
+      {isLoginModalOpen && (
+        <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
+          <LoginMoadl />
+        </Modal>
+      )}
     </Wrapper>
   );
 }
