@@ -71,15 +71,13 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         // 3) 주소별 이미지 URL 벌크 조회 → Map<Long, String>
         Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
         if (!usesByAddrId.isEmpty()) {
-            List<ChamMonimapCardUseAddr> rows =
-                    cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
+            List<ChamMonimapCardUseAddr> rows = cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
             for (ChamMonimapCardUseAddr r : rows) {
                 imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
             }
         }
         // 4) 결과 맵 생성
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
-        Integer minVisits = request.getNumberOfVisits();
         
         for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
             Long addrId = entry.getKey();
@@ -87,13 +85,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             if (list == null || list.isEmpty()) {
                 continue;
             }
-            // 방문 횟수 조건 필터
-            if (minVisits != null && list.size() < minVisits){
-                continue;
-            }
-            
             ChamMonimapCardUse first = list.get(0);
-            
             // 방문자 합계/명단
             int totalSum = 0;
             Set<String> uniqueNames = new LinkedHashSet<>();

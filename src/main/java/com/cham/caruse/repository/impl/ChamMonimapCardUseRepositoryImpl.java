@@ -50,10 +50,7 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                                 .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("직원")) //직원 제외
                                 .not(),
                         cardOwnerPositionEq(request),
-                        cardUseNameLike(request),
-                        cardUseDetailAddrLike(request),
-                        cardUseAddrNameLike(request),
-                        cardUseDate(request)
+                        inputOrCondition(request)
                 )
                 .fetch();
     }
@@ -64,35 +61,14 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
         }
         return null;
     }
-    
-    private BooleanExpression cardUseNameLike(CardUseConditionRequest request) {
-        if (StringUtils.hasText(request.getCardUseName())) {
-            return chamMonimapCardUse.chamMonimapCardUseName.like("%" + request.getCardUseName().trim() + "%");
-        }
-        return null;
-    }
-    
-    private BooleanExpression cardUseDetailAddrLike(CardUseConditionRequest request) {
-        if (StringUtils.hasText(request.getAddrDetail())) {
-            return chamMonimapCardUse.cardUseAddr.chamMonimapCardUseDetailAddr.like("%" + request.getAddrDetail().trim() + "%");
-        }
-        return null;
-    }
-    private BooleanExpression cardUseAddrNameLike(CardUseConditionRequest request) {
-        if (StringUtils.hasText(request.getAddrName())) {
-           return  chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.like("%" + request.getAddrName().trim() + "%");
-        }
-        return null;
-    }
-    private BooleanExpression cardUseDate(CardUseConditionRequest req) {
-        if (req.getStartDate() != null && req.getEndDate() != null) {
-            return chamMonimapCardUse.chamMonimapCardUseDate.between(req.getStartDate(), req.getEndDate());
-        }
-        if (req.getStartDate() != null) {
-            return chamMonimapCardUse.chamMonimapCardUseDate.goe(req.getStartDate());
-        }
-        if (req.getEndDate() != null) {
-            return chamMonimapCardUse.chamMonimapCardUseDate.loe(req.getEndDate());
+    private BooleanExpression inputOrCondition(CardUseConditionRequest request) {
+        String input = request.getInput();
+        // 지역 /사용자 / 이름 / 집행목적
+        if (StringUtils.hasText(input)) {
+                     return chamMonimapCardUse.chamMonimapCardUseRegion.like("%" + input + "%")
+                    .or(chamMonimapCardUse.chamMonimapCardUseUser.like("%" + input + "%"))
+                    .or(chamMonimapCardUse.chamMonimapCardUseName.like("%" + input + "%"))
+                    .or(chamMonimapCardUse.chamMonimapCardUsePurpose.like("%" + input + "%"));
         }
         return null;
     }

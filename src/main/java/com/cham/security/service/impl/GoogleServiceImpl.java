@@ -1,7 +1,10 @@
 package com.cham.security.service.impl;
 
 import com.cham.security.service.SocialService;
-import com.cham.security.service.impl.response.*;
+import com.cham.security.service.impl.response.AccessTokenResponse;
+import com.cham.security.service.impl.response.GooglePeopleResponse;
+import com.cham.security.service.impl.response.GoogleProfileResponse;
+import com.cham.security.service.impl.response.SocialProfile;
 import com.enumtype.SocialType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,8 +17,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service("googleService")
 @Transactional
