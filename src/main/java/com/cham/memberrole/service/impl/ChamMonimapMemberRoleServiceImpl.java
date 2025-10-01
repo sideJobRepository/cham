@@ -1,7 +1,6 @@
 package com.cham.memberrole.service.impl;
 
 import com.cham.dto.response.ApiResponse;
-import com.cham.member.entity.ChamMonimapMember;
 import com.cham.member.repository.ChamMonimapMemberRepository;
 import com.cham.memberrole.entity.ChamMonimapMemberRole;
 import com.cham.memberrole.repository.ChamMonimapMemberRoleRepository;
@@ -25,8 +24,6 @@ import java.util.List;
 public class ChamMonimapMemberRoleServiceImpl implements ChamMonimapMemberRoleService {
     
     private final ChamMonimapMemberRoleRepository memberRoleRepository;
-    
-    private final ChamMonimapMemberRepository memberRepository;
     
     private final ChamMonimapRoleRepository roleRepository;
     

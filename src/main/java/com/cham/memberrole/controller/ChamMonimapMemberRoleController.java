@@ -8,6 +8,7 @@ import com.cham.role.dto.MemberRoleGetResponse;
 import com.cham.role.dto.MemberRolePutRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequestMapping("/cham")
 public class ChamMonimapMemberRoleController {
     
+    // 어드민 권한만 조회및 수정 가능
     private final ChamMonimapMemberRoleService chamMonimapMemberRoleService;
     
     @GetMapping("/role")
@@ -24,7 +26,7 @@ public class ChamMonimapMemberRoleController {
         return chamMonimapMemberRoleService.findByMemberRoles(pageable);
     }
     @PutMapping("/role")
-    public ApiResponse chamMemberPutRole(@RequestBody List<MemberRolePutRequest> requests) {
+    public ApiResponse chamMemberPutRole(@Validated @RequestBody List<MemberRolePutRequest> requests) {
         return chamMonimapMemberRoleService.modifyMemberRole(requests);
     }
 }
