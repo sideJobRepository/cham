@@ -316,6 +316,7 @@ export default function MapPanel() {
           category = categoryInfo.documents[0] || '기타';
         }
 
+        console.log('카테고리의 종료', categoryInfo.documents[0]);
 
         globalThis._geoCache.set(addr, {
           ...coords,
@@ -388,15 +389,15 @@ export default function MapPanel() {
           if (!cached?.lat || !cached?.lng) continue;
           const show = inViewByLatLng(cached.lat, cached.lng);
           let entry = globalThis._overlays.get(address);
-          const categoryName = cached?.category === '기타' ? '기타' : cached?.category?.category_name;
+          const categoryName =
+            cached?.category === '기타' ? '기타' : cached?.category?.category_name;
 
           const parts = categoryName.split('>').map(s => s.trim());
 
-          //첫자리
-          const first = parts[0];
+          //둘째자리
+          const first = parts[1];
           //셋째자리
           const third = parts.slice(0, 3).join(' > ');
-
 
           if (!entry) {
             const div = document.createElement('div');
@@ -457,7 +458,7 @@ export default function MapPanel() {
 
             const { category } = getCatFromCache(address);
 
-            console.log("category", category, );
+            console.log('category', category);
 
             visibleItems.push({
               ...raw,
@@ -545,9 +546,12 @@ export default function MapPanel() {
           visibleMembers.map(m => {
             const { category } = getCatFromCache(m.addrDetail);
 
-            console.log("category--전체", category, );
-            
-            return { ...m, categoryLabel: category?.category_name ? category?.category_name : '기타'};
+            console.log('category--전체', category);
+
+            return {
+              ...m,
+              categoryLabel: category?.category_name ? category?.category_name : '기타',
+            };
           })
         );
       }
