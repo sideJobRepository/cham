@@ -104,7 +104,7 @@ export function useFetchCard() {
 
   return async id => {
     try {
-      const res = await api.get(`/cham/cardUseDetail?addrDetail=${id}`);
+      const res = await api.get(`/cham/check?addrId=${id}`);
       console.log('red', res);
       setState(res.data);
     } catch (e) {
