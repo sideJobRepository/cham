@@ -161,7 +161,7 @@ export default function SearchBar() {
           <Divider />
 
           <Field>
-            <label>여기에 다 넣을거</label>
+            <label>지역, 사용자, 이름, 집행목적</label>
             <input
               type="text"
               value={searchCondition.input}
