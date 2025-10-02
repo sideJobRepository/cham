@@ -7,6 +7,7 @@ import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
 import com.cham.caruse.dto.CardUseAggregateResponse;
 import com.cham.caruse.dto.KakaoAddressResponse;
+import com.cham.caruse.dto.KakaoPlaceResponse;
 import com.cham.caruse.dto.RegionSummaryDto;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
@@ -143,6 +144,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     .toList();
             String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
+            String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
             CardUseResponse resp = new CardUseResponse(
                     first.getCardUseAddr().getChamMonimapCardUseAddrName(),
                     first.getChamMonimapCardUseRegion(),
@@ -156,6 +158,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     list.stream().map(ChamMonimapCardUse::getChamMonimapCardUseDate).max(Comparator.naturalOrder()).orElse(null),
                     xValue,
                     yValue,
+                    categoryName,
                     groupedResponses,
                     replyList
             );
@@ -247,6 +250,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     .toList();
             String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
+            String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
             CardUseResponse resp = new CardUseResponse(
                     first.getCardUseAddr().getChamMonimapCardUseAddrName(),
                     first.getChamMonimapCardUseRegion(),
@@ -260,6 +264,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     list.stream().map(ChamMonimapCardUse::getChamMonimapCardUseDate).max(Comparator.naturalOrder()).orElse(null),
                     xValue,
                     yValue,
+                    categoryName,
                     groupedResponses,
                     replyList
             );
@@ -395,7 +400,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             return new ChamMonimapCardUseAddr(hit.getCardUseAddrId());
         }
         RestClient restClient = RestClient.create();
-        KakaoAddressResponse body = restClient.get()
+        KakaoAddressResponse body1 = restClient.get()
                 .uri(uriBuilder ->
                         uriBuilder.scheme("https")
                                 .host("dapi.kakao.com")
@@ -407,13 +412,33 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 .retrieve()
                 .toEntity(KakaoAddressResponse.class)
                 .getBody();
-        if (body == null) {
-            body = new KakaoAddressResponse();
-        }
-        Optional<KakaoAddressResponse.Document> docOpt = Optional.ofNullable(body)
+        
+        KakaoPlaceResponse body2 = restClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder.scheme("https")
+                                .host("dapi.kakao.com")
+                                .path("/v2/local/search/keyword")
+                                .queryParam("query", addrDetail)
+                                .build()
+                )
+                .header("Authorization", "KakaoAK " + kakaoClientId)
+                .retrieve()
+                .toEntity(KakaoPlaceResponse.class)
+                .getBody();
+      
+        Optional<KakaoAddressResponse.Document> docOpt = Optional.ofNullable(body1)
                 .map(KakaoAddressResponse::getDocuments)
                 .filter(list -> !list.isEmpty())
                 .map(list -> list.get(0));
+        
+        
+        Optional<KakaoPlaceResponse.Document> document = Optional.ofNullable(body2)
+                .map(KakaoPlaceResponse::getDocuments)
+                .flatMap(list -> list.stream()
+                        .filter(item -> item.getPlaceName() != null
+                                && item.getPlaceName().contains(addrName))
+                        .findFirst()
+                );
         
         ChamMonimapRegion dong = docOpt
                 .map(KakaoAddressResponse.Document::getAddress)
@@ -428,12 +453,16 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 })
                 .orElse(null);
         
+        String categoryName = document
+                .map(KakaoPlaceResponse.Document::getCategoryName)
+                .orElse(null);
+        
         ChamMonimapCardUseAddr saved = cardUseAddrRepository.save(
-                Optional.ofNullable(body)
+                Optional.ofNullable(body1)
                         .map(KakaoAddressResponse::getDocuments)
                         .filter(list -> !list.isEmpty())
                         .map(list -> list.get(0))
-                        .map(doc -> new ChamMonimapCardUseAddr(addrName, addrDetail, doc.getX(), doc.getY(),dong))
+                        .map(doc -> new ChamMonimapCardUseAddr(addrName, addrDetail, doc.getX(), doc.getY(),dong,categoryName))
                         .orElseGet(() -> new ChamMonimapCardUseAddr(addrName, addrDetail))
         );
         // 캐시에도 반영

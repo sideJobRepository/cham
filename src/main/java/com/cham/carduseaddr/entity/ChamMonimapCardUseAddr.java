@@ -44,17 +44,21 @@ public class ChamMonimapCardUseAddr extends BaseData {
     @Column(name = "CHAM_MONIMAP_CARD_USE_Y-VALUE")
     private String chamMonimapCardUseYValue;
     
+    @Column(name = "CHAM_MONIMAP_CARD_USE_CATEGORY_NAME")
+    private String chamMonimapCardUseCategoryName;
+    
     public ChamMonimapCardUseAddr(String cardUseAddrNameValue, String cardUseDetailAddrValue) {
         this.chamMonimapCardUseAddrName = cardUseAddrNameValue;
         this.chamMonimapCardUseDetailAddr = cardUseDetailAddrValue;
     }
     
-    public ChamMonimapCardUseAddr(String cardUseAddrNameValue, String cardUseDetailAddrValue, String xValue, String yValue,ChamMonimapRegion chamMonimapRegion) {
+    public ChamMonimapCardUseAddr(String cardUseAddrNameValue, String cardUseDetailAddrValue, String xValue, String yValue,ChamMonimapRegion chamMonimapRegion, String categoryName) {
         this.chamMonimapCardUseAddrName = cardUseAddrNameValue;
         this.chamMonimapCardUseDetailAddr = cardUseDetailAddrValue;
         this.chamMonimapCardUseXValue = xValue;
         this.chamMonimapCardUseYValue = yValue;
         this.chamMonimapRegion = chamMonimapRegion;
+        this.chamMonimapCardUseCategoryName = categoryName;
     }
     
     

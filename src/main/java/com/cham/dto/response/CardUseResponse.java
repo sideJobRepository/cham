@@ -20,8 +20,9 @@ public class CardUseResponse {
     private String cardUseImageUrl;
     private Long cardUseAddrId;
     private LocalDate useDate;
-    private String xValue;
-    private String yValue;
+    private String x;
+    private String y;
+    private String categoryName;
     private List<CardUseGroupedResponse> cardUseGroupedResponses;
     private List<ReplyResponse> replies;
     
