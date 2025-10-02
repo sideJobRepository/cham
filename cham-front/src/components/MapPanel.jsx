@@ -316,8 +316,6 @@ export default function MapPanel() {
           category = categoryInfo.documents[0] || '기타';
         }
 
-        console.log('카테고리의 종료', categoryInfo.documents[0]);
-
         globalThis._geoCache.set(addr, {
           ...coords,
           ...regionInfo,
@@ -395,7 +393,7 @@ export default function MapPanel() {
           const parts = categoryName.split('>').map(s => s.trim());
 
           //둘째자리
-          const first = parts[1];
+          const first = parts[1] ? parts[1] : parts[0];
           //셋째자리
           const third = parts.slice(0, 3).join(' > ');
 
@@ -457,8 +455,6 @@ export default function MapPanel() {
             entry.overlay.setMap(map);
 
             const { category } = getCatFromCache(address);
-
-            console.log('category', category);
 
             visibleItems.push({
               ...raw,
@@ -545,8 +541,6 @@ export default function MapPanel() {
         setCenterAddr(
           visibleMembers.map(m => {
             const { category } = getCatFromCache(m.addrDetail);
-
-            console.log('category--전체', category);
 
             return {
               ...m,

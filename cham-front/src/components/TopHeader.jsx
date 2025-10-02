@@ -119,7 +119,6 @@ export default function TopHeader() {
         gb: gb,
         onConfirm: () => {
           if (gb) {
-            console.log('후원하기로 이동');
             window.open('https://secure.donus.org/djcham/pay/step1', '_blank');
           } else {
             setIsLoginModalOpen(true);

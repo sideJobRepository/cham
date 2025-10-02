@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
 import { useRecoilValue } from 'recoil';
 import { mapSearchFilterState, userState } from '@/recoil/appState.js';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 import { toast } from 'react-toastify';
@@ -11,15 +11,14 @@ import Modal from '@/components/modal/Modal.jsx';
 import DetailPage from '@/pages/DetailPage.jsx';
 
 export default function ItemCard({ data }) {
-  console.log('sidedata---사이드바 데이터', data);
   const searchCondition = useRecoilValue(mapSearchFilterState);
   const mapSearch = useMapSearch();
   const fileInputRef = useRef();
   const user = useRecoilValue(userState);
-  console.log('user', user);
-
   const [open, setOpen] = useState(false);
   const [detailParams, setDetailParams] = useState(null);
+
+  const [catetgory, setCategory] = useState('');
 
   const handlePlusClick = e => {
     fileInputRef.current.click();
@@ -81,6 +80,14 @@ export default function ItemCard({ data }) {
     setOpen(true);
   };
 
+  useEffect(() => {
+    if (data?.categoryLabel === '기타') {
+      setCategory('기타');
+    } else {
+      setCategory(data?.categoryLabel?.split('>').map(s => s.trim())[1]);
+    }
+  }, [data]);
+
   return (
     <>
       <Card
@@ -117,7 +124,7 @@ export default function ItemCard({ data }) {
         </ImageWrapper>
         <CardBody>
           <Title>
-            {data.addrName} <span>{data?.categoryLabel?.split('>').map(s => s.trim())[1]}</span>
+            {data.addrName} <span>{catetgory}</span>
           </Title>
           <Stats>방문횟수 {data.visits}</Stats>
           <Price>총 {data.totalSum.toLocaleString()}원</Price>
