@@ -71,15 +71,14 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         // 3) 주소별 이미지 URL 벌크 조회 → Map<Long, String>
         Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
         if (!usesByAddrId.isEmpty()) {
-            List<ChamMonimapCardUseAddr> rows =
-                    cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
+            List<ChamMonimapCardUseAddr> rows = cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
             for (ChamMonimapCardUseAddr r : rows) {
                 imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
             }
         }
         // 4) 결과 맵 생성
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
-        Integer minVisits = request.getNumberOfVisits();
+        
         
         for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
             Long addrId = entry.getKey();
@@ -87,8 +86,129 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             if (list == null || list.isEmpty()) {
                 continue;
             }
-            // 방문 횟수 조건 필터
-            if (minVisits != null && list.size() < minVisits){
+            
+            ChamMonimapCardUse first = list.get(0);
+            
+            // 방문자 합계/명단
+            int totalSum = 0;
+            Set<String> uniqueNames = new LinkedHashSet<>();
+            for (ChamMonimapCardUse use : list) {
+                totalSum += use.getChamMonimapCardUseAmount();
+                uniqueNames.add(use.getChamMonimapCardUseName());
+            }
+            
+            String visitMember = buildVisitMember(uniqueNames);
+            
+            
+            // 상세 행 응답
+            List<CardUseGroupedResponse> groupedResponses = list.stream()
+                    .map(use -> new CardUseGroupedResponse(
+                            use.getChamMonimapCardUseName(),
+                            use.getAmountPerPerson(),
+                            use.getChamMonimapCardUseMethod(),
+                            use.getChamMonimapCardUseAmount(),
+                            use.getChamMonimapCardUsePurpose(),
+                            use.getChamMonimapCardUsePersonnel(),
+                            use.getChamMonimapCardUseDate(),
+                            use.getChamMonimapCardUseTime()
+                    ))
+                    .toList();
+            
+            String addrName   = first.getCardUseAddr().getChamMonimapCardUseAddrName();
+            String addrDetail = first.getCardUseAddr().getChamMonimapCardUseDetailAddr();
+            String region     = first.getChamMonimapCardUseRegion();
+            String user       = first.getChamMonimapCardUseUser();
+            
+            String imageUrl = imageUrlByAddrId.get(addrId);
+            
+            // 댓글 응답
+            List<ReplyResponse> replyList = repliesByAddrId.getOrDefault(addrId, Collections.emptyList())
+                    .stream()
+                    .map(rep -> {
+                        Long rid = rep.getChamMonimapReplyId();
+                        List<String> urls = imagesByReplyId.getOrDefault(rid, Collections.emptyList())
+                                .stream()
+                                .map(ChamMonimapReplyImage::getChamMonimapReplyImageUrl)
+                                .toList();
+                        return new ReplyResponse(
+                                rid,
+                                rep.getChamMonimapReplyCont(),
+                                rep.getChamMonimapMember().getChamMonimapMemberName(),
+                                rep.getChamMonimapMember().getChamMonimapMemberImageUrl(),
+                                rep.getChamMonimapMember().getChamMonimapMemberEmail(),
+                                urls
+                        );
+                    })
+                    .toList();
+            
+            CardUseResponse resp = new CardUseResponse(
+                    addrName,
+                    region,
+                    user,
+                    list.size(),   // visitCount
+                    visitMember,
+                    totalSum,
+                    addrDetail,
+                    imageUrl,
+                    addrId,
+                    list.stream().map(ChamMonimapCardUse::getChamMonimapCardUseDate).max(Comparator.naturalOrder()).orElse(null),
+                    groupedResponses,
+                    replyList
+            );
+            
+            resultMap.put(addrId, resp);
+        }
+        
+        return resultMap.entrySet().stream()
+                .sorted((e1, e2) -> {
+                    LocalDate d1 = e1.getValue().getUseDate();
+                    LocalDate d2 = e2.getValue().getUseDate();
+                    if (d1 == null && d2 == null) return 0;
+                    if (d1 == null) return 1;   // null 은 뒤로
+                    if (d2 == null) return -1;
+                    return d1.compareTo(d2);    // 오름차순
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new // 정렬 유지
+                ));
+    }
+    
+    @Override
+    public Map<Long, CardUseResponse> selectCardUseDetail(String request) {
+        // 1) 데이터 조회
+        List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUsesDetail(request);
+        List<ChamMonimapReply> replies     = replyRepository.findByReplys();
+        List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
+        
+        // 2) 그룹핑
+        Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
+                .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
+        
+        Map<Long, List<ChamMonimapReply>> repliesByAddrId = replies.stream()
+                .collect(Collectors.groupingBy(r -> r.getChamMonimapCardUseAddr().getChamMonimapCardUseAddrId()));
+        
+        Map<Long, List<ChamMonimapReplyImage>> imagesByReplyId = images.stream()
+                .collect(Collectors.groupingBy(img -> img.getChamMonimapReply().getChamMonimapReplyId()));
+        
+        // 3) 주소별 이미지 URL 벌크 조회 → Map<Long, String>
+        Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
+        if (!usesByAddrId.isEmpty()) {
+            List<ChamMonimapCardUseAddr> rows = cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
+            for (ChamMonimapCardUseAddr r : rows) {
+                imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
+            }
+        }
+        // 4) 결과 맵 생성
+        Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
+        
+        
+        for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
+            Long addrId = entry.getKey();
+            List<ChamMonimapCardUse> list = entry.getValue();
+            if (list == null || list.isEmpty()) {
                 continue;
             }
             

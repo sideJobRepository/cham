@@ -11,6 +11,9 @@ public interface ChamMonimapCardUseService {
     
     Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request);
     
+    Map<Long, CardUseResponse> selectCardUseDetail(String request);
+    
+    
     ApiResponse insertCardUse(MultipartFile multipartFile);
     
     ApiResponse deleteExcel(String deleteKey);

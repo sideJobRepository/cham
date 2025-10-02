@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
 import java.util.List;
+
 
 @RequestMapping("/cham")
 @RequiredArgsConstructor
@@ -21,6 +23,16 @@ public class ChamMonimapCardOwnerPositionController {
     @GetMapping("/position")
     public List<CardOwnerPositionResponse> findCardOwnerPosition() {
         List<ChamMonimapCardOwnerPosition> cardOwnerPositions = cardOwnerPositionService.selectCardOwnerPosition();
-        return cardOwnerPositions.stream().map(item -> new CardOwnerPositionResponse(item.getChamMonimapCardOwnerPositionId(), item.getChamMonimapCardOwnerPositionName())).toList();
+        return cardOwnerPositions.stream()
+                .sorted(
+                        Comparator.comparing(
+                                (ChamMonimapCardOwnerPosition it) -> "기타".equals(it.getChamMonimapCardOwnerPositionName())
+                        ).thenComparing(ChamMonimapCardOwnerPosition::getChamMonimapCardOwnerPositionId)
+                )
+                .map(it -> new CardOwnerPositionResponse(
+                        it.getChamMonimapCardOwnerPositionId(),
+                        it.getChamMonimapCardOwnerPositionName()
+                ))
+                .toList();
     }
 }

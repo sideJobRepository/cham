@@ -30,7 +30,15 @@ export function useMapSearch() {
   return async (params = {}) => {
     const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
     try {
-      const res = await api.post('/cham/cardUse', params);
+      let url = `/cham/cardUse`;
+      if (params?.cardOwnerPositionId && params?.input) {
+          url = `/cham/cardUse?cardOwnerPositionId=${params?.cardOwnerPositionId}&input=${params?.input}`
+       }else if (params?.cardOwnerPositionId) {
+         url =  `/cham/cardUse?cardOwnerPositionId=${params?.cardOwnerPositionId}`
+      }else if(params?.input){
+         url =  `/cham/cardUse?input=${params?.input}`
+      }
+      const res = await api.get(url);
       if (params?.detail) {
         setDetailState({
           mapDetailData: res.data,

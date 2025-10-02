@@ -11,4 +11,6 @@ public interface ChamMonimapCardUseQueryRepository {
     void deleteByCardUseDelkey(String cardUseDelkey);
     
     List<ChamMonimapCardUse> findByCardUses(CardUseConditionRequest cardUseConditionRequest);
+    
+    List<ChamMonimapCardUse> findByCardUsesDetail(String cardUsesDetail);
 }
