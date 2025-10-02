@@ -20,7 +20,7 @@ export default function SearchBar() {
     const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
     const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
-      input: searchCondition.cardUseName,
+      input: searchCondition.input,
       sortOrder: searchCondition.sortOrder,
       addrDetail: '',
     };

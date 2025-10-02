@@ -29,6 +29,9 @@ export function useMapSearch() {
 
   return async (params = {}) => {
     const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
+
+    console.log('params', params);
+
     try {
       let url = `/cham/cardUse`;
       if (params?.cardOwnerPositionId && params?.input) {
@@ -39,17 +42,15 @@ export function useMapSearch() {
         url = `/cham/cardUse?input=${params?.input}`;
       }
       const res = await api.get(url);
-      if (params?.detail) {
-        setDetailState({
-          mapDetailData: res.data,
-          mapDetailLoading: false,
-        });
-      } else {
-        setState({
-          mapData: res.data,
-          mapLoading: false,
-        });
-      }
+
+      console.log('detail', params);
+      console.log('res', res);
+
+      setState({
+        mapData: res.data,
+        mapLoading: false,
+      });
+
       toast.dismiss(toastId);
     } catch (e) {
       toast.update(toastId, {

@@ -127,11 +127,7 @@ export default function MapPanel() {
     const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
     const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
-      cardUseName: searchCondition.cardUseName,
-      numberOfVisits: parseInt(rawAmount, 10),
-      addrName: searchCondition.addrName,
-      startDate: searchCondition.startDate?.toISOString().split('T')[0],
-      endDate: searchCondition.endDate?.toISOString().split('T')[0],
+      input: searchCondition.input,
       sortOrder: searchCondition.sortOrder,
       addrDetail: '',
     };
@@ -414,13 +410,6 @@ export default function MapPanel() {
 
             div.addEventListener('click', () => {
               const params = {
-                cardOwnerPositionId: searchCondition.selectedRole?.value,
-                cardUseName: searchCondition.cardUseName,
-                numberOfVisits: searchCondition.numberOfVisits,
-                addrName: searchCondition.addrName,
-                startDate: searchCondition.startDate?.toISOString().split('T')[0],
-                endDate: searchCondition.endDate?.toISOString().split('T')[0],
-                sortOrder: searchCondition.sortOrder,
                 addrDetail: raw.addrDetail,
                 detail: true,
                 catLabel: catLabel,

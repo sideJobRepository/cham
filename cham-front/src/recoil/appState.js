@@ -42,11 +42,7 @@ export const mapSearchFilterState = atom({
   key: 'mapSearchFilterState',
   default: {
     cardOwnerPositionId: null,
-    cardUseName: '',
-    numberOfVisits: '',
-    addrName: '',
-    startDate: oneMonthAgo,
-    endDate: today,
+    input: '',
     sortOrder: 1,
     sortValue: { value: 1, label: '최신순' },
   },
