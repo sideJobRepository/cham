@@ -20,11 +20,7 @@ export default function SearchBar() {
     const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
     const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
-      cardUseName: searchCondition.cardUseName,
-      numberOfVisits: parseInt(rawAmount, 10),
-      addrName: searchCondition.addrName,
-      startDate: searchCondition.startDate?.toISOString().split('T')[0],
-      endDate: searchCondition.endDate?.toISOString().split('T')[0],
+      input: searchCondition.cardUseName,
       sortOrder: searchCondition.sortOrder,
       addrDetail: '',
     };
@@ -148,7 +144,7 @@ export default function SearchBar() {
         }}
       >
         <FieldsWrapper>
-          <Field>
+          <FieldSelect>
             <label>직위</label>
             <SortSelect>
               <Select
@@ -160,87 +156,22 @@ export default function SearchBar() {
                 menuPortalTarget={document.body}
               />
             </SortSelect>
-          </Field>
+          </FieldSelect>
 
           <Divider />
 
           <Field>
-            <label>이름</label>
+            <label>여기에 다 넣을거</label>
             <input
               type="text"
-              value={searchCondition.cardUseName}
+              value={searchCondition.input}
               onChange={e =>
                 setSearchCondition(prev => ({
                   ...prev,
-                  cardUseName: e.target.value,
+                  input: e.target.value,
                 }))
               }
             />
-          </Field>
-
-          <Divider />
-
-          <Field>
-            <label>방문횟수</label>
-            <input
-              type="text"
-              value={searchCondition.numberOfVisits}
-              onChange={e => {
-                const raw = e.target.value.replace(/[^0-9]/g, '');
-                const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                setSearchCondition(prev => ({
-                  ...prev,
-                  numberOfVisits: formatted,
-                }));
-              }}
-            />
-          </Field>
-
-          <Divider />
-
-          <Field>
-            <label>사용장소</label>
-            <input
-              type="text"
-              value={searchCondition.addrName}
-              onChange={e =>
-                setSearchCondition(prev => ({
-                  ...prev,
-                  addrName: e.target.value,
-                }))
-              }
-            />
-          </Field>
-
-          <Divider />
-
-          <Field>
-            <label>집행일자</label>
-            <DateRange>
-              <DatePicker
-                selected={searchCondition.startDate}
-                onChange={date =>
-                  setSearchCondition(prev => ({
-                    ...prev,
-                    startDate: date,
-                  }))
-                }
-                dateFormat="yyyy.MM.dd"
-                portalId="root-portal"
-              />
-              <DateCenter>-</DateCenter>
-              <DatePicker
-                selected={searchCondition.endDate}
-                onChange={date =>
-                  setSearchCondition(prev => ({
-                    ...prev,
-                    endDate: date,
-                  }))
-                }
-                dateFormat="yyyy.MM.dd"
-                portalId="root-portal"
-              />
-            </DateRange>
           </Field>
         </FieldsWrapper>
 
@@ -294,6 +225,8 @@ const SearchGroup = styled.form`
 const FieldsWrapper = styled.div`
   display: flex;
   align-items: center;
+  //background-color: yellow;
+  width: 100%;
   gap: 20px;
   flex: 1;
   overflow-x: auto;
@@ -301,10 +234,25 @@ const FieldsWrapper = styled.div`
   overflow-y: hidden;
 `;
 
+const FieldSelect = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100px;
+  flex-shrink: 0;
+
+  label {
+    font-size: ${({ theme }) => theme.sizes.small};
+    color: ${({ theme }) => theme.colors.liteGray};
+    font-weight: bold;
+    text-align: left;
+    margin-left: 6px;
+  }
+`;
+
 const Field = styled.div`
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  flex: 1;
 
   label {
     font-size: ${({ theme }) => theme.sizes.small};
@@ -319,27 +267,10 @@ const Field = styled.div`
     padding: 6px 4px;
     font-size: ${({ theme }) => theme.sizes.medium};
     outline: none;
-    width: 80px;
+    width: 100%;
     color: black;
     background: transparent;
     cursor: pointer;
-  }
-`;
-
-const DateCenter = styled.div`
-  display: flex;
-  margin-right: 12px;
-`;
-
-const DateRange = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  span {
-    font-size: 14px;
-    font-weight: bold;
-    color: ${({ theme }) => theme.colors.liteGray};
   }
 `;
 
