@@ -5,7 +5,7 @@ import { FaCommentDots } from 'react-icons/fa';
 import { GiFootprint } from 'react-icons/gi';
 import { FaEye, FaPen, FaCheckCircle } from 'react-icons/fa';
 
-import { useFetchCard, useMapSearch } from '@/recoil/fetchAppState.js';
+import { useFetchCard, useFetchDetailData, useMapSearch } from '@/recoil/fetchAppState.js';
 import { useDetailMapState } from '@/recoil/useAppState.js';
 import { useRecoilValue } from 'recoil';
 import { checkDataState, userState } from '@/recoil/appState.js';
@@ -21,6 +21,8 @@ import { MdDelete } from 'react-icons/md';
 
 export default function DetailPage({ initialParams }) {
   const { mapDetailData } = useDetailMapState();
+
+  console.log('mapDetailData', mapDetailData);
   //가봤어요, 의심돼요
   const cardFetch = useFetchCard();
   const cardData = useRecoilValue(checkDataState);
@@ -39,8 +41,8 @@ export default function DetailPage({ initialParams }) {
   const [editingImageUrls, setEditingImageUrls] = useState({});
 
   const user = useRecoilValue(userState);
-  
-  const detailSearch = useMapSearch();
+
+  const detailSearch = useFetchDetailData();
 
   const [showInput, setShowInput] = useState(false);
   const inputRef = useRef(null);
@@ -80,7 +82,7 @@ export default function DetailPage({ initialParams }) {
         isLoading: false,
         autoClose: 1000,
       });
-      await detailSearch(initialParams);
+      await detailSearch(initialParams.addrDetail);
 
       // 입력 상태 초기화
       setEditingText('');
@@ -160,7 +162,7 @@ export default function DetailPage({ initialParams }) {
         return newMap;
       });
 
-      await detailSearch(initialParams);
+      await detailSearch(initialParams.addrDetail);
     } catch (e) {
       toast.update(toastId, {
         render: '댓글 수정이 실패했습니다.',
@@ -206,7 +208,8 @@ export default function DetailPage({ initialParams }) {
   // 초기/파라미터 변경 시 조회
   useEffect(() => {
     if (initialParams) {
-      detailSearch(initialParams);
+      console.log('initialParams', initialParams);
+      detailSearch(initialParams.addrDetail);
     }
   }, [initialParams]);
 
@@ -367,7 +370,7 @@ export default function DetailPage({ initialParams }) {
                                           try {
                                             await api.delete(`/cham/reply/${reply.replyId}`);
                                             toast.success('댓글이 삭제되었습니다.');
-                                            await detailSearch(initialParams);
+                                            await detailSearch(initialParams.addrDetail);
                                           } catch (e) {
                                             toast.error('댓글 삭제가 실패했습니다.');
                                           }
@@ -727,8 +730,6 @@ const IconSpan = styled.span`
       margin-right: 10px;
     }
   }
-  
-
 `;
 
 const MetaGroup = styled.div`
