@@ -1,5 +1,6 @@
 package com.cham.caruse.service;
 
+import com.cham.caruse.dto.CardUseAggregateResponse;
 import com.cham.dto.request.CardUseConditionRequest;
 import com.cham.dto.response.ApiResponse;
 import com.cham.dto.response.CardUseResponse;
@@ -9,9 +10,9 @@ import java.util.Map;
 
 public interface ChamMonimapCardUseService {
     
-    Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request);
+    CardUseAggregateResponse selectCardUse(CardUseConditionRequest request);
     
-    Map<Long, CardUseResponse> selectCardUseDetail(String request);
+    CardUseAggregateResponse selectCardUseDetail(String request);
     
     
     ApiResponse insertCardUse(MultipartFile multipartFile);

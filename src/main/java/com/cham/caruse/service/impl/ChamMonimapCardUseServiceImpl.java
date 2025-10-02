@@ -5,7 +5,9 @@ import com.cham.cardowner.entity.ChamMonimapCardOwnerPosition;
 import com.cham.cardowner.repository.ChamMonimapCardOwnerPositionRepository;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
+import com.cham.caruse.dto.CardUseAggregateResponse;
 import com.cham.caruse.dto.KakaoAddressResponse;
+import com.cham.caruse.dto.RegionSummaryDto;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
@@ -36,8 +38,11 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.cham.caruse.dto.RegionSummaryDto.toSummarySkeleton;
 
 
 @RequiredArgsConstructor
@@ -62,23 +67,21 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     
     @Override
     @Transactional(readOnly = true)
-    public Map<Long, CardUseResponse> selectCardUse(CardUseConditionRequest request) {
+    public CardUseAggregateResponse selectCardUse(CardUseConditionRequest request) {
         // 1) 데이터 조회
         List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUses(request);
         List<ChamMonimapReply> replies     = replyRepository.findByReplys();
         List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
         
-        // 2) 그룹핑
+        // 2) 그룹핑 (기존과 동일)
         Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
-        
         Map<Long, List<ChamMonimapReply>> repliesByAddrId = replies.stream()
                 .collect(Collectors.groupingBy(r -> r.getChamMonimapCardUseAddr().getChamMonimapCardUseAddrId()));
-        
         Map<Long, List<ChamMonimapReplyImage>> imagesByReplyId = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getChamMonimapReply().getChamMonimapReplyId()));
         
-        // 3) 주소별 이미지 URL 벌크 조회 → Map<Long, String>
+        // 3) 이미지 URL 벌크 조회
         Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
         if (!usesByAddrId.isEmpty()) {
             List<ChamMonimapCardUseAddr> rows = cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
@@ -86,29 +89,22 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
             }
         }
-        // 4) 결과 맵 생성
+        
+        // 4) 주소별 응답 생성
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
-        
-        
         for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
             Long addrId = entry.getKey();
             List<ChamMonimapCardUse> list = entry.getValue();
-            if (list == null || list.isEmpty()) {
-                continue;
-            }
+            if (list == null || list.isEmpty()) continue;
             
             ChamMonimapCardUse first = list.get(0);
             
-            // 방문자 합계/명단
-            int totalSum = 0;
-            Set<String> uniqueNames = new LinkedHashSet<>();
-            for (ChamMonimapCardUse use : list) {
-                totalSum += use.getChamMonimapCardUseAmount();
-                uniqueNames.add(use.getChamMonimapCardUseName());
-            }
-            
+            // 방문자 합계 / 명단
+            int totalSum = list.stream().mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount).sum();
+            Set<String> uniqueNames = list.stream()
+                    .map(ChamMonimapCardUse::getChamMonimapCardUseName)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
             String visitMember = buildVisitMember(uniqueNames);
-            
             
             // 상세 행 응답
             List<CardUseGroupedResponse> groupedResponses = list.stream()
@@ -123,11 +119,6 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                             use.getChamMonimapCardUseTime()
                     ))
                     .toList();
-            
-            String addrName   = first.getCardUseAddr().getChamMonimapCardUseAddrName();
-            String addrDetail = first.getCardUseAddr().getChamMonimapCardUseDetailAddr();
-            String region     = first.getChamMonimapCardUseRegion();
-            String user       = first.getChamMonimapCardUseUser();
             
             String imageUrl = imageUrlByAddrId.get(addrId);
             
@@ -150,18 +141,21 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                         );
                     })
                     .toList();
-            
+            String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
+            String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
             CardUseResponse resp = new CardUseResponse(
-                    addrName,
-                    region,
-                    user,
-                    list.size(),   // visitCount
+                    first.getCardUseAddr().getChamMonimapCardUseAddrName(),
+                    first.getChamMonimapCardUseRegion(),
+                    first.getChamMonimapCardUseUser(),
+                    list.size(),
                     visitMember,
                     totalSum,
-                    addrDetail,
+                    first.getCardUseAddr().getChamMonimapCardUseDetailAddr(),
                     imageUrl,
                     addrId,
                     list.stream().map(ChamMonimapCardUse::getChamMonimapCardUseDate).max(Comparator.naturalOrder()).orElse(null),
+                    xValue,
+                    yValue,
                     groupedResponses,
                     replyList
             );
@@ -169,41 +163,29 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             resultMap.put(addrId, resp);
         }
         
-        return resultMap.entrySet().stream()
-                .sorted((e1, e2) -> {
-                    LocalDate d1 = e1.getValue().getUseDate();
-                    LocalDate d2 = e2.getValue().getUseDate();
-                    if (d1 == null && d2 == null) return 0;
-                    if (d1 == null) return 1;   // null 은 뒤로
-                    if (d2 == null) return -1;
-                    return d1.compareTo(d2);    // 오름차순
-                })
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> a,
-                        LinkedHashMap::new // 정렬 유지
-                ));
+        // 5) 지역별 요약 집계 (추가된 부분)
+        List<RegionSummaryDto> summaries = summarizeByRegionLevels(cardUses);
+        
+        // 최종 응답 (주소별 상세 + 지역별 요약 같이 담기)
+        return new CardUseAggregateResponse(resultMap, summaries);
     }
     
     @Override
-    public Map<Long, CardUseResponse> selectCardUseDetail(String request) {
+    public CardUseAggregateResponse selectCardUseDetail(String request) {
         // 1) 데이터 조회
         List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUsesDetail(request);
         List<ChamMonimapReply> replies     = replyRepository.findByReplys();
         List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
         
-        // 2) 그룹핑
+        // 2) 그룹핑 (기존과 동일)
         Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
-        
         Map<Long, List<ChamMonimapReply>> repliesByAddrId = replies.stream()
                 .collect(Collectors.groupingBy(r -> r.getChamMonimapCardUseAddr().getChamMonimapCardUseAddrId()));
-        
         Map<Long, List<ChamMonimapReplyImage>> imagesByReplyId = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getChamMonimapReply().getChamMonimapReplyId()));
         
-        // 3) 주소별 이미지 URL 벌크 조회 → Map<Long, String>
+        // 3) 이미지 URL 벌크 조회
         Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
         if (!usesByAddrId.isEmpty()) {
             List<ChamMonimapCardUseAddr> rows = cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
@@ -211,29 +193,22 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
             }
         }
-        // 4) 결과 맵 생성
+        
+        // 4) 주소별 응답 생성
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
-        
-        
         for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
             Long addrId = entry.getKey();
             List<ChamMonimapCardUse> list = entry.getValue();
-            if (list == null || list.isEmpty()) {
-                continue;
-            }
+            if (list == null || list.isEmpty()) continue;
             
             ChamMonimapCardUse first = list.get(0);
             
-            // 방문자 합계/명단
-            int totalSum = 0;
-            Set<String> uniqueNames = new LinkedHashSet<>();
-            for (ChamMonimapCardUse use : list) {
-                totalSum += use.getChamMonimapCardUseAmount();
-                uniqueNames.add(use.getChamMonimapCardUseName());
-            }
-            
+            // 방문자 합계 / 명단
+            int totalSum = list.stream().mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount).sum();
+            Set<String> uniqueNames = list.stream()
+                    .map(ChamMonimapCardUse::getChamMonimapCardUseName)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
             String visitMember = buildVisitMember(uniqueNames);
-            
             
             // 상세 행 응답
             List<CardUseGroupedResponse> groupedResponses = list.stream()
@@ -248,11 +223,6 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                             use.getChamMonimapCardUseTime()
                     ))
                     .toList();
-            
-            String addrName   = first.getCardUseAddr().getChamMonimapCardUseAddrName();
-            String addrDetail = first.getCardUseAddr().getChamMonimapCardUseDetailAddr();
-            String region     = first.getChamMonimapCardUseRegion();
-            String user       = first.getChamMonimapCardUseUser();
             
             String imageUrl = imageUrlByAddrId.get(addrId);
             
@@ -275,18 +245,21 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                         );
                     })
                     .toList();
-            
+            String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
+            String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
             CardUseResponse resp = new CardUseResponse(
-                    addrName,
-                    region,
-                    user,
-                    list.size(),   // visitCount
+                    first.getCardUseAddr().getChamMonimapCardUseAddrName(),
+                    first.getChamMonimapCardUseRegion(),
+                    first.getChamMonimapCardUseUser(),
+                    list.size(),
                     visitMember,
                     totalSum,
-                    addrDetail,
+                    first.getCardUseAddr().getChamMonimapCardUseDetailAddr(),
                     imageUrl,
                     addrId,
                     list.stream().map(ChamMonimapCardUse::getChamMonimapCardUseDate).max(Comparator.naturalOrder()).orElse(null),
+                    xValue,
+                    yValue,
                     groupedResponses,
                     replyList
             );
@@ -294,21 +267,11 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             resultMap.put(addrId, resp);
         }
         
-        return resultMap.entrySet().stream()
-                .sorted((e1, e2) -> {
-                    LocalDate d1 = e1.getValue().getUseDate();
-                    LocalDate d2 = e2.getValue().getUseDate();
-                    if (d1 == null && d2 == null) return 0;
-                    if (d1 == null) return 1;   // null 은 뒤로
-                    if (d2 == null) return -1;
-                    return d1.compareTo(d2);    // 오름차순
-                })
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> a,
-                        LinkedHashMap::new // 정렬 유지
-                ));
+        // 5) 지역별 요약 집계 (추가된 부분)
+        List<RegionSummaryDto> summaries = summarizeByRegionLevels(cardUses);
+        
+        // 최종 응답 (주소별 상세 + 지역별 요약 같이 담기)
+        return new CardUseAggregateResponse(resultMap, summaries);
     }
     
     
@@ -447,24 +410,32 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         if (body == null) {
             body = new KakaoAddressResponse();
         }
-        KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
-        String region1depthName = address.getRegion_1depth_name();
-        String region2depthName = address.getRegion_2depth_name();
-        String region3depthName = address.getRegion_3depth_name();
+        Optional<KakaoAddressResponse.Document> docOpt = Optional.ofNullable(body)
+                .map(KakaoAddressResponse::getDocuments)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0));
         
-        ChamMonimapRegion city = saveMetropolis(region1depthName);
-        saveGu(region1depthName,region2depthName);
-        saveDong(region1depthName,region2depthName,region3depthName);
+        ChamMonimapRegion dong = docOpt
+                .map(KakaoAddressResponse.Document::getAddress)
+                .map(a -> {
+                    String r1 = a.getRegion_1depth_name(); // 대전
+                    String r2 = a.getRegion_2depth_name(); // 서구
+                    String r3 = a.getRegion_3depth_name(); // 탄방동
+                    
+                    saveMetropolis(r1);      // 0-depth
+                    saveGu(r1, r2);                                 // 1-depth
+                    return saveDong(r1, r2, r3); // 2-depth
+                })
+                .orElse(null);
         
         ChamMonimapCardUseAddr saved = cardUseAddrRepository.save(
                 Optional.ofNullable(body)
                         .map(KakaoAddressResponse::getDocuments)
                         .filter(list -> !list.isEmpty())
                         .map(list -> list.get(0))
-                        .map(doc -> new ChamMonimapCardUseAddr(addrName, addrDetail, doc.getX(), doc.getY(),city))
+                        .map(doc -> new ChamMonimapCardUseAddr(addrName, addrDetail, doc.getX(), doc.getY(),dong))
                         .orElseGet(() -> new ChamMonimapCardUseAddr(addrName, addrDetail))
         );
-        
         // 캐시에도 반영
         cache.put(detailKey, new CardUseAddrDto(
                 saved.getChamMonimapCardUseAddrId(),
@@ -477,8 +448,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
  
 
     // 광역시 저장
-    private ChamMonimapRegion saveMetropolis(String region1depthName) {
-        
+    private void saveMetropolis(String region1depthName) {
         ChamMonimapRegion findCity = regionRepository.findByCity(region1depthName);
         if (findCity == null) {
             RestClient restClient = RestClient.create();
@@ -499,18 +469,64 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 String x = address.getX();
                 String y = address.getX();
                 ChamMonimapRegion metropolis = new ChamMonimapRegion(null, region1depthName, "METROPOLIS", 0, x, y);
-                return regionRepository.save(metropolis);
+                regionRepository.save(metropolis);
             }
         }
-        return findCity;
     }
     
     private void saveGu(String region1depthName,String region2depthName) {
-    
+        ChamMonimapRegion findGu = regionRepository.findByGu(region1depthName, region2depthName);
+        if (findGu == null) {
+            RestClient restClient = RestClient.create();
+            KakaoAddressResponse body = restClient.get()
+                    .uri(uriBuilder ->
+                            uriBuilder.scheme("https")
+                                    .host("dapi.kakao.com")
+                                    .path("/v2/local/search/address")
+                                    .queryParam("query", region2depthName)
+                                    .build()
+                    )
+                    .header("Authorization", "KakaoAK " + kakaoClientId)
+                    .retrieve()
+                    .toEntity(KakaoAddressResponse.class)
+                    .getBody();
+            if (body != null) {
+                KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
+                ChamMonimapRegion findCity = regionRepository.findByCity(region1depthName);
+                String x = address.getX();
+                String y = address.getX();
+                ChamMonimapRegion gu = new ChamMonimapRegion(findCity, region2depthName, "GU", 1, x, y);
+                regionRepository.save(gu);
+            }
+        }
     }
     
-    private void saveDong(String region1depthName,String region2depthName,String region3depthName) {
-    
+    private ChamMonimapRegion saveDong(String region1depthName,String region2depthName,String region3depthName) {
+        ChamMonimapRegion findDong = regionRepository.findByDong(region1depthName, region2depthName,region3depthName);
+        if (findDong == null) {
+            RestClient restClient = RestClient.create();
+            KakaoAddressResponse body = restClient.get()
+                    .uri(uriBuilder ->
+                            uriBuilder.scheme("https")
+                                    .host("dapi.kakao.com")
+                                    .path("/v2/local/search/address")
+                                    .queryParam("query", region3depthName)
+                                    .build()
+                    )
+                    .header("Authorization", "KakaoAK " + kakaoClientId)
+                    .retrieve()
+                    .toEntity(KakaoAddressResponse.class)
+                    .getBody();
+            if (body != null) {
+                KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
+                ChamMonimapRegion findGu = regionRepository.findByGu(region1depthName,region2depthName);
+                String x = address.getX();
+                String y = address.getX();
+                ChamMonimapRegion Dong = new ChamMonimapRegion(findGu, region3depthName, "DONG", 2, x, y);
+                return regionRepository.save(Dong);
+            }
+        }
+        return findDong;
     }
     
     
@@ -527,6 +543,35 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         }
         String firstName = names.iterator().next();
         return String.format("%s 외 %d명", firstName, names.size() - 1);
+    }
+    
+    private List<RegionSummaryDto> summarizeByRegionLevels(List<ChamMonimapCardUse> cardUses) {
+        Map<Long, RegionSummaryDto> byRegionId = new LinkedHashMap<>();
+        
+        BiConsumer<ChamMonimapRegion, Map<Long, RegionSummaryDto>> add = (r, map) -> {
+            if (r == null) return;
+            RegionSummaryDto dto = map.computeIfAbsent(
+                    r.getChamMonimapRegionId(),
+                    id -> toSummarySkeleton(r)
+            );
+            dto.inc();
+        };
+        
+        for (ChamMonimapCardUse use : cardUses) {
+            ChamMonimapRegion dong = use.getCardUseAddr().getChamMonimapRegion(); // leaf
+            ChamMonimapRegion gu   = (dong != null) ? dong.getParent() : null;
+            ChamMonimapRegion city = (gu   != null) ? gu.getParent()   : null;
+            
+            add.accept(city, byRegionId);
+            add.accept(gu,   byRegionId);
+            add.accept(dong, byRegionId);
+        }
+        
+        return byRegionId.values().stream()
+                .sorted(Comparator
+                        .comparingInt(RegionSummaryDto::getDepth)
+                        .thenComparing(RegionSummaryDto::getPath))
+                .toList();
     }
     
     

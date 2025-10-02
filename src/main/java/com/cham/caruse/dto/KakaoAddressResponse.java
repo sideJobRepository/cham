@@ -2,11 +2,17 @@ package com.cham.caruse.dto;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 @Data
 public class KakaoAddressResponse {
     private Meta meta;
     private List<Document> documents;
+    
+    public KakaoAddressResponse() {
+        this.meta = new Meta();
+        this.documents = new ArrayList<>();
+    }
     
     @Data
     public static class Meta {

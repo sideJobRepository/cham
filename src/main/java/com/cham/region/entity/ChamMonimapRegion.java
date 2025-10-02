@@ -2,10 +2,12 @@ package com.cham.region.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "CHAM_MONIMAP_REGION")
 @Getter
+@NoArgsConstructor
 public class ChamMonimapRegion {
     
     @Id

@@ -3,6 +3,7 @@ package com.cham.caruse.repository.impl;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.query.ChamMonimapCardUseQueryRepository;
 import com.cham.dto.request.CardUseConditionRequest;
+import com.cham.region.entity.QChamMonimapRegion;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static com.cham.carduseaddr.entity.QChamMonimapCardUseAddr.chamMonimapCardUseAddr;
 import static com.cham.caruse.entity.QChamMonimapCardUse.chamMonimapCardUse;
+import static com.cham.region.entity.QChamMonimapRegion.*;
 
 @RequiredArgsConstructor
 public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQueryRepository {
@@ -40,15 +42,21 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
     
     @Override
     public List<ChamMonimapCardUse> findByCardUses(CardUseConditionRequest request) {
+        QChamMonimapRegion dong = new QChamMonimapRegion("dong");
+        QChamMonimapRegion gu   = new QChamMonimapRegion("gu");
+        QChamMonimapRegion city = new QChamMonimapRegion("city");
+        
         return queryFactory
                 .selectFrom(chamMonimapCardUse)
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr).fetchJoin()
+                .join(chamMonimapCardUseAddr.chamMonimapRegion, dong).fetchJoin()
+                .join(dong.parent, gu).fetchJoin()
+                .join(gu.parent, city).fetchJoin()
                 .where(
                         chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
-                        chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
-                                .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("경조사비")) //경조사비 제외
-                                .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("직원")) //직원 제외
-                                .not(),
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName.notLike("%플라워%"),
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName.notLike("%경조사비%"),
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName.notLike("%직원%"),
                         cardOwnerPositionEq(request),
                         inputOrCondition(request)
                 )
@@ -57,9 +65,15 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
     
     @Override
     public List<ChamMonimapCardUse> findByCardUsesDetail(String cardUsesDetail) {
+        QChamMonimapRegion dong = new QChamMonimapRegion("dong");
+        QChamMonimapRegion gu   = new QChamMonimapRegion("gu");
+        QChamMonimapRegion city = new QChamMonimapRegion("city");
         return queryFactory
                 .selectFrom(chamMonimapCardUse)
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr).fetchJoin()
+                .join(chamMonimapCardUseAddr.chamMonimapRegion, dong).fetchJoin()
+                .join(dong.parent, gu).fetchJoin()
+                .join(gu.parent, city).fetchJoin()
                 .where(
                         chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
                         chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
