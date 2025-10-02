@@ -5,11 +5,14 @@ import com.cham.cardowner.entity.ChamMonimapCardOwnerPosition;
 import com.cham.cardowner.repository.ChamMonimapCardOwnerPositionRepository;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
+import com.cham.caruse.dto.KakaoAddressResponse;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.dto.request.CardUseConditionRequest;
 import com.cham.dto.response.*;
+import com.cham.region.entity.ChamMonimapRegion;
+import com.cham.region.repository.ChamMonimapRegionRepository;
 import com.cham.reply.entity.ChamMonimapReply;
 import com.cham.reply.repository.ChamMonimapReplyRepository;
 import com.cham.replyimage.entity.ChamMonimapReplyImage;
@@ -21,9 +24,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -49,6 +54,11 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     private final ChamMonimapCardUseAddrRepository cardUseAddrRepository;
     
     private final ChamMonimapCardOwnerPositionRepository cardOwnerPositionRepository;
+    
+    private final ChamMonimapRegionRepository regionRepository;
+    
+    @Value("${kakao.clientId}")
+    private String kakaoClientId;
     
     @Override
     @Transactional(readOnly = true)
@@ -421,17 +431,88 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         if (hit != null) {
             return new ChamMonimapCardUseAddr(hit.getCardUseAddrId());
         }
-        // 없으면 생성
-        ChamMonimapCardUseAddr inserted = cardUseAddrRepository.save(
-                new ChamMonimapCardUseAddr(addrName, addrDetail));
+        RestClient restClient = RestClient.create();
+        KakaoAddressResponse body = restClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder.scheme("https")
+                                .host("dapi.kakao.com")
+                                .path("/v2/local/search/address")
+                                .queryParam("query", addrDetail)
+                                .build()
+                )
+                .header("Authorization", "KakaoAK " + kakaoClientId)
+                .retrieve()
+                .toEntity(KakaoAddressResponse.class)
+                .getBody();
+        if (body == null) {
+            body = new KakaoAddressResponse();
+        }
+        KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
+        String region1depthName = address.getRegion_1depth_name();
+        String region2depthName = address.getRegion_2depth_name();
+        String region3depthName = address.getRegion_3depth_name();
+        
+        ChamMonimapRegion city = saveMetropolis(region1depthName);
+        saveGu(region1depthName,region2depthName);
+        saveDong(region1depthName,region2depthName,region3depthName);
+        
+        ChamMonimapCardUseAddr saved = cardUseAddrRepository.save(
+                Optional.ofNullable(body)
+                        .map(KakaoAddressResponse::getDocuments)
+                        .filter(list -> !list.isEmpty())
+                        .map(list -> list.get(0))
+                        .map(doc -> new ChamMonimapCardUseAddr(addrName, addrDetail, doc.getX(), doc.getY(),city))
+                        .orElseGet(() -> new ChamMonimapCardUseAddr(addrName, addrDetail))
+        );
+        
         // 캐시에도 반영
         cache.put(detailKey, new CardUseAddrDto(
-                inserted.getChamMonimapCardUseAddrId(),
-                inserted.getChamMonimapCardUseAddrName(),
-                inserted.getChamMonimapCardUseDetailAddr()
+                saved.getChamMonimapCardUseAddrId(),
+                saved.getChamMonimapCardUseAddrName(),
+                saved.getChamMonimapCardUseDetailAddr()
         ));
-        return inserted;
+        return saved;
     }
+    
+ 
+
+    // 광역시 저장
+    private ChamMonimapRegion saveMetropolis(String region1depthName) {
+        
+        ChamMonimapRegion findCity = regionRepository.findByCity(region1depthName);
+        if (findCity == null) {
+            RestClient restClient = RestClient.create();
+            KakaoAddressResponse body = restClient.get()
+                    .uri(uriBuilder ->
+                            uriBuilder.scheme("https")
+                                    .host("dapi.kakao.com")
+                                    .path("/v2/local/search/address")
+                                    .queryParam("query", region1depthName)
+                                    .build()
+                    )
+                    .header("Authorization", "KakaoAK " + kakaoClientId)
+                    .retrieve()
+                    .toEntity(KakaoAddressResponse.class)
+                    .getBody();
+            if (body != null) {
+                KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
+                String x = address.getX();
+                String y = address.getX();
+                ChamMonimapRegion metropolis = new ChamMonimapRegion(null, region1depthName, "METROPOLIS", 0, x, y);
+                return regionRepository.save(metropolis);
+            }
+        }
+        return findCity;
+    }
+    
+    private void saveGu(String region1depthName,String region2depthName) {
+    
+    }
+    
+    private void saveDong(String region1depthName,String region2depthName,String region3depthName) {
+    
+    }
+    
     
     private String safeTrim(String s) {
         return s == null ? null : s.trim();

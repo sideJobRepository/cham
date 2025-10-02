@@ -2,6 +2,7 @@ package com.cham.carduseaddr.entity;
 
 
 import com.base.BaseData;
+import com.cham.region.entity.ChamMonimapRegion;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,10 @@ public class ChamMonimapCardUseAddr extends BaseData {
     @Column(name = "CHAM_MONIMAP_CARD_USE_ADDR_NAME")
     private String chamMonimapCardUseAddrName;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CHAM_MONIMAP_REGION_ID")
+    private ChamMonimapRegion chamMonimapRegion;
+    
     // 카드 사용 상세 장소
     @Column(name = "CHAM_MONIMAP_CARD_USE_DETAIL_ADDR")
     private String chamMonimapCardUseDetailAddr;
@@ -31,10 +36,28 @@ public class ChamMonimapCardUseAddr extends BaseData {
     @Column(name = "CHAM_MONIMAP_CARD_USE_IMAGE_URL")
     private String chamMonimapCardUseImageUrl;
     
+    //카드 사용 X좌표
+    @Column(name = "CHAM_MONIMAP_CARD_USE_X-VALUE")
+    private String chamMonimapCardUseXValue;
+    
+    //카드 사용 Y좌표
+    @Column(name = "CHAM_MONIMAP_CARD_USE_Y-VALUE")
+    private String chamMonimapCardUseYValue;
+    
     public ChamMonimapCardUseAddr(String cardUseAddrNameValue, String cardUseDetailAddrValue) {
         this.chamMonimapCardUseAddrName = cardUseAddrNameValue;
         this.chamMonimapCardUseDetailAddr = cardUseDetailAddrValue;
     }
+    
+    public ChamMonimapCardUseAddr(String cardUseAddrNameValue, String cardUseDetailAddrValue, String xValue, String yValue,ChamMonimapRegion chamMonimapRegion) {
+        this.chamMonimapCardUseAddrName = cardUseAddrNameValue;
+        this.chamMonimapCardUseDetailAddr = cardUseDetailAddrValue;
+        this.chamMonimapCardUseXValue = xValue;
+        this.chamMonimapCardUseYValue = yValue;
+        this.chamMonimapRegion = chamMonimapRegion;
+    }
+    
+    
     
     public ChamMonimapCardUseAddr(Long cardUseAddrId) {
         this.chamMonimapCardUseAddrId = cardUseAddrId;
