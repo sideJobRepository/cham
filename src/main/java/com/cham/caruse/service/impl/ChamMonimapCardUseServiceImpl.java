@@ -5,10 +5,7 @@ import com.cham.cardowner.entity.ChamMonimapCardOwnerPosition;
 import com.cham.cardowner.repository.ChamMonimapCardOwnerPositionRepository;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
-import com.cham.caruse.dto.CardUseAggregateResponse;
-import com.cham.caruse.dto.KakaoAddressResponse;
-import com.cham.caruse.dto.KakaoPlaceResponse;
-import com.cham.caruse.dto.RegionSummaryDto;
+import com.cham.caruse.dto.*;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
@@ -167,10 +164,10 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         }
         
         // 5) 지역별 요약 집계 (추가된 부분)
-        List<RegionSummaryDto> summaries = summarizeByRegionLevels(cardUses);
+        RegionLevelsResponse regionLevelsResponse = summarizeByRegionLevels(cardUses);
         
         // 최종 응답 (주소별 상세 + 지역별 요약 같이 담기)
-        return new CardUseAggregateResponse(resultMap, summaries);
+        return new CardUseAggregateResponse(resultMap, regionLevelsResponse);
     }
     
     @Override
@@ -273,10 +270,10 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         }
         
         // 5) 지역별 요약 집계 (추가된 부분)
-        List<RegionSummaryDto> summaries = summarizeByRegionLevels(cardUses);
+        RegionLevelsResponse regionLevelsResponse = summarizeByRegionLevels(cardUses);
         
         // 최종 응답 (주소별 상세 + 지역별 요약 같이 담기)
-        return new CardUseAggregateResponse(resultMap, summaries);
+        return new CardUseAggregateResponse(resultMap, regionLevelsResponse);
     }
     
     
@@ -574,33 +571,40 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         return String.format("%s 외 %d명", firstName, names.size() - 1);
     }
     
-    private List<RegionSummaryDto> summarizeByRegionLevels(List<ChamMonimapCardUse> cardUses) {
+    private RegionLevelsResponse summarizeByRegionLevels(List<ChamMonimapCardUse> cardUses) {
         Map<Long, RegionSummaryDto> byRegionId = new LinkedHashMap<>();
         
         BiConsumer<ChamMonimapRegion, Map<Long, RegionSummaryDto>> add = (r, map) -> {
             if (r == null) return;
-            RegionSummaryDto dto = map.computeIfAbsent(
-                    r.getChamMonimapRegionId(),
-                    id -> toSummarySkeleton(r)
-            );
+            RegionSummaryDto dto = map.computeIfAbsent(r.getChamMonimapRegionId(), id -> toSummarySkeleton(r));
             dto.inc();
         };
         
         for (ChamMonimapCardUse use : cardUses) {
-            ChamMonimapRegion dong = use.getCardUseAddr().getChamMonimapRegion(); // leaf
+            ChamMonimapRegion dong = use.getCardUseAddr().getChamMonimapRegion();
             ChamMonimapRegion gu   = (dong != null) ? dong.getParent() : null;
             ChamMonimapRegion city = (gu   != null) ? gu.getParent()   : null;
             
-            add.accept(city, byRegionId);
-            add.accept(gu,   byRegionId);
-            add.accept(dong, byRegionId);
+            add.accept(city, byRegionId); // depth 0
+            add.accept(gu,   byRegionId); // depth 1
+            add.accept(dong, byRegionId); // depth 2
         }
         
-        return byRegionId.values().stream()
-                .sorted(Comparator
-                        .comparingInt(RegionSummaryDto::getDepth)
-                        .thenComparing(RegionSummaryDto::getPath))
-                .toList();
+        Comparator<RegionSummaryDto> order = Comparator
+                .comparingInt(RegionSummaryDto::getDepth)
+                .thenComparing(RegionSummaryDto::getPath);
+        
+        List<RegionSummaryDto> all = byRegionId.values().stream().sorted(order).toList();
+        
+        List<RegionSummaryDto> depth0 = all.stream().filter(d -> d.getDepth() == 0).toList();
+        List<RegionSummaryDto> depth1 = all.stream().filter(d -> d.getDepth() == 1).toList();
+        List<RegionSummaryDto> depth2 = all.stream().filter(d -> d.getDepth() == 2).toList();
+        
+        return RegionLevelsResponse.builder()
+                .depth0(depth0)
+                .depth1(depth1)
+                .depth2(depth2)
+                .build();
     }
     
     
