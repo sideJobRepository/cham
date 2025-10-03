@@ -493,7 +493,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             if (body != null) {
                 KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
                 String x = address.getX();
-                String y = address.getX();
+                String y = address.getY();
                 ChamMonimapRegion metropolis = new ChamMonimapRegion(null, region1depthName, "METROPOLIS", 0, x, y);
                 regionRepository.save(metropolis);
             }
@@ -520,7 +520,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
                 ChamMonimapRegion findCity = regionRepository.findByCity(region1depthName);
                 String x = address.getX();
-                String y = address.getX();
+                String y = address.getY();
                 ChamMonimapRegion gu = new ChamMonimapRegion(findCity, region2depthName, "GU", 1, x, y);
                 regionRepository.save(gu);
             }
@@ -547,7 +547,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
                 ChamMonimapRegion findGu = regionRepository.findByGu(region1depthName,region2depthName);
                 String x = address.getX();
-                String y = address.getX();
+                String y = address.getY();
                 ChamMonimapRegion Dong = new ChamMonimapRegion(findGu, region3depthName, "DONG", 2, x, y);
                 return regionRepository.save(Dong);
             }
