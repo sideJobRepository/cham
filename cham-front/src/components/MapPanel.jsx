@@ -2,19 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useSearchMapState } from '@/recoil/useAppState.js';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import ReactDOMServer from 'react-dom/server';
-import {
-  FaUtensils, // 음식점
-  FaCoffee, // 카페
-  FaShoppingCart, // 대형마트
-  FaStore, // 편의점
-  FaHotel, // 숙박
-  FaTheaterMasks, // 문화시설
-  FaGasPump, // 주유/충전
-  FaHospital, // 병원
-  FaPrescriptionBottleAlt, // 약국
-  FaQuestionCircle, //기타
-} from 'react-icons/fa';
 import { mapCenterAddrState, mapSearchFilterState, userState } from '@/recoil/appState.js';
 import { confirmAlert } from 'react-confirm-alert';
 import api from '@/utils/axiosInstance.js';
@@ -24,107 +11,59 @@ import { useMapSearch } from '@/recoil/fetchAppState.js';
 import Modal from '@/components/modal/Modal.jsx';
 import DetailPage from '@/pages/DetailPage.jsx';
 
-const CATEGORY_MAP = {
-  FD6: { label: '음식점', icon: <FaUtensils /> },
-  CE7: { label: '카페', icon: <FaCoffee /> },
-  MT1: { label: '대형마트', icon: <FaShoppingCart /> },
-  CS2: { label: '편의점', icon: <FaStore /> },
-  AD5: { label: '숙박', icon: <FaHotel /> },
-  CT1: { label: '문화시설', icon: <FaTheaterMasks /> },
-  OL7: { label: '주유/충전', icon: <FaGasPump /> },
-  HP8: { label: '병원', icon: <FaHospital /> },
-  PM9: { label: '약국', icon: <FaPrescriptionBottleAlt /> },
-  ETC: { label: '기타', icon: <FaQuestionCircle /> },
-};
+/** ====== 줌 기준 (카카오: 값이 작을수록 더 확대됨) ====== */
+const DETAIL_MAX_LEVEL = 5; // ≤5  : 상세(가맹점별)
+const DONG_MAX_LEVEL_MIN = 6; // 6~8 : 동 집계
+const DONG_MAX_LEVEL_MAX = 8;
+const GU_LEVEL_MIN = 9; // 9~10: 구 집계
+const GU_LEVEL_MAX = 10;
+const SIDO_LEVEL_MIN = 11; // ≥11 : 시/도 집계
 
-function categoryIconHtml(code) {
-  const meta = CATEGORY_MAP[code];
-  if (!meta) return '';
-
-  const svg = ReactDOMServer.renderToString(meta.icon);
-  return svg.replace(
-    '<svg',
-    '<svg width="14" height="14" style="vertical-align:middle;margin-right:6px"'
-  );
+/** DB 좌표 파싱 (x=경도, y=위도) */
+function toLatLng(x, y) {
+  const lng = parseFloat(x);
+  const lat = parseFloat(y);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+  return null;
 }
 
-//카테고리 찾기
-const getCatFromCache = addr => {
-  const c = globalThis._geoCache?.get(addr);
-  const code = c?.category ?? 'ETC';
-  return {
-    category: code,
-  };
-};
+/** 현재 지도 bounds 내에 있는지 */
+function inView(lat, lng, map) {
+  const b = map.getBounds();
+  const sw = b.getSouthWest();
+  const ne = b.getNorthEast();
+  return lat >= sw.getLat() && lat <= ne.getLat() && lng >= sw.getLng() && lng <= ne.getLng();
+}
 
-// ===== 줌 기준 =====
-const DETAIL_MAX_LEVEL = 5; // <= 5 : 개별 상세 마커
-const DONG_MAX_LEVEL = 8; // 7~8 : 동 단위 집계, >=9 : 구 단위 집계
-
-// ===== (유틸) 그룹핑 & 센트로이드 =====
-// ==== CHANGED: level 대신 mode 사용 ('dong' | 'gu') ====
-function groupByRegion(points, mode) {
-  const groups = new Map();
-
-  points.forEach(p => {
-    const cached = globalThis._geoCache?.get(p.address);
-    // ==== CHANGED: 여기서 동/구를 명시적으로 고정 ====
-    const key = mode === 'gu' ? cached?.guLaw || '기타' : cached?.dongLaw || '기타';
-
-    if (!groups.has(key)) {
-      groups.set(key, {
-        key,
-        totalSum: 0,
-        visits: 0,
-        latSum: 0,
-        lngSum: 0,
-        count: 0,
-        members: [],
-      });
-    }
-
-    const g = groups.get(key);
-    g.totalSum += Number(p.amount || 0);
-    g.visits += Number(p.visits || 0);
-
-    if (cached?.lat && cached?.lng) {
-      g.latSum += cached.lat;
-      g.lngSum += cached.lng;
-      g.count++;
-    }
-
-    if (p.raw) g.members.push(p.raw);
-  });
-
-  return Array.from(groups.values()).map(g => ({
-    key: g.key,
-    totalSum: g.totalSum,
-    visits: g.visits,
-    lat: g.count ? g.latSum / g.count : undefined,
-    lng: g.count ? g.lngSum / g.count : undefined,
-    members: g.members,
-  }));
+/** 카테고리 표시(두 번째 단계 우선, 없으면 첫 단계) */
+function getCatLabel(categoryName) {
+  if (!categoryName) return '기타';
+  const parts = String(categoryName)
+    .split('>')
+    .map(s => s.trim())
+    .filter(Boolean);
+  if (parts.length >= 2) return parts[1];
+  if (parts.length >= 1) return parts[0];
+  return '기타';
 }
 
 export default function MapPanel() {
   const theme = useTheme();
-  const { mapData } = useSearchMapState();
+  const { mapData } = useSearchMapState(); // { details: {...}, summaries: {depth0,depth1,depth2}}
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
 
   const searchCondition = useRecoilValue(mapSearchFilterState);
   const user = useRecoilValue(userState);
 
-  const firstGeocodeRef = useRef(true);
-  const [deleteText, setDeleteText] = useState('');
-  const fileInputRef = useRef(null);
-  const mapSearch = useMapSearch();
-
   const [open, setOpen] = useState(false);
   const [detailParams, setDetailParams] = useState(null);
 
+  const fileInputRef = useRef(null);
+  const [deleteText, setDeleteText] = useState('');
+  const mapSearch = useMapSearch();
+
   const handleSearch = () => {
-    const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
     const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
       input: searchCondition.input,
@@ -134,42 +73,36 @@ export default function MapPanel() {
     mapSearch(params);
   };
 
-  const handleExcelUploadClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleExcelUploadClick = () => fileInputRef.current?.click();
 
   const handleExcelFileChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.xlsx') && !name.endsWith('.xls')) {
       toast.error('엑셀 파일(.xlsx, .xls)만 업로드할 수 있습니다.');
       return;
     }
-
     const formData = new FormData();
     formData.append('multipartFile', file);
-
     try {
       await api.post('/cham/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success('엑셀 파일이 업로드되었습니다.');
       await handleSearch();
-    } catch (error) {
-      console.log('error', error);
-      const errorMessage = error.response?.data?.message ?? '업로드 실패';
-      toast.error(errorMessage);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message ?? '업로드 실패');
     } finally {
       e.target.value = '';
     }
   };
 
-  // 최초 지도 생성
+  /** 최초 지도 생성 */
   useEffect(() => {
-    const loadScript = () => {
-      return new Promise(resolve => {
+    const loadScript = () =>
+      new Promise(resolve => {
         const script = document.createElement('script');
         const mapKey = import.meta.env.VITE_KAKAO_MAP_ID;
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${mapKey}&autoload=false&libraries=services`;
@@ -177,20 +110,19 @@ export default function MapPanel() {
         document.head.appendChild(script);
         script.onload = resolve;
       });
-    };
 
     const initMap = () => {
       window.kakao.maps.load(() => {
         const container = document.getElementById('map');
         const map = new window.kakao.maps.Map(container, {
           center: new window.kakao.maps.LatLng(36.3504, 127.3845),
-          level: 9,
+          level: 10, // 구 집계로 시작
         });
-
         const zoomControl = new window.kakao.maps.ZoomControl();
         map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
         window.mapInstance = map;
 
+        // 대전 근처 bounds
         const bounds = new window.kakao.maps.LatLngBounds();
         bounds.extend(new window.kakao.maps.LatLng(36.461, 127.275));
         bounds.extend(new window.kakao.maps.LatLng(36.281, 127.493));
@@ -200,352 +132,186 @@ export default function MapPanel() {
       });
     };
 
-    loadScript().then(() => {
-      window.kakao.maps.load(() => {
-        initMap();
-      });
-    });
+    loadScript().then(() => window.kakao.maps.load(initMap));
   }, []);
 
+  /** (DB 데이터만 사용) */
   useEffect(() => {
     if (!window.kakao?.maps || !window.mapInstance || !mapReady) return;
     if (!mapData) return;
 
-    if (Object.keys(mapData).length === 0) {
-      if (globalThis._overlays) {
-        globalThis._overlays.forEach(e => e.overlay.setMap(null));
-        globalThis._overlays.clear?.();
-      }
-      if (globalThis._aggOverlays) {
-        globalThis._aggOverlays.forEach(o => o.setMap(null));
-        globalThis._aggOverlays.clear?.();
-      }
-      setCenterAddr([]);
-      return;
-    }
-
     const map = window.mapInstance;
-    if (!globalThis._geoCache) globalThis._geoCache = new Map();
-    if (!globalThis._overlays) globalThis._overlays = new Map();
-    if (!globalThis._aggOverlays) globalThis._aggOverlays = new Map();
 
-    const doOnce = async () => {
-      const points = Object.values(mapData || {})
-        .map(item => ({
-          address: item.addrDetail,
-          amount: item.totalSum,
-          raw: item,
-          visits: item.visits,
-        }))
-        .filter(p => !!p.address);
+    // 오버레이 캐시
+    if (!globalThis._detailOverlays) globalThis._detailOverlays = new Map(); // addrDetail → CustomOverlay
+    if (!globalThis._aggOverlays) globalThis._aggOverlays = new Map(); // key(path/depth) → CustomOverlay
 
-      const addrSet = new Set(points.map(p => p.address));
-      if (globalThis._overlays) {
-        globalThis._overlays.forEach((entry, addr) => {
-          if (!addrSet.has(addr)) {
-            entry.overlay.setMap(null);
-            globalThis._overlays.delete(addr);
-          }
-        });
-      }
+    const hideAll = () => {
+      globalThis._detailOverlays.forEach(o => o.setMap(null));
+      globalThis._aggOverlays.forEach(o => o.setMap(null));
+    };
 
-      const bounds = map.getBounds();
-      const sw = bounds.getSouthWest();
-      const ne = bounds.getNorthEast();
-      const inViewByLatLng = (lat, lng) =>
-        lat >= sw.getLat() && lat <= ne.getLat() && lng >= sw.getLng() && lng <= ne.getLng();
-
-      const need = points.filter(p => !globalThis._geoCache.has(p.address)).map(p => p.address);
-
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-      // ==== 수정된 부분 시작 ====
-      const geocodeOne = async addr => {
-        if (globalThis._geoCache.has(addr)) return;
-
-        const coords = await new Promise(resolve => {
-          geocoder.addressSearch(addr, (result, status) => {
-            if (status === window.kakao.maps.services.Status.OK && result?.[0]) {
-              resolve({
-                lat: parseFloat(result[0].y),
-                lng: parseFloat(result[0].x),
-              });
-            } else {
-              resolve(null);
-            }
-          });
-        });
-
-        if (!coords) {
-          globalThis._geoCache.set(addr, null);
-          return;
-        }
-
-        // 좌표 → 동/구를 반드시 await
-        const regionInfo = await new Promise(resolve => {
-          geocoder.coord2RegionCode(coords.lng, coords.lat, (res, status) => {
-            if (status === window.kakao.maps.services.Status.OK && res?.length) {
-              const law = res.find(r => r.region_type === 'B'); // 법정동 기준
-              resolve({
-                guLaw: law?.region_2depth_name ?? null,
-                dongLaw: law?.region_3depth_name ?? null,
-              });
-            } else {
-              resolve({ guLaw: null, dongLaw: null });
-            }
-          });
-        });
-
-        const categoryInfo = await fetch(
-          `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=FD6&x=${coords.lng}&y=${coords.lat}&radius=50`,
-          {
-            headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_CLIENT_ID}` },
-          }
-        )
-          .then(res => res.json())
-          .catch(() => null);
-
-        //카테고리 받아오기
-        let category = '기타'; // 기본값 기타
-        if (categoryInfo?.documents?.length) {
-          category = categoryInfo.documents[0] || '기타';
-        }
-
-        globalThis._geoCache.set(addr, {
-          ...coords,
-          ...regionInfo,
-          category,
-        });
-      };
-
-      const runQueue = async addresses => {
-        if (!addresses || addresses.length === 0) return;
-        const isFirst = firstGeocodeRef.current;
-        let toastId;
-
-        if (isFirst) {
-          //클릭 막기
-          const el = document.getElementById('map');
-          el?.style.setProperty('pointer-events', 'none');
-          el?.style.setProperty('touch-action', 'none');
-          toastId = toast.loading('지도 위치를 불러오는 중 입니다.');
-          document.body.style.pointerEvents = 'none';
-          document.body.style.touchAction = 'none';
-        }
-
-        //api 요청 조절(무료일 경우 제한)
-        const CONCURRENCY = 10;
-        const BATCH_DELAY = 100;
-
-        for (let i = 0; i < addresses.length; i += CONCURRENCY) {
-          const slice = addresses.slice(i, i + CONCURRENCY);
-          await Promise.all(slice.map(geocodeOne));
-          if (i + CONCURRENCY < addresses.length) {
-            await sleep(BATCH_DELAY);
-          }
-        }
-
-        // 안전을 위해 살짝 대기
-        await sleep(200);
-
-        if (isFirst) {
-          if (toastId) {
-            toast.update(toastId, {
-              render: '지도 위치를 불러왔습니다.',
-              type: 'success',
-              isLoading: false,
-              autoClose: 1000,
-            });
-
-            //클릭 해제
-            const el = document.getElementById('map');
-            el?.style.removeProperty('pointer-events');
-            el?.style.removeProperty('touch-action');
-            document.body.style.pointerEvents = '';
-            document.body.style.touchAction = '';
-          }
-          firstGeocodeRef.current = false;
-        }
-      };
-      // ==== 수정된 부분 끝 ====
-
-      await runQueue(need);
-
+    const draw = () => {
       const level = map.getLevel();
-      const visibleItems = [];
-      const showDetail = level <= DETAIL_MAX_LEVEL;
 
-      if (showDetail) {
-        globalThis._aggOverlays.forEach(o => o.setMap(null));
-        for (const { address, amount, visits, raw } of points) {
-          const cached = globalThis._geoCache.get(address);
-          if (!cached?.lat || !cached?.lng) continue;
-          const show = inViewByLatLng(cached.lat, cached.lng);
-          let entry = globalThis._overlays.get(address);
-          const categoryName =
-            cached?.category === '기타' ? '기타' : cached?.category?.category_name;
+      const isDetail = level <= DETAIL_MAX_LEVEL;
+      const isDong = level >= DONG_MAX_LEVEL_MIN && level <= DONG_MAX_LEVEL_MAX;
+      const isGu = level >= GU_LEVEL_MIN && level <= GU_LEVEL_MAX;
+      const isSido = level >= SIDO_LEVEL_MIN;
 
-          const parts = categoryName.split('>').map(s => s.trim());
+      // 항상 현재 화면에 보이는 '디테일' 객체들을 리스트로 넘긴다
+      const visibleDetails = [];
 
-          //둘째자리
-          const first = parts[1] ? parts[1] : parts[0];
-          //셋째자리
-          const third = parts.slice(0, 3).join(' > ');
+      // ========== 상세 오버레이(마커) 갱신 ==========
+      const details = Object.values(mapData?.details || {});
+      details.forEach(item => {
+        const coords = toLatLng(item.x, item.y);
+        if (!coords) return;
 
-          if (!entry) {
-            const div = document.createElement('div');
-            div.style.cssText = `
-              display:flex;align-items:center;justify-content:center;
-              background:${theme.colors.primary};color:white;padding:5px 12px;
-              border-radius:20px;font-weight:bold;font-size:${theme.sizes.medium};
-              white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
-            `;
-            div.innerHTML =
-              `${first}&nbsp;` +
-              `${(raw.totalSum ?? amount)?.toLocaleString()}원&nbsp;&nbsp;&nbsp;` +
-              `<i class="fa fa-walking"></i>&nbsp;${raw.visits ?? visits}`;
+        const key = item.addrDetail || `${coords.lat},${coords.lng}`;
+        let overlay = globalThis._detailOverlays.get(key);
 
-            const catLabel = third;
+        // 오버레이 생성 (카테고리/금액/방문수 표기 + 클릭시 상세 모달)
+        if (!overlay) {
+          const div = document.createElement('div');
+          div.style.cssText = `
+            display:flex;align-items:center;justify-content:center;
+            background:${theme.colors.primary};color:white;padding:5px 12px;
+            border-radius:20px;font-weight:bold;font-size:${theme.sizes.medium};
+            white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
+          `;
+          const catLabel = getCatLabel(item.categoryName);
+          div.innerHTML =
+            `${catLabel}&nbsp;${(item.totalSum ?? 0).toLocaleString()}원&nbsp;&nbsp;&nbsp;` +
+            `<i class="fa fa-walking"></i>&nbsp;${item.visits ?? 0}`;
 
-            div.addEventListener('click', () => {
-              const params = {
-                addrDetail: raw.addrDetail,
-                detail: true,
-                catLabel: catLabel,
-              };
-              setDetailParams(params);
-              setOpen(true);
-            });
+          div.addEventListener('click', () => {
+            const params = {
+              cardOwnerPositionId: searchCondition.selectedRole?.value,
+              cardUseName: searchCondition.cardUseName,
+              numberOfVisits: searchCondition.numberOfVisits,
+              addrName: searchCondition.addrName,
+              startDate: searchCondition.startDate?.toISOString?.().split('T')[0],
+              endDate: searchCondition.endDate?.toISOString?.().split('T')[0],
+              sortOrder: searchCondition.sortOrder,
+              addrDetail: item.addrDetail,
+              detail: true,
+              catLabel: item.categoryName || '기타',
+            };
+            setDetailParams(params);
+            setOpen(true);
+          });
 
-            const overlay = new window.kakao.maps.CustomOverlay({
-              position: new window.kakao.maps.LatLng(cached.lat, cached.lng),
-              content: div,
-              yAnchor: 1,
-              zIndex: 1,
-            });
-            entry = { overlay };
-            globalThis._overlays.set(address, entry);
+          overlay = new window.kakao.maps.CustomOverlay({
+            position: new window.kakao.maps.LatLng(coords.lat, coords.lng),
+            content: div,
+            yAnchor: 1,
+            zIndex: 1,
+          });
 
-            //마우스 확대추가
-            div.addEventListener('mouseenter', () => {
-              div.style.transform = 'scale(1.25)';
-              overlay.setZIndex(9999);
-            });
+          // hover 효과
+          div.addEventListener('mouseenter', () => {
+            div.style.transform = 'scale(1.25)';
+            overlay.setZIndex(9999);
+          });
+          div.addEventListener('mouseleave', () => {
+            div.style.transform = 'scale(1)';
+            overlay.setZIndex(1);
+          });
 
-            //마우스 축소
-            div.addEventListener('mouseleave', () => {
-              div.style.transform = 'scale(1)';
-              div.style.zIndex = '1';
-              overlay.setZIndex(1);
-            });
-          }
-          if (show) {
-            entry.overlay.setMap(map);
-
-            const { category } = getCatFromCache(address);
-
-            visibleItems.push({
-              ...raw,
-              categoryLabel: category?.category_name,
-            });
-          } else {
-            entry.overlay.setMap(null);
-          }
-        }
-        setCenterAddr(visibleItems);
-      } else {
-        globalThis._overlays.forEach(e => e.overlay.setMap(null));
-
-        // ==== 추가: 이전 집계 오버레이 전부 초기화 ====
-        globalThis._aggOverlays.forEach(o => o.setMap(null));
-        globalThis._aggOverlays.clear?.();
-
-        let groups = [];
-        if (level > DETAIL_MAX_LEVEL && level <= DONG_MAX_LEVEL) {
-          groups = groupByRegion(points, 'dong'); // 동만
-        } else if (level >= DONG_MAX_LEVEL + 1) {
-          groups = groupByRegion(points, 'gu'); // 구만
+          globalThis._detailOverlays.set(key, overlay);
+        } else {
+          overlay.setPosition(new window.kakao.maps.LatLng(coords.lat, coords.lng));
         }
 
-        const visibleMembers = [];
-        groups.forEach(g => {
-          if (!g.lat || !g.lng) return;
-          const show = inViewByLatLng(g.lat, g.lng);
-          let overlay = globalThis._aggOverlays.get(g.key);
+        // 상세 모드일 때만 지도에 보이게
+        if (isDetail && inView(coords.lat, coords.lng, map)) {
+          overlay.setMap(map);
+        } else {
+          overlay.setMap(null);
+        }
+
+        // 화면에 보이는 디테일은 리스트에 싹 담아 보냄 (모드 무관)
+        if (inView(coords.lat, coords.lng, map)) {
+          visibleDetails.push({
+            ...item,
+            categoryLabel: item.categoryName || '기타',
+          });
+        }
+      });
+
+      // ========== 집계(시/구/동) 오버레이 갱신 ==========
+      globalThis._aggOverlays.forEach(o => o.setMap(null)); // 모드 바뀔 수 있으니 일단 숨김
+
+      const pick = isDong
+        ? mapData?.summaries?.depth2
+        : isGu
+          ? mapData?.summaries?.depth1
+          : isSido
+            ? mapData?.summaries?.depth0
+            : [];
+
+      if (!isDetail && Array.isArray(pick)) {
+        pick.forEach(g => {
+          const coords = toLatLng(g.x, g.y);
+          if (!coords) return;
+          if (!inView(coords.lat, coords.lng, map)) return;
+
+          const key = `${g.depth}-${g.regionId}-${g.path}`;
+          let overlay = globalThis._aggOverlays.get(key);
+
           if (!overlay) {
             const div = document.createElement('div');
             div.style.cssText = `
-        display:flex;align-items:center;justify-content:center;text-align:center;
-        background:${theme.colors.primary};color:white;padding:10px 14px;
-        border-radius:24px;font-weight:bold;font-size:${theme.sizes.medium};
-        white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;
-      `;
-            div.innerHTML = `${g.key}&nbsp; &nbsp;<i class="fa fa-walking"></i>&nbsp; ${g.visits}회`;
+              display:flex;align-items:center;justify-content:center;text-align:center;
+              background:${theme.colors.primary};color:white;padding:10px 14px;
+              border-radius:24px;font-weight:bold;font-size:${theme.sizes.medium};
+              white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;
+            `;
+            // 집계 뱃지 (지역명 + 방문수)
+            div.innerHTML = `${g.path}&nbsp;&nbsp;<i class="fa fa-walking"></i>&nbsp;${g.count ?? 0}회`;
 
-            //클릭시 줌 확장
+            // 클릭 시 한 칸 확대 + 그 위치로 센터 이동
             div.addEventListener('click', () => {
-              const map = window.mapInstance;
-              const latlng = new window.kakao.maps.LatLng(g.lat, g.lng);
-
-              // 중심 이동
+              const latlng = new window.kakao.maps.LatLng(coords.lat, coords.lng);
               map.setCenter(latlng);
-              // 줌 인 (현재 레벨에서 -1 = 한 단계 확대)
-              map.setLevel(map.getLevel() - 1);
+              map.setLevel(Math.max(1, map.getLevel() - 1));
             });
 
             overlay = new window.kakao.maps.CustomOverlay({
-              position: new window.kakao.maps.LatLng(g.lat, g.lng),
+              position: new window.kakao.maps.LatLng(coords.lat, coords.lng),
               content: div,
               yAnchor: 1,
               zIndex: 1,
             });
-            globalThis._aggOverlays.set(g.key, overlay);
 
-            //마우스 확대추가
+            // hover
             div.addEventListener('mouseenter', () => {
               div.style.transform = 'scale(1.25)';
               overlay.setZIndex(9999);
             });
-
-            //마우스 축소
             div.addEventListener('mouseleave', () => {
               div.style.transform = 'scale(1)';
-              div.style.zIndex = '1';
               overlay.setZIndex(1);
             });
+
+            globalThis._aggOverlays.set(key, overlay);
           } else {
-            overlay.setPosition(new window.kakao.maps.LatLng(g.lat, g.lng));
+            overlay.setPosition(new window.kakao.maps.LatLng(coords.lat, coords.lng));
           }
-          if (show) {
-            overlay.setMap(map);
-            if (Array.isArray(g.members) && g.members.length) {
-              visibleMembers.push(...g.members);
-            }
-          } else {
-            overlay.setMap(null);
-          }
+
+          overlay.setMap(map);
         });
-
-        setCenterAddr(
-          visibleMembers.map(m => {
-            const { category } = getCatFromCache(m.addrDetail);
-
-            return {
-              ...m,
-              categoryLabel: category?.category_name ? category?.category_name : '기타',
-            };
-          })
-        );
       }
+
+      // 항상 ‘현재 화면에 보이는 디테일들’을 리스트 상태로 전달 (모드 무관)
+      setCenterAddr(visibleDetails);
     };
 
-    doOnce();
-    const idleHandler = () => doOnce();
-    window.kakao.maps.event.addListener(map, 'idle', idleHandler);
-    return () => {
-      window.kakao.maps.event.removeListener(map, 'idle', idleHandler);
-    };
+    draw();
+    const idle = () => draw();
+    window.kakao.maps.event.addListener(map, 'idle', idle);
+    return () => window.kakao.maps.event.removeListener(map, 'idle', idle);
   }, [mapData, mapReady, setCenterAddr, theme, searchCondition]);
 
   return (
@@ -554,8 +320,7 @@ export default function MapPanel() {
         {user?.role === 'ADMIN' && (
           <ExcelSection>
             <ExcelButton onClick={handleExcelUploadClick}>
-              <AiOutlineUpload />
-              추가
+              <AiOutlineUpload /> 추가
             </ExcelButton>
             <input
               type="file"
@@ -584,8 +349,8 @@ export default function MapPanel() {
                           await handleSearch();
                         } catch (e) {
                           console.error(e);
-                          const errorMessage = e.response?.data?.message ?? '삭제 실패';
-                          toast.error(errorMessage);
+                          const msg = e.response?.data?.message ?? '삭제 실패';
+                          toast.error(msg);
                         }
                       },
                     },
@@ -594,13 +359,13 @@ export default function MapPanel() {
                 });
               }}
             >
-              <AiOutlineDelete />
-              삭제
+              <AiOutlineDelete /> 삭제
             </ExcelButton>
           </ExcelSection>
         )}
         <MapContainer id="map" />
       </MapBox>
+
       <Modal open={open} onClose={() => setOpen(false)} title="상세보기">
         <DetailPage initialParams={detailParams} />
       </Modal>
@@ -608,22 +373,21 @@ export default function MapPanel() {
   );
 }
 
+/* ===== styled ===== */
 const MapBox = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
 `;
-
 const MapContainer = styled.div`
   width: 100%;
   height: 100%;
 `;
-
 const ExcelSection = styled.div`
   position: absolute;
   top: 10px;
   left: 50%;
-  transform: translate(-50%, -0%);
+  transform: translate(-50%, 0);
   display: flex;
   background-color: #ffffff;
   border-radius: 999px;
@@ -634,7 +398,6 @@ const ExcelSection = styled.div`
   gap: 8px;
   z-index: 2;
 `;
-
 const ExcelButton = styled.button`
   display: flex;
   align-items: center;
@@ -657,7 +420,6 @@ const ExcelButton = styled.button`
     padding: 6px 12px;
   }
 `;
-
 const DeleteInput = styled.input`
   border: none;
   background: unset;
@@ -667,4 +429,3 @@ const DeleteInput = styled.input`
     border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
   }
 `;
-``;

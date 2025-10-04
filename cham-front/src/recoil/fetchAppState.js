@@ -78,7 +78,7 @@ export function useFetchDetailData() {
       console.log('addr', addr);
       const res = await api.get(`/cham/cardUseDetail?addrDetail=${addr}`);
       setDetailState({
-        mapDetailData: res.data,
+        mapDetailData: res.data.details,
         mapDetailLoading: false,
       });
 
