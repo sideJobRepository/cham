@@ -85,54 +85,59 @@ export default function TopHeader() {
   }, [isOpen]);
 
   useEffect(() => {
-    let timerId = null;
+    let loginTimer = null;
+    let donateTimer = null;
 
-    let title;
-    let message;
-    let gb = false;
-
-    if (user) {
-      title = <>업추비 맛집 지도가 정식 오픈할 수 있도록, 힘을 보태주세요!</>;
-      message = (
-        <>
-          업무추진비 맛집지도'는 시민 여러분의 참여로 완성되는 투명 사회 프로젝트입니다. <br />
-          안정적인 서비스 개발과 운영을 위해 여러분의 소중한 후원이 절실합니다. <br /> 함께 만드는
-          변화의 씨앗에 동참해주세요!
-        </>
-      );
-      gb = true;
-    } else {
-      title = <>맛집지도' 120% 활용하기</>;
-      message = (
-        <>
-          로그인하시면 [댓글, 가봤어요, 궁금해요 등 관심가게 등록] 더 많은 기능을 이용할 수
-          있습니다.
-        </>
-      );
-      gb = false;
-    }
-
-    const showConfirm = () => {
+    const openDonate = () => {
       showConfirmModal({
-        title: title,
-        message: message,
-        gb: gb,
-        onConfirm: () => {
-          if (gb) {
-            window.open('https://secure.donus.org/djcham/pay/step1', '_blank');
-          } else {
-            setIsLoginModalOpen(true);
-          }
-        },
+        title: <>업추비 맛집 지도가 정식 오픈할 수 있도록, 힘을 보태주세요!</>,
+        message: (
+          <>
+            업무추진비 맛집지도'는 시민 여러분의 참여로 완성되는 투명 사회 프로젝트입니다. <br />
+            안정적인 서비스 개발과 운영을 위해 여러분의 소중한 후원이 절실합니다. <br />
+            함께 만드는 변화의 씨앗에 동참해주세요!
+          </>
+        ),
+        gb: true,
+        onConfirm: () => window.open('https://secure.donus.org/djcham/pay/step1', '_blank'),
       });
-
-      timerId = setTimeout(showConfirm, 3 * 60 * 1000);
     };
 
-    timerId = setTimeout(showConfirm, 3 * 60 * 1000);
+    const openLogin = () => {
+      showConfirmModal({
+        title: <>맛집지도' 120% 활용하기</>,
+        message: (
+          <>
+            로그인하시면 [댓글, 가봤어요, 궁금해요 등 관심가게 등록] 등 더 많은 기능을 이용할 수
+            있습니다.
+          </>
+        ),
+        gb: false,
+        onConfirm: () => setIsLoginModalOpen(true),
+      });
+    };
+
+    // 타이머 초기화
+    if (loginTimer) clearTimeout(loginTimer);
+    if (donateTimer) clearTimeout(donateTimer);
+
+    if (!user) {
+      // 비로그인: 3분 후 로그인 > 로그인 팝업 닫히고 3분 뒤 후원 팝업
+      loginTimer = setTimeout(
+        () => {
+          openLogin();
+          donateTimer = setTimeout(openDonate, 3 * 60 * 1000);
+        },
+        3 * 60 * 1000
+      );
+    } else {
+      // 로그인: 3분 후 후원 팝업 한 번만
+      donateTimer = setTimeout(openDonate, 3 * 60 * 1000);
+    }
 
     return () => {
-      if (timerId) clearTimeout(timerId);
+      if (loginTimer) clearTimeout(loginTimer);
+      if (donateTimer) clearTimeout(donateTimer);
     };
   }, [user]);
 
