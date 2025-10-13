@@ -444,9 +444,8 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     String r2 = a.getRegion_2depth_name(); // 서구
                     String r3 = a.getRegion_3depth_name(); // 탄방동
                     
-                    saveMetropolis(r1);      // 0-depth
-                    saveGu(r1, r2);                                 // 1-depth
-                    return saveDong(r1, r2, r3); // 2-depth
+                    String region = r1 + " " + r2 + " " + r3;
+                    return saveRegionByName(region);
                 })
                 .orElse(null);
         
@@ -471,88 +470,119 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         return saved;
     }
     
- 
+    
+    
+    public ChamMonimapRegion saveRegionByName(String query) {
+        RestClient client = RestClient.create();
+        
+        // 1️주소명으로 좌표 검색
+        KakaoAddressResponse addressResp = client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("dapi.kakao.com")
+                        .path("/v2/local/search/address")
+                        .queryParam("query", query)
+                        .build())
+                .header("Authorization", "KakaoAK " + kakaoClientId)
+                .retrieve()
+                .toEntity(KakaoAddressResponse.class)
+                .getBody();
+        
+        if (addressResp == null || addressResp.getDocuments().isEmpty()) {
+            return null;
+        }
+        
+        KakaoAddressResponse.Address address = addressResp.getDocuments().get(0).getAddress();
+        String x = address.getX();
+        String y = address.getY();
 
-    // 광역시 저장
-    private void saveMetropolis(String region1depthName) {
-        ChamMonimapRegion findCity = regionRepository.findByCity(region1depthName);
-        if (findCity == null) {
-            RestClient restClient = RestClient.create();
-            KakaoAddressResponse body = restClient.get()
-                    .uri(uriBuilder ->
-                            uriBuilder.scheme("https")
-                                    .host("dapi.kakao.com")
-                                    .path("/v2/local/search/address")
-                                    .queryParam("query", region1depthName)
-                                    .build()
-                    )
-                    .header("Authorization", "KakaoAK " + kakaoClientId)
-                    .retrieve()
-                    .toEntity(KakaoAddressResponse.class)
-                    .getBody();
-            if (body != null) {
-                KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
-                String x = address.getX();
-                String y = address.getY();
-                ChamMonimapRegion metropolis = new ChamMonimapRegion(null, region1depthName, "METROPOLIS", 0, x, y);
-                regionRepository.save(metropolis);
-            }
+        // 2좌표 → 행정구역 조회
+        KakaoRegionResponse regionResp = client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("dapi.kakao.com")
+                        .path("/v2/local/geo/coord2regioncode")
+                        .queryParam("x", x)
+                        .queryParam("y", y)
+                        .build())
+                .header("Authorization", "KakaoAK " + kakaoClientId)
+                .retrieve()
+                .toEntity(KakaoRegionResponse.class)
+                .getBody();
+        
+        if (regionResp == null || regionResp.getDocuments().isEmpty()) {
+            return null;
         }
+        
+        KakaoRegionResponse.Document doc = regionResp.getDocuments().get(0);
+
+        // 0뎁스(도/광역시) 타입 자동 판별
+        String depth0Name = doc.getRegion1depthName();
+        String depth0Type;
+        
+        if (
+                depth0Name.endsWith("시") ||
+                        depth0Name.contains("광역시") ||
+                        depth0Name.contains("특별시") ||
+                        depth0Name.equals("제주특별자치도")
+        ) {
+            depth0Type = "METROPOLIS"; // 광역시, 특별시, 제주특별자치도
+        } else {
+            depth0Type = "DO"; // 도 단위는 GUN으로 저장
+        }
+        String depth1Name = doc.getRegion2depthName();
+        String depth1Type = "CITY"; // 기본값
+        
+        if (depth1Name != null && !depth1Name.isBlank()) {
+            // 마지막 단어 기준으로 판별 ("천안시 동남구" → "동남구")
+            String[] parts = depth1Name.trim().split("\\s+");
+            String last = parts[parts.length - 1];
+            
+            if (last.endsWith("구")) depth1Type = "GU";
+            else if (last.endsWith("군")) depth1Type = "GUN";
+            else if (last.endsWith("읍")) depth1Type = "EUP";
+            else if (last.endsWith("면")) depth1Type = "MYEON";
+            else if (last.endsWith("시")) depth1Type = "CITY";
+        }
+        
+        //도, 시/구, 동 계층 저장
+        ChamMonimapRegion province = saveOrGetRegion(
+                null,
+                depth0Name,
+                depth0Type,   // 자동 판별된 타입 적용
+                0,
+                doc.getX(),
+                doc.getY()
+        );
+        // 시/군/구/읍/면 자동 타입 저장
+        ChamMonimapRegion city = saveOrGetRegion(
+                province,
+                depth1Name,
+                depth1Type, // 동적으로 구분된 타입
+                1,
+                doc.getX(),
+                doc.getY()
+        );
+        
+        
+        return saveOrGetRegion(
+                city,
+                doc.getRegion3depthName(),
+                "DONG",
+                2,
+                doc.getX(),
+                doc.getY()
+        );
     }
     
-    private void saveGu(String region1depthName,String region2depthName) {
-        ChamMonimapRegion findGu = regionRepository.findByGu(region1depthName, region2depthName);
-        if (findGu == null) {
-            RestClient restClient = RestClient.create();
-            KakaoAddressResponse body = restClient.get()
-                    .uri(uriBuilder ->
-                            uriBuilder.scheme("https")
-                                    .host("dapi.kakao.com")
-                                    .path("/v2/local/search/address")
-                                    .queryParam("query", region1depthName + " " + region2depthName)
-                                    .build()
-                    )
-                    .header("Authorization", "KakaoAK " + kakaoClientId)
-                    .retrieve()
-                    .toEntity(KakaoAddressResponse.class)
-                    .getBody();
-            if (body != null) {
-                KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
-                ChamMonimapRegion findCity = regionRepository.findByCity(region1depthName);
-                String x = address.getX();
-                String y = address.getY();
-                ChamMonimapRegion gu = new ChamMonimapRegion(findCity, region2depthName, "GU", 1, x, y);
-                regionRepository.save(gu);
-            }
-        }
-    }
-    
-    private ChamMonimapRegion saveDong(String region1depthName,String region2depthName,String region3depthName) {
-        ChamMonimapRegion findDong = regionRepository.findByDong(region1depthName, region2depthName,region3depthName);
-        if (findDong == null) {
-            RestClient restClient = RestClient.create();
-            KakaoAddressResponse body = restClient.get()
-                    .uri(uriBuilder ->
-                            uriBuilder.scheme("https")
-                                    .host("dapi.kakao.com")
-                                    .path("/v2/local/search/address")
-                                    .queryParam("query", region1depthName + " " + region2depthName + " " + region3depthName)
-                                    .build()
-                    )
-                    .header("Authorization", "KakaoAK " + kakaoClientId)
-                    .retrieve()
-                    .toEntity(KakaoAddressResponse.class)
-                    .getBody();
-            if (body != null) {
-                KakaoAddressResponse.Address address = body.getDocuments().get(0).getAddress();
-                ChamMonimapRegion findGu = regionRepository.findByGu(region1depthName,region2depthName);
-                String x = address.getX();
-                String y = address.getY();
-                ChamMonimapRegion Dong = new ChamMonimapRegion(findGu, region3depthName, "DONG", 2, x, y);
-                return regionRepository.save(Dong);
-            }
-        }
-        return findDong;
+    private ChamMonimapRegion saveOrGetRegion(ChamMonimapRegion parent, String name, String type, int depth, String x, String y) {
+        if (name == null || name.isBlank()) return null;
+        
+        ChamMonimapRegion existing = regionRepository.findByNameAndDepth(name, depth);
+        if (existing != null) return existing;
+        
+        ChamMonimapRegion region = new ChamMonimapRegion(parent, name, type, depth, x, y);
+        return regionRepository.save(region);
     }
     
     
@@ -606,6 +636,22 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 .depth2(depth2)
                 .build();
     }
+    private String normalizeRegionName(String name) {
+        if (name == null) return null;
+        return name
+                .replace("충청북도", "충북")
+                .replace("충청남도", "충남")
+                .replace("경상북도", "경북")
+                .replace("경상남도", "경남")
+                .replace("전라북도", "전북")
+                .replace("전라남도", "전남")
+                .replace("제주특별자치도", "제주")
+                .replace("서울특별시", "서울")
+                .replace("대전광역시", "대전")
+                .replace("부산광역시", "부산")
+                .replace("인천광역시", "인천");
+    }
+    
     
     
 }

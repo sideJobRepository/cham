@@ -10,4 +10,8 @@ public interface ChamMonimapRegionQueryRepository {
     ChamMonimapRegion findByGu(String region1depthName,String region2depthName);
     
     ChamMonimapRegion findByDong(String region1depthName,String region2depthName,String region3depthName);
+    
+    ChamMonimapRegion findByNameAndDepth(String name, int depth);
+    
+    
 }

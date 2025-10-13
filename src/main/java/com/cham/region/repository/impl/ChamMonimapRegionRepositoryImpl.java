@@ -54,4 +54,15 @@ public class ChamMonimapRegionRepositoryImpl implements ChamMonimapRegionQueryRe
                 )
                 .fetchFirst();
     }
+    
+    @Override
+    public ChamMonimapRegion findByNameAndDepth(String name, int depth) {
+        return queryFactory
+                .selectFrom(chamMonimapRegion)
+                .where(
+                        chamMonimapRegion.chamMonimapRegionName.eq(name),
+                        chamMonimapRegion.chamMonimapRegionDepth.eq(depth)
+                )
+                .fetchFirst();
+    }
 }
