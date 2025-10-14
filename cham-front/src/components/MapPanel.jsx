@@ -124,17 +124,23 @@ function createTempPin(lat, lng) {
 
   const head = document.createElement('div'); // 초록 동그라미
   head.style.cssText = `
-    width:14px;height:14px;border-radius:50%;
-    background:#2ecc71;box-shadow:0 2px 6px rgba(46,204,113,.35);
-  `;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:#f57c00; 
+  border:3px solid white; 
+`;
 
-  const tip = document.createElement('div'); // 초록 세모
+  const tip = document.createElement('div');
   tip.style.cssText = `
-    width:0;height:0;margin-top:2px;
-    border-left:6px solid transparent;border-right:6px solid transparent;
-    border-top:8px solid #2ecc71;
-    filter: drop-shadow(0 1px 2px rgba(46,204,113,.35));
-  `;
+  width:0;
+  height:0;
+  margin-top:1px;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:10px solid #f57c00;
+  position:relative;
+`;
 
   wrap.appendChild(head);
   wrap.appendChild(tip);
@@ -227,14 +233,12 @@ function markOverlayHit(overlay) {
 
   el.dataset.prevBg = el.style.background || '';
   el.dataset.prevColor = el.style.color || '';
-  el.dataset.prevShadow = el.style.boxShadow || '';
   el.dataset.prevZ = String(overlay.getZIndex?.() ?? Z_BASE);
   el.dataset.searchHit = '1';
   el.dataset.fixedZ = '1'; // hover에 zIndex 안 바꾸도록 플래그
 
-  el.style.background = '#2ecc71';
+  el.style.background = '#fb8c00';
   el.style.color = '#fff';
-  el.style.boxShadow = '0 2px 12px rgba(46,204,113,.45)';
   overlay.setZIndex?.(Z_HIT);
 
   globalThis._searchHitOverlays.push(overlay);
