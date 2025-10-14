@@ -279,6 +279,8 @@ function normalizeText(s) {
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState(); // { details: {...}, summaries: {depth0,depth1,depth2}}
+
+  console.log('mapData', mapData);
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
 
@@ -335,8 +337,10 @@ export default function MapPanel() {
     const map = window.mapInstance;
 
     // 오버레이 캐시
-    if (!globalThis._detailOverlays) globalThis._detailOverlays = new Map(); // addrDetail → CustomOverlay
-    if (!globalThis._aggOverlays) globalThis._aggOverlays = new Map(); // key(path/depth) → CustomOverlay
+    (globalThis._detailOverlays || new Map()).forEach(o => o.setMap(null));
+    (globalThis._aggOverlays || new Map()).forEach(o => o.setMap(null));
+    globalThis._detailOverlays = new Map();
+    globalThis._aggOverlays = new Map();
 
     const draw = () => {
       const level = map.getLevel();
