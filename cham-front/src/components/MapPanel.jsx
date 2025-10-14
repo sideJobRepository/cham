@@ -674,7 +674,7 @@ const SearchSection = styled.div`
   padding: 4px;
   gap: 8px;
   z-index: 2;
-  width: min(720px, 92%);
+  width: min(400px, 70%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 `;
 const SearchButton = styled.button`
@@ -708,7 +708,6 @@ const SearchInput = styled.input`
   background: unset;
   padding: 8px 10px;
   font-size: ${({ theme }) => theme.sizes.medium};
-  min-width: 260px;
   flex: 1;
   &:focus {
     outline: none;
