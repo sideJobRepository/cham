@@ -721,6 +721,7 @@ const SearchInput = styled.input`
   padding: 8px 10px;
   font-size: ${({ theme }) => theme.sizes.medium};
   flex: 1;
+  min-width: 0;
   &:focus {
     outline: none;
   }
