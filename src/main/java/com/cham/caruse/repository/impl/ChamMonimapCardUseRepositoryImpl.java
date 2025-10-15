@@ -1,12 +1,14 @@
 package com.cham.caruse.repository.impl;
 
 import com.cham.caruse.entity.ChamMonimapCardUse;
+import com.cham.caruse.repository.dto.CardUseSummaryDto;
 import com.cham.caruse.repository.query.ChamMonimapCardUseQueryRepository;
 import com.cham.dto.request.CardUseConditionRequest;
 import com.cham.region.entity.QChamMonimapRegion;
-import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 
@@ -14,12 +16,13 @@ import java.util.List;
 
 import static com.cham.carduseaddr.entity.QChamMonimapCardUseAddr.chamMonimapCardUseAddr;
 import static com.cham.caruse.entity.QChamMonimapCardUse.chamMonimapCardUse;
-import static com.cham.region.entity.QChamMonimapRegion.*;
-
+import static com.querydsl.core.types.dsl.Expressions.numberTemplate;
 @RequiredArgsConstructor
 public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQueryRepository {
     
     private final JPAQueryFactory queryFactory;
+    
+    private final EntityManager em;
     
     @Override
     public boolean existsByChamMonimapCardUseDelkey(String cardUseDelkey) {
@@ -34,10 +37,12 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
     
     @Override
     public void deleteByCardUseDelkey(String cardUseDelkey) {
+        em.flush();
         queryFactory
                 .delete(chamMonimapCardUse)
                 .where(chamMonimapCardUse.chamMonimapCardUseDelkey.eq(cardUseDelkey))
                 .execute();
+        em.clear();
     }
     
     @Override
@@ -85,6 +90,29 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .fetch();
     }
     
+    @Override
+    public List<CardUseSummaryDto> findBySumTotalAmount() {
+        
+         return queryFactory
+                .select(Projections.fields(
+                        CardUseSummaryDto.class,
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName.as("name"),
+                        numberTemplate(Integer.class, "sum({0})", chamMonimapCardUse.chamMonimapCardUseAmount).as("totalAmount")
+                ))
+                .from(chamMonimapCardUse)
+                .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr)
+                .where(
+                        chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
+                        chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
+                                .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("경조사비")) //경조사비 제외
+                                .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("직원")) //직원 제외
+                                .not()
+                )
+                .groupBy(
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName
+                        )
+                .fetch();
+    }
     
     private BooleanExpression cardOwnerPositionEq(CardUseConditionRequest request) {
         if (request.getCardOwnerPositionId() != null) {

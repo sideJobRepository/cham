@@ -8,6 +8,7 @@ import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
 import com.cham.caruse.dto.*;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
+import com.cham.caruse.repository.dto.CardUseSummaryDto;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.dto.request.CardUseConditionRequest;
 import com.cham.dto.response.*;
@@ -67,19 +68,28 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     @Transactional(readOnly = true)
     public CardUseAggregateResponse selectCardUse(CardUseConditionRequest request) {
         // 1) 데이터 조회
-        List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUses(request);
-        List<ChamMonimapReply> replies     = replyRepository.findByReplys();
+        List<ChamMonimapCardUse> cardUses = cardUseRepository.findByCardUses(request);
+        List<CardUseSummaryDto> bySumTotalAmount = cardUseRepository.findBySumTotalAmount();
+        List<ChamMonimapReply> replies = replyRepository.findByReplys();
         List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
-        
-        // 2) 그룹핑 (기존과 동일)
+
+        // 1-1) 이름 기준으로 합계 맵핑
+        Map<String, Integer> totalAmountByName = bySumTotalAmount.stream()
+                .collect(Collectors.toMap(
+                        CardUseSummaryDto::getName,
+                        CardUseSummaryDto::getTotalAmount,
+                        (a, b) -> a // 중복 발생 시 첫 번째 값 유지
+                ));
+
+        // 2) 그룹핑 (기존 동일)
         Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
         Map<Long, List<ChamMonimapReply>> repliesByAddrId = replies.stream()
                 .collect(Collectors.groupingBy(r -> r.getChamMonimapCardUseAddr().getChamMonimapCardUseAddrId()));
         Map<Long, List<ChamMonimapReplyImage>> imagesByReplyId = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getChamMonimapReply().getChamMonimapReplyId()));
-        
-        // 3) 이미지 URL 벌크 조회
+
+        // 3) 이미지 URL 벌크 조회 (그대로)
         Map<Long, String> imageUrlByAddrId = new LinkedHashMap<>();
         if (!usesByAddrId.isEmpty()) {
             List<ChamMonimapCardUseAddr> rows = cardUseAddrRepository.findImageUrlsByAddrIds(usesByAddrId.keySet());
@@ -87,7 +97,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 imageUrlByAddrId.put(r.getChamMonimapCardUseAddrId(), r.getChamMonimapCardUseImageUrl());
             }
         }
-        
+
         // 4) 주소별 응답 생성
         Map<Long, CardUseResponse> resultMap = new LinkedHashMap<>();
         for (Map.Entry<Long, List<ChamMonimapCardUse>> entry : usesByAddrId.entrySet()) {
@@ -96,9 +106,13 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             if (list == null || list.isEmpty()) continue;
             
             ChamMonimapCardUse first = list.get(0);
+            String name = first.getCardUseAddr().getChamMonimapCardUseAddrName();
             
-            // 방문자 합계 / 명단
-            int totalSum = list.stream().mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount).sum();
+            //  sumTotalAmount 맵에서 매칭
+            Integer totalSumFromDB = totalAmountByName.getOrDefault(name, 0);
+            
+            // 방문자 합계 / 명단 (그대로)
+            int localTotalSum = list.stream().mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount).sum();
             Set<String> uniqueNames = list.stream()
                     .map(ChamMonimapCardUse::getChamMonimapCardUseName)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -120,7 +134,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             
             String imageUrl = imageUrlByAddrId.get(addrId);
             
-            // 댓글 응답
+            // 댓글 응답 (그대로)
             List<ReplyResponse> replyList = repliesByAddrId.getOrDefault(addrId, Collections.emptyList())
                     .stream()
                     .map(rep -> {
@@ -139,16 +153,23 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                         );
                     })
                     .toList();
+            
             String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
             String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
+            
+            //  DB 집계 값이 우선, 없으면 기존 합계 사용
+            int totalSum = (totalSumFromDB != null && totalSumFromDB > 0)
+                    ? totalSumFromDB
+                    : localTotalSum;
+            
             CardUseResponse resp = new CardUseResponse(
-                    first.getCardUseAddr().getChamMonimapCardUseAddrName(),
+                    name,
                     first.getChamMonimapCardUseRegion(),
                     first.getChamMonimapCardUseUser(),
                     list.size(),
                     visitMember,
-                    totalSum,
+                    totalSum, // ✅ 여기에 최종합계 반영
                     first.getCardUseAddr().getChamMonimapCardUseDetailAddr(),
                     imageUrl,
                     addrId,
@@ -162,11 +183,11 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             
             resultMap.put(addrId, resp);
         }
-        
-        // 5) 지역별 요약 집계 (추가된 부분)
+
+        // 5) 지역별 요약 집계
         RegionLevelsResponse regionLevelsResponse = summarizeByRegionLevels(cardUses);
-        
-        // 최종 응답 (주소별 상세 + 지역별 요약 같이 담기)
+
+        // 최종 응답
         return new CardUseAggregateResponse(resultMap, regionLevelsResponse);
     }
     
