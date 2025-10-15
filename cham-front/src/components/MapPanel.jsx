@@ -682,8 +682,12 @@ const SearchSection = styled.div`
   padding: 4px;
   gap: 8px;
   z-index: 2;
-  width: min(400px, 70%);
+  width: 400px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  @media ${({ theme }) => theme.device.mobile} {
+    width: 70%;
+  }
 `;
 const SearchButton = styled.button`
   display: flex;
