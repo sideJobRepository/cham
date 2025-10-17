@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import basicLogo from '/basicLogo.png';
 import Modal from '@/components/modal/Modal.jsx';
 import DetailPage from '@/pages/DetailPage.jsx';
+import api from '@/utils/axiosInstance.js';
 
 export default function ItemCard({ data }) {
   const searchCondition = useRecoilValue(mapSearchFilterState);
@@ -36,7 +37,7 @@ export default function ItemCard({ data }) {
     const toastId = toast.loading('이미지 업로드 중 입니다.');
 
     try {
-      await axios.post('/cham/cardUseAddrImage', formData, {
+      await api.post('/cham/cardUseAddrImage', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
