@@ -7,5 +7,5 @@ import com.cham.dto.response.ApiResponse;
 public interface ChamMonimapCardUseAddrService {
     
     
-    ApiResponse UpdateCardUseAddrImage(CardUseAddrImageRequest request);
+    ApiResponse updateCardUseAddrImage(CardUseAddrImageRequest request);
 }

@@ -16,6 +16,6 @@ public class ChamMonimapCardUseAddrController {
     
     @PostMapping("/cardUseAddrImage")
     public ApiResponse modifyAddrImage(@ModelAttribute CardUseAddrImageRequest request) {
-        return cardUseAddrService.UpdateCardUseAddrImage(request);
+        return cardUseAddrService.updateCardUseAddrImage(request);
     }
 }
