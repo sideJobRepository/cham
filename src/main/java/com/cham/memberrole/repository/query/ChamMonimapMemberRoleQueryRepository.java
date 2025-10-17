@@ -1,5 +1,6 @@
 package com.cham.memberrole.repository.query;
 
+import com.cham.memberrole.dto.ChamMemberRoleGetResponse;
 import com.cham.memberrole.entity.ChamMonimapMemberRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,5 +14,5 @@ public interface ChamMonimapMemberRoleQueryRepository {
     
     List<String> findByRoleName(Long id);
     
-    Page<ChamMonimapMemberRole> findByMemberRoles(Pageable pageable);
+    Page<ChamMemberRoleGetResponse> findByMemberRoles(Pageable pageable);
 }

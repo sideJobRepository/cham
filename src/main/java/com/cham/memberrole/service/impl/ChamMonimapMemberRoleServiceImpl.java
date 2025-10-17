@@ -1,12 +1,11 @@
 package com.cham.memberrole.service.impl;
 
 import com.cham.dto.response.ApiResponse;
-import com.cham.member.repository.ChamMonimapMemberRepository;
+import com.cham.memberrole.dto.ChamMemberRoleGetResponse;
 import com.cham.memberrole.entity.ChamMonimapMemberRole;
 import com.cham.memberrole.repository.ChamMonimapMemberRoleRepository;
 import com.cham.memberrole.service.ChamMonimapMemberRoleService;
 import com.cham.page.PageResponse;
-import com.cham.role.dto.MemberRoleGetResponse;
 import com.cham.role.dto.MemberRolePutRequest;
 import com.cham.role.entity.ChamMonimapRole;
 import com.cham.role.repository.ChamMonimapRoleRepository;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -28,20 +28,17 @@ public class ChamMonimapMemberRoleServiceImpl implements ChamMonimapMemberRoleSe
     private final ChamMonimapRoleRepository roleRepository;
     
     @Override
-    public PageResponse<MemberRoleGetResponse> findByMemberRoles(Pageable pageable) {
-        Page<ChamMonimapMemberRole> byMemberRoles = memberRoleRepository.findByMemberRoles(pageable);
-        
-        Page<MemberRoleGetResponse> result = byMemberRoles
-                .map(item -> new MemberRoleGetResponse(
-                        item.getChamMonimapMember().getChamMonimapMemberId(),
-                        item.getChamMonimapRole().getChamMonimapRoleId(),
-                        item.getChamMonimapMemberRoleId(),
-                        item.getChamMonimapMember().getChamMonimapMemberName(),
-                        item.getChamMonimapMember().getChamMonimapMemberEmail(),
-                        item.getChamMonimapRole().getChamMonimapRoleName(),
-                        item.getChamMonimapMember().getChamMonimapMemberPhoneNo()
-                ));
-        return PageResponse.from(result);
+    public PageResponse<ChamMemberRoleGetResponse> findByMemberRoles(Pageable pageable) {
+        Page<ChamMemberRoleGetResponse> byMemberRoles = memberRoleRepository.findByMemberRoles(pageable);
+        byMemberRoles.forEach(item -> {
+                    String memberPhoneNo = item.getMemberPhoneNo();
+                    if(StringUtils.hasText(memberPhoneNo)) {
+                        String replacePhoneNo = memberPhoneNo.replace("+82", "0")
+                                .replaceAll("\\s", "");
+                        item.setMemberPhoneNo(replacePhoneNo);
+                    }
+                });
+        return PageResponse.from(byMemberRoles);
     }
     
     @Override

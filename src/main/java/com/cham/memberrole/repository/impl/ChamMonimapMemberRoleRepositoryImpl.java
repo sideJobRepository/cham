@@ -1,7 +1,10 @@
 package com.cham.memberrole.repository.impl;
 
+import com.cham.memberrole.dto.ChamMemberRoleGetResponse;
 import com.cham.memberrole.entity.ChamMonimapMemberRole;
 import com.cham.memberrole.repository.query.ChamMonimapMemberRoleQueryRepository;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -46,21 +49,36 @@ public class ChamMonimapMemberRoleRepositoryImpl implements ChamMonimapMemberRol
     }
     
     @Override
-    public Page<ChamMonimapMemberRole> findByMemberRoles(Pageable pageable) {
-        List<ChamMonimapMemberRole> result = queryFactory
-                .select(chamMonimapMemberRole)
+    public Page<ChamMemberRoleGetResponse> findByMemberRoles(Pageable pageable) {
+        List<ChamMemberRoleGetResponse> result = queryFactory
+                .select(
+                        Projections.constructor(
+                                ChamMemberRoleGetResponse.class,
+                                chamMonimapMemberRole.chamMonimapMember.chamMonimapMemberId,
+                                chamMonimapMemberRole.chamMonimapRole.chamMonimapRoleId,
+                                chamMonimapMemberRole.chamMonimapMemberRoleId,
+                                chamMonimapMember.chamMonimapMemberName,
+                                chamMonimapRole.chamMonimapRoleName,
+                                chamMonimapMember.chamMonimapMemberEmail,
+                                chamMonimapMember.chamMonimapMemberPhoneNo
+                        )
+                )
                 .from(chamMonimapMemberRole)
-                .join(chamMonimapMemberRole.chamMonimapMember, chamMonimapMember).fetchJoin()
-                .join(chamMonimapMemberRole.chamMonimapRole, chamMonimapRole).fetchJoin()
+                .join(chamMonimapMemberRole.chamMonimapMember, chamMonimapMember)
+                .join(chamMonimapMemberRole.chamMonimapRole, chamMonimapRole)
+                .orderBy(
+                        new CaseBuilder()
+                                .when(chamMonimapRole.chamMonimapRoleName.eq("ADMIN")).then(0)
+                                .otherwise(1).asc(),
+                        chamMonimapMember.chamMonimapMemberId.asc()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
         
         JPAQuery<Long> countQuery = queryFactory
-                .select(chamMonimapMemberRole.count())
-                .from(chamMonimapMemberRole)
-                .join(chamMonimapMemberRole.chamMonimapMember, chamMonimapMember).fetchJoin()
-                .join(chamMonimapMemberRole.chamMonimapRole, chamMonimapRole).fetchJoin();
+                .select(chamMonimapMember.count())
+                .from(chamMonimapMember);
         return PageableExecutionUtils.getPage(result,pageable,countQuery::fetchOne);
     }
     
