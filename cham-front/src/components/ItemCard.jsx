@@ -97,7 +97,7 @@ export default function ItemCard({ data }) {
           <ImageText>
             {data?.cardUseRegion} {data.cardUseUser} {data.visitMember}
           </ImageText>
-          {user?.role === 'ADMIN' ? (
+          {user?.roles.includes('ROLE_ADMIN') ? (
             <PlusButtonWrapper
               onClick={e => {
                 e.stopPropagation();

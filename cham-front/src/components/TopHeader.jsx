@@ -19,6 +19,7 @@ export default function TopHeader() {
   const navigate = useNavigate();
 
   const user = useRecoilValue(userState);
+  console.log('user', user?.roles.includes('ROLE_ADMIN'));
   const resetUser = useResetRecoilState(userState);
 
   const menuRef = useRef(null);
@@ -166,6 +167,7 @@ export default function TopHeader() {
             {menu}
           </MenuItem>
         ))}
+        {user?.roles.includes('ROLE_ADMIN') && <MenuItem>관리자</MenuItem>}
       </Center>
       <Right>
         <LinkGroup>
@@ -210,6 +212,7 @@ export default function TopHeader() {
             {menu}
           </MenuItemMobile>
         ))}
+        {user?.roles.includes('ROLE_ADMIN') && <MenuItemMobile>관리자</MenuItemMobile>}
         {user ? (
           <MenuButtonWrapper onClick={logoutKakao}>로그아웃</MenuButtonWrapper>
         ) : (
