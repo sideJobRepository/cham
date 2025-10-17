@@ -8,10 +8,10 @@ import DetailPage from '@/pages/DetailPage.jsx';
 import { FiSearch } from 'react-icons/fi';
 
 /** ====== 줌 기준 (카카오: 값이 작을수록 더 확대됨) ====== */
-const DETAIL_MAX_LEVEL = 5; // ≤5  : 상세(가맹점별)
-const DONG_MAX_LEVEL_MIN = 6; // 6~8 : 동 집계
-const DONG_MAX_LEVEL_MAX = 8;
-const GU_LEVEL_MIN = 9; // 9~10: 구 집계
+const DETAIL_MAX_LEVEL = 4; // ≤4  : 상세(가맹점별)
+const DONG_MAX_LEVEL_MIN = 5; // 5~6 : 동 집계
+const DONG_MAX_LEVEL_MAX = 6;
+const GU_LEVEL_MIN = 7; // 7~10: 구 집계
 const GU_LEVEL_MAX = 10;
 const SIDO_LEVEL_MIN = 11; // ≥11 : 시/도 집계
 
@@ -67,9 +67,9 @@ function fitMapToPoints(map, points, paddingPx = 60) {
 /** 한 점으로 이동(디테일 모드) */
 function goDetail(map, lat, lng) {
   const center = new window.kakao.maps.LatLng(lat, lng);
-  console.log('[SEARCH] goDetail ->', { lat, lng, level: Math.min(DETAIL_MAX_LEVEL, 4) });
+
   map.setCenter(center);
-  map.setLevel(Math.min(DETAIL_MAX_LEVEL, 4));
+  map.setLevel(DETAIL_MAX_LEVEL);
 }
 
 /** 검색어가 행정구역일 가능성 추정 */
