@@ -69,7 +69,7 @@ function goDetail(map, lat, lng) {
   const center = new window.kakao.maps.LatLng(lat, lng);
 
   map.setCenter(center);
-  map.setLevel(DETAIL_MAX_LEVEL);
+  map.setLevel(2); // 1건일 경우 디테일로
 }
 
 /** 검색어가 행정구역일 가능성 추정 */
