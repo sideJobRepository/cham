@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.cham.carduseaddr.entity.QChamMonimapCardUseAddr.chamMonimapCardUseAddr;
@@ -47,5 +48,16 @@ public class ChamMonimapCardUseAddrRepositoryImpl implements ChamMonimapCardUseA
                 .selectFrom(chamMonimapCardUseAddr)
                 .where(chamMonimapCardUseAddr.chamMonimapCardUseAddrId.in(addrIds))
                 .fetch();
+    }
+    @Override
+    public Optional<ChamMonimapCardUseAddr> findByXValueAndYValue(String x, String y) {
+        ChamMonimapCardUseAddr result = queryFactory
+                .selectFrom(chamMonimapCardUseAddr)
+                .where(
+                        chamMonimapCardUseAddr.chamMonimapCardUseXValue.eq(x),
+                        chamMonimapCardUseAddr.chamMonimapCardUseYValue.eq(y)
+                )
+                .fetchFirst();
+        return Optional.ofNullable(result);
     }
 }

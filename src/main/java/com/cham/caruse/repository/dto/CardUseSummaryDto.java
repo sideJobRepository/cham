@@ -10,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CardUseSummaryDto {
+    private Long id;
     private String name;
     private Integer totalAmount;
 }

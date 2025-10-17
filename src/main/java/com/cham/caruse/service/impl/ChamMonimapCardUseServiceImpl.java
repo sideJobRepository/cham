@@ -74,13 +74,12 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
 
         // 1-1) 이름 기준으로 합계 맵핑
-        Map<String, Integer> totalAmountByName = bySumTotalAmount.stream()
+        Map<Long, Integer> totalAmountById = bySumTotalAmount.stream()
                 .collect(Collectors.toMap(
-                        CardUseSummaryDto::getName,
+                        CardUseSummaryDto::getId,
                         CardUseSummaryDto::getTotalAmount,
                         (a, b) -> a // 중복 발생 시 첫 번째 값 유지
                 ));
-
         // 2) 그룹핑 (기존 동일)
         Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
@@ -109,7 +108,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             String name = first.getCardUseAddr().getChamMonimapCardUseAddrName();
             
             //  sumTotalAmount 맵에서 매칭
-            Integer totalSumFromDB = totalAmountByName.getOrDefault(name, 0);
+            Integer totalSumFromDB = totalAmountById.getOrDefault(addrId, 0);
             
             // 방문자 합계 / 명단 (그대로)
             int localTotalSum = list.stream().mapToInt(ChamMonimapCardUse::getChamMonimapCardUseAmount).sum();
@@ -412,82 +411,102 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     }
     
     private ChamMonimapCardUseAddr getOrCreateAddr(String addrName, String addrDetail, Map<String, CardUseAddrDto> cache) {
-        String detailKey = safeTrim(addrDetail);
-        CardUseAddrDto hit = cache.get(detailKey);
-        if (hit != null) {
-            return new ChamMonimapCardUseAddr(hit.getCardUseAddrId());
-        }
         RestClient restClient = RestClient.create();
+        
+        // 카카오 주소 API로 좌표 조회
         KakaoAddressResponse body1 = restClient.get()
-                .uri(uriBuilder ->
-                        uriBuilder.scheme("https")
-                                .host("dapi.kakao.com")
-                                .path("/v2/local/search/address")
-                                .queryParam("query", addrDetail)
-                                .build()
-                )
+                .uri(uriBuilder -> uriBuilder.scheme("https")
+                        .host("dapi.kakao.com")
+                        .path("/v2/local/search/address")
+                        .queryParam("query", addrDetail)
+                        .build())
                 .header("Authorization", "KakaoAK " + kakaoClientId)
                 .retrieve()
                 .toEntity(KakaoAddressResponse.class)
                 .getBody();
         
-        KakaoPlaceResponse body2 = restClient.get()
-                .uri(uriBuilder ->
-                        uriBuilder.scheme("https")
-                                .host("dapi.kakao.com")
-                                .path("/v2/local/search/keyword")
-                                .queryParam("query", addrDetail)
-                                .build()
-                )
-                .header("Authorization", "KakaoAK " + kakaoClientId)
-                .retrieve()
-                .toEntity(KakaoPlaceResponse.class)
-                .getBody();
-      
+        // 주소 문서
         Optional<KakaoAddressResponse.Document> docOpt = Optional.ofNullable(body1)
                 .map(KakaoAddressResponse::getDocuments)
                 .filter(list -> !list.isEmpty())
                 .map(list -> list.get(0));
         
+        // 좌표 추출
+        String x = docOpt.map(KakaoAddressResponse.Document::getX).orElse(null);
+        String y = docOpt.map(KakaoAddressResponse.Document::getY).orElse(null);
         
-        Optional<KakaoPlaceResponse.Document> document = Optional.ofNullable(body2)
+        //  좌표 기반 캐시 키 생성
+        String coordKey = (x != null && y != null)
+                ? (x + "," + y)
+                : safeTrim(addrDetail);
+        
+        //  캐시 hit 체크
+        CardUseAddrDto hit = cache.get(coordKey);
+        if (hit != null && hit.getCardUseAddrId() != null) {
+            return new ChamMonimapCardUseAddr(hit.getCardUseAddrId());
+        }
+        
+        //  DB 중복 체크 (이미 저장된 동일 좌표 있는지)
+        if (x != null && y != null) {
+            Optional<ChamMonimapCardUseAddr> existing = cardUseAddrRepository
+                    .findByXValueAndYValue(x, y);
+            if (existing.isPresent()) {
+                ChamMonimapCardUseAddr found = existing.get();
+                cache.put(coordKey, new CardUseAddrDto(
+                        found.getChamMonimapCardUseAddrId(),
+                        found.getChamMonimapCardUseAddrName(),
+                        found.getChamMonimapCardUseDetailAddr()
+                ));
+                return found; // 이미 존재 → 재사용
+            }
+        }
+        
+        // 📍 4카카오 키워드 API로 카테고리 조회
+        KakaoPlaceResponse body2 = restClient.get()
+                .uri(uriBuilder -> uriBuilder.scheme("https")
+                        .host("dapi.kakao.com")
+                        .path("/v2/local/search/keyword")
+                        .queryParam("query", addrDetail)
+                        .build())
+                .header("Authorization", "KakaoAK " + kakaoClientId)
+                .retrieve()
+                .toEntity(KakaoPlaceResponse.class)
+                .getBody();
+        
+        Optional<KakaoPlaceResponse.Document> placeOpt = Optional.ofNullable(body2)
                 .map(KakaoPlaceResponse::getDocuments)
                 .flatMap(list -> list.stream()
                         .filter(item -> item.getPlaceName() != null
                                 && item.getPlaceName().contains(addrName))
-                        .findFirst()
-                );
+                        .findFirst());
         
+        String categoryName = placeOpt.map(KakaoPlaceResponse.Document::getCategoryName)
+                .orElse(null);
+        
+        // 📍  Region 생성
         ChamMonimapRegion dong = docOpt
                 .map(KakaoAddressResponse.Document::getAddress)
                 .map(a -> {
-                    String r1 = a.getRegion_1depth_name(); // 대전
-                    String r2 = a.getRegion_2depth_name(); // 서구
-                    String r3 = a.getRegion_3depth_name(); // 탄방동
-                    
+                    String r1 = a.getRegion_1depth_name();
+                    String r2 = a.getRegion_2depth_name();
+                    String r3 = a.getRegion_3depth_name();
                     String region = r1 + " " + r2 + " " + r3;
                     return saveRegionByName(region);
                 })
                 .orElse(null);
         
-        String categoryName = document
-                .map(KakaoPlaceResponse.Document::getCategoryName)
-                .orElse(null);
-        
+        // 📍  새 주소 DB 저장
         ChamMonimapCardUseAddr saved = cardUseAddrRepository.save(
-                Optional.ofNullable(body1)
-                        .map(KakaoAddressResponse::getDocuments)
-                        .filter(list -> !list.isEmpty())
-                        .map(list -> list.get(0))
-                        .map(doc -> new ChamMonimapCardUseAddr(addrName, addrDetail, doc.getX(), doc.getY(),dong,categoryName))
-                        .orElseGet(() -> new ChamMonimapCardUseAddr(addrName, addrDetail))
+                new ChamMonimapCardUseAddr(addrName, addrDetail, x, y, dong, categoryName)
         );
-        // 캐시에도 반영
-        cache.put(detailKey, new CardUseAddrDto(
+        
+        // 캐시 갱신 (좌표 기준)
+        cache.put(coordKey, new CardUseAddrDto(
                 saved.getChamMonimapCardUseAddrId(),
                 saved.getChamMonimapCardUseAddrName(),
                 saved.getChamMonimapCardUseDetailAddr()
         ));
+        
         return saved;
     }
     

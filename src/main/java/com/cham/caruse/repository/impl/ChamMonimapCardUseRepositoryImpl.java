@@ -96,7 +96,8 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
          return queryFactory
                 .select(Projections.fields(
                         CardUseSummaryDto.class,
-                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName.as("name"),
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrId,
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrName,
                         numberTemplate(Integer.class, "sum({0})", chamMonimapCardUse.chamMonimapCardUseAmount).as("totalAmount")
                 ))
                 .from(chamMonimapCardUse)
@@ -109,6 +110,7 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                                 .not()
                 )
                 .groupBy(
+                        chamMonimapCardUseAddr.chamMonimapCardUseAddrId,
                         chamMonimapCardUseAddr.chamMonimapCardUseAddrName
                         )
                 .fetch();
