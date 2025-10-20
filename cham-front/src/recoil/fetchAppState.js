@@ -1,6 +1,13 @@
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import api from '@/utils/axiosInstance.js';
-import { selectSearchState, mapState, detailState, checkDataState, userState } from './appState.js';
+import {
+  selectSearchState,
+  mapState,
+  detailState,
+  checkDataState,
+  userState,
+  userListState,
+} from './appState.js';
 import { toast } from 'react-toastify';
 
 export function useFetchSelectSearch() {
@@ -29,8 +36,6 @@ export function useMapSearch() {
 
   return async (params = {}) => {
     const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
-
-    console.log('params', params);
 
     try {
       let url = `/cham/cardUse`;
@@ -111,6 +116,39 @@ export function useFetchCard() {
     } catch (e) {
       console.error('초기 요청 실패:', e);
       setState(null);
+    }
+  };
+}
+
+//관리자
+export function useFetchUserList() {
+  const setState = useSetRecoilState(userListState);
+
+  return async (page = {}) => {
+    const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
+    console.log('page', page);
+    try {
+      const res = await api.get(`/cham/role?page=${page}&size=${10}`);
+
+      console.log('res-------유저 데이터', res.data.content);
+      setState({
+        userData: res.data,
+        userLoading: false,
+      });
+
+      toast.dismiss(toastId);
+    } catch (e) {
+      toast.update(toastId, {
+        render: '검색에 실패하였습니다.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+      });
+      console.error('검색 실패:', e);
+      setState({
+        userData: [],
+        userLoading: false,
+      });
     }
   };
 }

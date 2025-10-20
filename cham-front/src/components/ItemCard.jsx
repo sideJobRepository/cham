@@ -3,7 +3,6 @@ import { AiOutlinePlusCircle } from 'react-icons/ai';
 import { useRecoilValue } from 'recoil';
 import { mapSearchFilterState, userState } from '@/recoil/appState.js';
 import { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
 import { toast } from 'react-toastify';
 import basicLogo from '/basicLogo.png';

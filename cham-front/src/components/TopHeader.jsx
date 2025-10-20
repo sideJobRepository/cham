@@ -14,12 +14,13 @@ import api, { tokenStore } from '@/utils/axiosInstance.js';
 import LoginMoadl from '@/components/modal/LoginModal.jsx';
 import Modal from '@/components/modal/Modal.jsx';
 import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
+import AdminModal from '@/components/modal/AdminModal.jsx';
 
 export default function TopHeader() {
   const navigate = useNavigate();
 
   const user = useRecoilValue(userState);
-  console.log('user', user?.roles.includes('ROLE_ADMIN'));
+
   const resetUser = useResetRecoilState(userState);
 
   const menuRef = useRef(null);
@@ -27,6 +28,9 @@ export default function TopHeader() {
 
   //로그인 모달
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  //관리자 모달
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -167,7 +171,9 @@ export default function TopHeader() {
             {menu}
           </MenuItem>
         ))}
-        {user?.roles.includes('ROLE_ADMIN') && <MenuItem>관리자</MenuItem>}
+        {user?.roles?.includes('ROLE_ADMIN') && (
+          <MenuItem onClick={() => setIsAdminModalOpen(true)}>관리자</MenuItem>
+        )}
       </Center>
       <Right>
         <LinkGroup>
@@ -212,7 +218,9 @@ export default function TopHeader() {
             {menu}
           </MenuItemMobile>
         ))}
-        {user?.roles.includes('ROLE_ADMIN') && <MenuItemMobile>관리자</MenuItemMobile>}
+        {user?.roles?.includes('ROLE_ADMIN') && (
+          <MenuItemMobile onClick={() => setIsAdminModalOpen(true)}>관리자</MenuItemMobile>
+        )}
         {user ? (
           <MenuButtonWrapper onClick={logoutKakao}>로그아웃</MenuButtonWrapper>
         ) : (
@@ -243,6 +251,11 @@ export default function TopHeader() {
       {isLoginModalOpen && (
         <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
           <LoginMoadl />
+        </Modal>
+      )}
+      {isAdminModalOpen && (
+        <Modal open={isAdminModalOpen} onClose={() => setIsAdminModalOpen(false)} title="관리자">
+          <AdminModal />
         </Modal>
       )}
     </Wrapper>

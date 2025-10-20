@@ -52,3 +52,12 @@ export const checkDataState = atom({
   key: 'checkDataState',
   default: null,
 });
+
+//관리자 유저정보
+export const userListState = atom({
+  key: 'userListState',
+  default: {
+    userData: null,
+    userLoading: true,
+  },
+});
