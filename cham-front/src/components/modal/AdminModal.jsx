@@ -73,7 +73,9 @@ export default function AdminModal() {
 
             try {
               await api.put(`/cham/role`, selected, {});
-
+              setCheckedIds([]);
+              setRoleMap([]);
+              await userListFetch(page);
               toast.success('권한 수정이 완료되었습니다.');
             } catch (e) {
               console.log('error', e);
@@ -164,7 +166,7 @@ export default function AdminModal() {
             <tbody>
               {userListData?.userData?.content.map(item => {
                 return (
-                  <tr key={item.id}>
+                  <tr key={item.memberEmail}>
                     <Td>
                       <input
                         type="checkbox"
