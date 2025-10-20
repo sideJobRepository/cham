@@ -38,8 +38,8 @@ public abstract class SecuritySigner {
                 .claim("socialId", user.getChamMonimapMemberSubId())
                 .claim("expirationTime",date)
                 .claim("roles", roleList)
-               // .expirationTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1시간
-                .expirationTime(new Date(System.currentTimeMillis() + 1000 * 60 * 5)) // 5분
+                .expirationTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1시간
+                // .expirationTime(new Date(System.currentTimeMillis() + 1000 * 60 * 5)) // 5분
               //  .expirationTime(new Date(System.currentTimeMillis() +10))
                 .build();
         
