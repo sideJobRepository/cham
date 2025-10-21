@@ -350,10 +350,18 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 LocalTime useTime = PoiUtil.getLocalTimeFromCell(row.getCell(ExcelColumns.TIME));
                 
                 String addrName   = PoiUtil.getString(row, ExcelColumns.ADDR_NAME);
+                if (!StringUtils.hasText(addrName)) {
+                    addrName = "경조사비";
+                }
                 String addrDetail = safeTrim(PoiUtil.getString(row, ExcelColumns.ADDR_DETAIL));
+                if(!StringUtils.hasText(addrDetail)) {
+                    addrDetail = "도산로370번길 22-1";
+                }
                 String purpose    = PoiUtil.getString(row, ExcelColumns.PURPOSE);
                 String personnel  = PoiUtil.parsePersonnel(row.getCell(ExcelColumns.PERSONNEL));
-                
+                if (!StringUtils.hasText(personnel)) {
+                    personnel = "1";
+                }
                 Double amount     = PoiUtil.getNumeric(row, ExcelColumns.AMOUNT); // 숫자/문자 혼용 안정화
                 String method     = PoiUtil.getString(row, ExcelColumns.METHOD);
                 String remark     = PoiUtil.getString(row, ExcelColumns.REMARK);

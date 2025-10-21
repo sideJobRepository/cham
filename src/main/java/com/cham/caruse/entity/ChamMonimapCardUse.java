@@ -99,23 +99,6 @@ public class ChamMonimapCardUse extends BaseData {
         this.chamMonimapCardUseRegion = regionValue;
     }
     
-    public ChamMonimapCardUse(List<CardOwnerPositionDto> cardOwnerPositionDtos, String userSell , String nameSell ) {
-        this.chamMonimapCardUseName = nameSell;
-        Long defaultId = null;
-        for (CardOwnerPositionDto dto : cardOwnerPositionDtos) {
-            if ("기타".equals(dto.getCardOwnerPositionName())) {
-                defaultId = dto.getCardOwnerPositionId();
-            }
-            if (userSell.equals(dto.getCardOwnerPositionName())) {
-                this.chamMonimapCardOwnerPosition = new ChamMonimapCardOwnerPosition(dto.getCardOwnerPositionId());
-                return;
-            }
-        }
-        if(defaultId != null) {
-            this.chamMonimapCardOwnerPosition = new ChamMonimapCardOwnerPosition(defaultId);
-        }
-    }
-    
     public String getAmountPerPerson() {
         if (this.chamMonimapCardUsePersonnel == null ||  chamMonimapCardUseAmount == null && this.chamMonimapCardUseMethod == null) {
             return null; // 혹은 0 또는 예외 처리
