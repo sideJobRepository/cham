@@ -449,6 +449,12 @@ export default function MapPanel() {
               zIndex: Z_BASE,
             });
 
+            div.addEventListener('click', () => {
+              const latlng = new window.kakao.maps.LatLng(coords.lat, coords.lng);
+              map.setCenter(latlng);
+              map.setLevel(Math.max(1, map.getLevel() - 1));
+            });
+
             globalThis._aggOverlays.set(key, overlay);
           } else {
             overlay.setPosition(new window.kakao.maps.LatLng(coords.lat, coords.lng));
