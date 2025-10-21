@@ -449,6 +449,16 @@ export default function MapPanel() {
               zIndex: Z_BASE,
             });
 
+            //hover 효과
+            div.addEventListener('mouseenter', () => {
+              div.style.transform = 'scale(1.25)';
+              overlay.setZIndex(Z_HOVER);
+            });
+            div.addEventListener('mouseleave', () => {
+              div.style.transform = 'scale(1)';
+              overlay.setZIndex(Z_BASE);
+            });
+
             div.addEventListener('click', () => {
               const latlng = new window.kakao.maps.LatLng(coords.lat, coords.lng);
               map.setCenter(latlng);
