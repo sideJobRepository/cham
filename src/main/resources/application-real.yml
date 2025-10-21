@@ -52,3 +52,6 @@ logging:
 
 cookie:
   secure: true
+
+sendon:
+  apikey: ${SENDON_APIKEY}
