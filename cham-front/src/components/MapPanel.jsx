@@ -127,7 +127,7 @@ function createTempPin(lat, lng) {
   width:20px;
   height:20px;
   border-radius:50%;
-  background:#f57c00; 
+  background:#357ae9; 
   border:3px solid white; 
 `;
 
@@ -138,7 +138,7 @@ function createTempPin(lat, lng) {
   margin-top:1px;
   border-left:6px solid transparent;
   border-right:6px solid transparent;
-  border-top:10px solid #f57c00;
+  border-top:10px solid #357ae9;
   position:relative;
 `;
 
