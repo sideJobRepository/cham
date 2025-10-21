@@ -190,10 +190,6 @@ export default function SearchBar() {
           <SearchIcon size={22} />
           검색
         </SearchButton>
-        <ResetButton type="button" onClick={() => resetSearch()}>
-          <ResetIcon size={22} />
-          초기화
-        </ResetButton>
       </SearchGroup>
 
       <BottomRow>
@@ -201,6 +197,10 @@ export default function SearchBar() {
           검색결과 <strong>{centerAddr ? Object.keys(centerAddr).length : 0} 건</strong>
         </CountText>
         <SortSelect>
+          <ResetButton type="button" onClick={() => resetSearch()}>
+            <ResetIcon size={16} />
+            초기화
+          </ResetButton>
           <Select
             options={sortOptions}
             value={searchCondition.sortValue}
@@ -273,7 +273,6 @@ const Field = styled.div`
     color: ${({ theme }) => theme.colors.liteGray};
     font-weight: bold;
     text-align: left;
-    margin-left: 6px;
   }
 
   input {
@@ -311,13 +310,12 @@ const SearchButton = styled.button`
 const ResetButton = styled.button`
   display: flex;
   align-items: center;
-  margin-left: 4px;
-  background: ${({ theme }) => theme.colors.liteGray};
+  background-color: #357ae9;
   border: none;
+  border-radius: 4px;
   color: white;
-  font-weight: bold;
-  padding: 12px 24px;
-  border-radius: 999px;
+  font-size: 12px;
+  padding: 0 24px;
   cursor: pointer;
   white-space: nowrap;
 `;
@@ -350,4 +348,5 @@ const CountText = styled.span`
 
 const SortSelect = styled.div`
   display: flex;
+  gap: 6px;
 `;
