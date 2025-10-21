@@ -1,8 +1,7 @@
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiRotateCcw } from 'react-icons/fi';
 import Select from 'react-select';
 import { useSelectSearchState } from '@/recoil/useAppState.js';
 import { useMapSearch } from '@/recoil/fetchAppState.js';
@@ -17,7 +16,6 @@ export default function SearchBar() {
   const centerAddr = useRecoilValue(mapCenterAddrState);
 
   const handleSearch = () => {
-    const rawAmount = searchCondition.numberOfVisits?.replace(/,/g, '');
     const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
       input: searchCondition.input,
@@ -26,6 +24,19 @@ export default function SearchBar() {
     };
 
     mapSearch(params);
+  };
+
+  //초기화
+  const resetSearch = () => {
+    setSearchCondition({
+      cardOwnerPositionId: null,
+      input: '',
+      sortOrder: 1,
+      sortValue: { value: 1, label: '최신순' },
+      selectedRole: { label: '전체', value: null },
+    });
+
+    mapSearch();
   };
 
   //직위
@@ -179,6 +190,10 @@ export default function SearchBar() {
           <SearchIcon size={22} />
           검색
         </SearchButton>
+        <ResetButton type="button" onClick={() => resetSearch()}>
+          <ResetIcon size={22} />
+          초기화
+        </ResetButton>
       </SearchGroup>
 
       <BottomRow>
@@ -225,7 +240,6 @@ const SearchGroup = styled.form`
 const FieldsWrapper = styled.div`
   display: flex;
   align-items: center;
-  //background-color: yellow;
   width: 100%;
   gap: 20px;
   flex: 1;
@@ -294,7 +308,25 @@ const SearchButton = styled.button`
   white-space: nowrap;
 `;
 
+const ResetButton = styled.button`
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+  background: ${({ theme }) => theme.colors.liteGray};
+  border: none;
+  color: white;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+`;
+
 const SearchIcon = styled(FiSearch)`
+  margin-right: 6px;
+`;
+
+const ResetIcon = styled(FiRotateCcw)`
   margin-right: 6px;
 `;
 
