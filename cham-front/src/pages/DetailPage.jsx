@@ -18,11 +18,15 @@ import basicLogo from '/basicLogo.png';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { MdDelete } from 'react-icons/md';
+import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
+import Modal from '@/components/modal/Modal.jsx';
+import LoginMoadl from '@/components/modal/LoginModal.jsx';
 
 export default function DetailPage({ initialParams }) {
   const { mapDetailData } = useDetailMapState();
 
-  console.log('mapDetailData', mapDetailData);
+  //로그인 모달
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   //가봤어요, 의심돼요
   const cardFetch = useFetchCard();
   const cardData = useRecoilValue(checkDataState);
@@ -178,7 +182,20 @@ export default function DetailPage({ initialParams }) {
     const userId = user?.id;
 
     if (!userId) {
-      toast.error('로그인 후 이용해주세요.');
+      showConfirmModal({
+        title: <>로그인 후 이용하실 수 있습니다.</>,
+        message: (
+          <>
+            로그인하시면 [댓글, 가봤어요, 궁금해요 등 관심가게 등록] 등 더 많은 기능을 이용할 수
+            있습니다.
+          </>
+        ),
+        gb: false,
+        onConfirm: () => {
+          setIsLoginModalOpen(true);
+        },
+      });
+
       return;
     }
 
@@ -594,6 +611,11 @@ export default function DetailPage({ initialParams }) {
           ),
         }}
       />
+      {isLoginModalOpen && (
+        <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
+          <LoginMoadl />
+        </Modal>
+      )}
     </DetailWrapper>
   );
 }
