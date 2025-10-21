@@ -31,7 +31,7 @@ export default function DetailPage({ initialParams }) {
   const cardFetch = useFetchCard();
   const cardData = useRecoilValue(checkDataState);
 
-  const [detail, SetDetail] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editingText, setEditingText] = useState('');
@@ -243,7 +243,7 @@ export default function DetailPage({ initialParams }) {
   // recoil detail 상태 반영
   useEffect(() => {
     if (mapDetailData) {
-      SetDetail(Object.values(mapDetailData)[0]);
+      setDetail(Object.values(mapDetailData)[0]);
     }
   }, [mapDetailData]);
 
@@ -626,8 +626,7 @@ const DetailWrapper = styled.section`
   height: 100%;
   margin: 0 auto;
   overflow-y: hidden;
-  max-width: 1500px;
-  min-width: 1023px;
+  width: 1200px;
   min-height: 600px;
   @media screen and ${({ theme }) => theme.device.mobile} {
     max-width: 100%;

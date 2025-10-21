@@ -48,9 +48,6 @@ export function useMapSearch() {
       }
       const res = await api.get(url);
 
-      console.log('detail', params);
-      console.log('res', res);
-
       setState({
         mapData: res.data,
         mapLoading: false,
@@ -80,7 +77,6 @@ export function useFetchDetailData() {
   return async addr => {
     const toastId = toast.loading('상세 정보를 불러오는 중 입니다.');
     try {
-      console.log('addr', addr);
       const res = await api.get(`/cham/cardUseDetail?addrDetail=${addr}`);
       setDetailState({
         mapDetailData: res.data.details,
@@ -111,7 +107,7 @@ export function useFetchCard() {
   return async id => {
     try {
       const res = await api.get(`/cham/check?addrId=${id}`);
-      console.log('red', res);
+
       setState(res.data);
     } catch (e) {
       console.error('초기 요청 실패:', e);
@@ -126,11 +122,10 @@ export function useFetchUserList() {
 
   return async (page = {}) => {
     const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
-    console.log('page', page);
+
     try {
       const res = await api.get(`/cham/role?page=${page}&size=${10}`);
 
-      console.log('res-------유저 데이터', res.data.content);
       setState({
         userData: res.data,
         userLoading: false,

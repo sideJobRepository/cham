@@ -22,13 +22,10 @@ export default function RedirectPage() {
     const pathname = window.location.pathname;
     const provider = pathname.split('/')[2];
 
-
     // 인가코드를 서버로 보내기
     axios
       .post(`/cham/${provider}-login`, { code })
       .then(res => {
-        console.log('res', res);
-
         tokenStore.set(res.data.token);
         setUser(res.data.user);
 
