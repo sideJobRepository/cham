@@ -23,6 +23,9 @@ const Z_HIT = 100000; // 검색 히트(고정 최상위)
 /** 행정구역 추정용 접미사 */
 const REGION_SUFFIX = /(특별시|광역시|도|시|군|구|동|읍|면)$/;
 
+/** 공통 색상 (핀/히트 마커 통일) */
+const PIN_COLOR = '#357ae9';
+
 /** DB 좌표 파싱 (x=경도, y=위도) */
 function toLatLng(x, y) {
   const lng = parseFloat(x);
@@ -46,30 +49,25 @@ function getCatLabel(categoryName) {
     .split('>')
     .map(s => s.trim())
     .filter(Boolean);
-  if (parts.length >= 2) return parts[1];
-  if (parts.length >= 1) return parts[0];
-  return '기타';
+  return parts[1] || parts[0] || '기타';
 }
 
 /** 여러 점 bounds 맞추기(패딩 포함) + 줌 레벨 보정 */
 function fitMapToPoints(map, points, paddingPx = 60) {
   const bounds = new window.kakao.maps.LatLngBounds();
   points.forEach(p => bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng)));
-  console.log('[SEARCH] fitMapToPoints points=', points);
   map.setBounds(bounds, paddingPx, paddingPx, paddingPx, paddingPx);
 
-  // 과도 확대/축소 보정 (필요시 조정)
   const level = map.getLevel();
-  if (points.length > 1 && level < 5) map.setLevel(5); // 너무 디테일로 가지 않게
-  if (level > 12) map.setLevel(12); // 전국 단위 과도 축소 방지
+  if (points.length > 1 && level < 5) map.setLevel(5);
+  if (level > 12) map.setLevel(12);
 }
 
 /** 한 점으로 이동(디테일 모드) */
 function goDetail(map, lat, lng) {
   const center = new window.kakao.maps.LatLng(lat, lng);
-
   map.setCenter(center);
-  map.setLevel(2); // 1건일 경우 디테일로
+  map.setLevel(2);
 }
 
 /** 검색어가 행정구역일 가능성 추정 */
@@ -94,24 +92,26 @@ function dedupPoints(points) {
   return out;
 }
 
-/** ===== 하이라이트/임시핀 유틸 ===== */
-
 /** 하버사인 거리(m) */
 function distanceM(lat1, lng1, lat2, lng2) {
   const R = 6371000;
   const toRad = d => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lat2 - lng1);
+  const dLng = toRad(lng2 - lng1);
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-// 검색 임시 핀 보관소
+/** ===== 전역 보관소 ===== */
 if (!globalThis._searchOverlays) globalThis._searchOverlays = [];
+if (!globalThis._detailOverlays) globalThis._detailOverlays = new Map();
+if (!globalThis._aggOverlays) globalThis._aggOverlays = new Map();
+if (!globalThis._forceShowOverlays) globalThis._forceShowOverlays = new Set();
+if (!globalThis._searchHitOverlays) globalThis._searchHitOverlays = [];
 
-/** 임시 핀 생성(검색 좌표용 - 텍스트 없는 뾰족핀) - 초록색 */
+/** 임시 핀 생성(검색 좌표용 - 뾰족핀) */
 function createTempPin(lat, lng) {
   const map = window.mapInstance;
 
@@ -122,25 +122,21 @@ function createTempPin(lat, lng) {
     pointer-events:auto;
   `;
 
-  const head = document.createElement('div'); // 초록 동그라미
+  const head = document.createElement('div');
   head.style.cssText = `
-  width:20px;
-  height:20px;
-  border-radius:50%;
-  background:#357ae9; 
-  border:3px solid white; 
-`;
+    width:20px;height:20px;border-radius:50%;
+    background:${PIN_COLOR};
+    border:3px solid white;
+  `;
 
   const tip = document.createElement('div');
   tip.style.cssText = `
-  width:0;
-  height:0;
-  margin-top:1px;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-top:10px solid #357ae9;
-  position:relative;
-`;
+    width:0;height:0;margin-top:1px;
+    border-left:6px solid transparent;
+    border-right:6px solid transparent;
+    border-top:10px solid ${PIN_COLOR};
+    position:relative;
+  `;
 
   wrap.appendChild(head);
   wrap.appendChild(tip);
@@ -153,14 +149,12 @@ function createTempPin(lat, lng) {
   });
   ov.setMap(map);
   globalThis._searchOverlays.push(ov);
-  console.log('[SEARCH] temp pin created ->', { lat, lng });
 }
 
 /** 임시 핀 제거 */
 function clearSearchPins() {
   (globalThis._searchOverlays || []).forEach(ov => ov.setMap(null));
   globalThis._searchOverlays = [];
-  console.log('[SEARCH] temp pins cleared');
 }
 
 /** 가까운 디테일 오버레이 찾기 */
@@ -168,7 +162,6 @@ function findNearestDetail(lat, lng) {
   if (!globalThis._detailOverlays) return null;
   let best = null;
   let bestD = Infinity;
-
   globalThis._detailOverlays.forEach(ov => {
     const pos = ov.getPosition();
     const d = distanceM(lat, lng, pos.getLat(), pos.getLng());
@@ -177,17 +170,15 @@ function findNearestDetail(lat, lng) {
       best = ov;
     }
   });
-  if (!best) return null;
-  return { overlay: best, distance: bestD };
+  return best ? { overlay: best, distance: bestD } : null;
 }
 
-/** 디테일 오버레이 펄스 하이라이트 (링도 초록톤으로) */
+/** 디테일 오버레이 펄스 하이라이트 (링) */
 function pulseOverlay(overlay) {
-  const content = overlay.getContent();
+  const content = overlay.__body;
   if (!(content instanceof HTMLElement)) return;
   content.style.position = 'relative';
 
-  // keyframes 한 번만 주입
   if (!document.getElementById('search-pulse-style')) {
     const style = document.createElement('style');
     style.id = 'search-pulse-style';
@@ -203,7 +194,7 @@ function pulseOverlay(overlay) {
   const ring = document.createElement('div');
   ring.style.cssText = `
     position:absolute; inset:-10px; border-radius:999px;
-    border:3px solid rgba(46,204,113,.45);
+    border:3px solid rgba(53,122,233,.45);
     animation: search-pulse 1s ease-out 0s 3;
     pointer-events:none;
   `;
@@ -219,29 +210,25 @@ function pulseOverlay(overlay) {
   }, 1600);
 }
 
-/** ====== 검색 강조/강제표시 유틸 ====== */
-// 검색으로 '강제표시'해야 할 디테일 마커들을 기억(줌레벨 무시 노출)
-if (!globalThis._forceShowOverlays) globalThis._forceShowOverlays = new Set();
-// 검색 하이라이트(색/Z) 적용한 마커들 기억 → 다음 검색 때 원복
-if (!globalThis._searchHitOverlays) globalThis._searchHitOverlays = [];
+/** 히트 강조 — 본체에 직접 칠함 */
+function applyHitStyleToOverlay(overlay) {
+  const el = overlay?.__body;
+  if (!el || overlay.__hitApplied) return;
 
-/** 디테일 마커 강조: 초록 배경 + zIndex 최상단(고정) */
-function markOverlayHit(overlay) {
-  const el = overlay.getContent?.();
-  if (!(el instanceof HTMLElement)) return;
-  if (el.dataset.searchHit === '1') return;
+  overlay.__hitApplied = true;
 
-  el.dataset.prevBg = el.style.background || '';
-  el.dataset.prevColor = el.style.color || '';
-  el.dataset.prevZ = String(overlay.getZIndex?.() ?? Z_BASE);
-  el.dataset.searchHit = '1';
-  el.dataset.fixedZ = '1'; // hover에 zIndex 안 바꾸도록 플래그
+  // 원복용 백업
+  el.dataset.prevStyle = el.getAttribute('style') || '';
+  el.dataset.prevZ = String(overlay.getZIndex?.() ?? 1);
 
-  el.style.background = '#fb8c00';
-  el.style.color = '#fff';
+  // 강제 컬러 적용
+  el.style.setProperty('background', PIN_COLOR, 'important');
+  el.style.setProperty('background-color', PIN_COLOR, 'important');
+  el.style.setProperty('color', '#fff', 'important');
+  el.style.setProperty('box-shadow', '0 4px 10px rgba(0,0,0,.25)', 'important');
+
   overlay.setZIndex?.(Z_HIT);
-
-  globalThis._searchHitOverlays.push(overlay);
+  (globalThis._searchHitOverlays ||= []).push(overlay);
 }
 
 /** 검색 UI 초기화: 임시핀 제거 + 강조 원복 + 강제표시 해제 */
@@ -249,38 +236,23 @@ function clearSearchUI() {
   clearSearchPins();
 
   (globalThis._searchHitOverlays || []).forEach(ov => {
-    const el = ov.getContent?.();
-    if (el instanceof HTMLElement && el.dataset.searchHit === '1') {
-      el.style.background = el.dataset.prevBg || '';
-      el.style.color = el.dataset.prevColor || '';
-      el.style.boxShadow = el.dataset.prevShadow || '';
-      ov.setZIndex?.(Number(el.dataset.prevZ || Z_BASE));
-      delete el.dataset.prevBg;
-      delete el.dataset.prevColor;
-      delete el.dataset.prevShadow;
+    const el = ov?.__body;
+    if (el && ov.__hitApplied) {
+      const prev = el.dataset.prevStyle || '';
+      el.setAttribute('style', prev); // 인라인 스타일 전체 복구
+      ov.setZIndex?.(Number(el.dataset.prevZ || 1));
+      delete el.dataset.prevStyle;
       delete el.dataset.prevZ;
-      delete el.dataset.searchHit;
-      delete el.dataset.fixedZ;
+      ov.__hitApplied = false;
     }
   });
   globalThis._searchHitOverlays = [];
   globalThis._forceShowOverlays?.clear?.();
 }
 
-/* ===== (옵션) 텍스트 정규화 유틸 — 필요시 사용 ===== */
-function normalizeText(s) {
-  return String(s || '')
-    .normalize('NFC')
-    .trim()
-    .replace(/\s+/g, '')
-    .toLowerCase();
-}
-
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState(); // { details: {...}, summaries: {depth0,depth1,depth2}}
-
-  console.log('mapData', mapData);
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
 
@@ -336,7 +308,7 @@ export default function MapPanel() {
 
     const map = window.mapInstance;
 
-    // 오버레이 캐시
+    // 오버레이 캐시 초기화
     (globalThis._detailOverlays || new Map()).forEach(o => o.setMap(null));
     (globalThis._aggOverlays || new Map()).forEach(o => o.setMap(null));
     globalThis._detailOverlays = new Map();
@@ -383,17 +355,18 @@ export default function MapPanel() {
             zIndex: Z_BASE,
           });
 
+          // 본체 저장 (이걸 직접 칠한다)
+          overlay.__body = div;
+
           // hover 효과 (히트 마커면 z 고정)
           div.addEventListener('mouseenter', () => {
-            const isHit = overlay.getContent?.()?.dataset.fixedZ === '1';
-            if (!isHit) {
+            if (!overlay.__hitApplied) {
               div.style.transform = 'scale(1.25)';
               overlay.setZIndex(Z_HOVER);
             }
           });
           div.addEventListener('mouseleave', () => {
-            const isHit = overlay.getContent?.()?.dataset.fixedZ === '1';
-            if (!isHit) {
+            if (!overlay.__hitApplied) {
               div.style.transform = 'scale(1)';
               overlay.setZIndex(Z_BASE);
             }
@@ -476,29 +449,6 @@ export default function MapPanel() {
               zIndex: Z_BASE,
             });
 
-            // hover (히트 고정 무시 — 집계는 보통 히트 대상 아님이지만 동일 로직 적용)
-            div.addEventListener('mouseenter', () => {
-              const isHit = overlay.getContent?.()?.dataset.fixedZ === '1';
-              if (!isHit) {
-                div.style.transform = 'scale(1.25)';
-                overlay.setZIndex(Z_HOVER);
-              }
-            });
-            div.addEventListener('mouseleave', () => {
-              const isHit = overlay.getContent?.()?.dataset.fixedZ === '1';
-              if (!isHit) {
-                div.style.transform = 'scale(1)';
-                overlay.setZIndex(Z_BASE);
-              }
-            });
-
-            // 클릭 시 한 칸 확대 + 그 위치로 센터 이동
-            div.addEventListener('click', () => {
-              const latlng = new window.kakao.maps.LatLng(coords.lat, coords.lng);
-              map.setCenter(latlng);
-              map.setLevel(Math.max(1, map.getLevel() - 1));
-            });
-
             globalThis._aggOverlays.set(key, overlay);
           } else {
             overlay.setPosition(new window.kakao.maps.LatLng(coords.lat, coords.lng));
@@ -544,15 +494,12 @@ export default function MapPanel() {
           ps.keywordSearch(
             kw,
             (data, status) => {
-              console.log('[SEARCH] keywordSearch status=', status, 'raw=', data);
               if (status === window.kakao.maps.services.Status.OK) {
-                const arr = data
-                  .filter(d => d.place_name.includes(kw) || kw.includes(d.place_name))
-                  .map(d => ({
-                    name: d.place_name,
-                    lat: parseFloat(d.y),
-                    lng: parseFloat(d.x),
-                  }));
+                const arr = data.map(d => ({
+                  name: d.place_name,
+                  lat: parseFloat(d.y),
+                  lng: parseFloat(d.x),
+                }));
                 resolve(arr);
               } else resolve([]);
             },
@@ -563,7 +510,6 @@ export default function MapPanel() {
       const addressSearch = () =>
         new Promise(resolve => {
           geocoder.addressSearch(kw, (data, status) => {
-            console.log('[SEARCH] addressSearch status=', status, 'raw=', data);
             if (status === window.kakao.maps.services.Status.OK) {
               const arr = data.map(d => ({
                 name: d.address?.address_name || d.road_address?.address_name || kw,
@@ -588,7 +534,6 @@ export default function MapPanel() {
 
       // 중복 제거
       const uniq = dedupPoints(results);
-      console.log('[SEARCH] results uniq=', uniq);
       if (!uniq.length) return;
 
       // 단건: 이동 + 강조 or 임시핀
@@ -598,7 +543,7 @@ export default function MapPanel() {
 
         const near = findNearestDetail(lat, lng);
         if (near && near.distance <= 120) {
-          markOverlayHit(near.overlay);
+          applyHitStyleToOverlay(near.overlay);
           globalThis._forceShowOverlays.add(near.overlay); // 줌레벨 무시 노출
           pulseOverlay(near.overlay);
         } else {
@@ -613,11 +558,11 @@ export default function MapPanel() {
         const near = findNearestDetail(lat, lng);
 
         if (near && near.distance <= 150) {
-          // 디테일 마커가 있는 경우: 초록 강조 + zIndex 최상단 + 강제표시
-          markOverlayHit(near.overlay);
+          // 디테일 마커가 있는 경우: 핀 색으로 강조 + zIndex 최상단 + 강제표시
+          applyHitStyleToOverlay(near.overlay);
           globalThis._forceShowOverlays.add(near.overlay);
         } else {
-          // 디테일 데이터가 아예 없는 좌표: 초록 뾰족 임시핀
+          // 디테일 데이터가 아예 없는 좌표: 뾰족 임시핀
           createTempPin(lat, lng);
         }
       });
