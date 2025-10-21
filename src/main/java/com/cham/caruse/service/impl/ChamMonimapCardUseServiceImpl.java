@@ -168,7 +168,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     first.getChamMonimapCardUseUser(),
                     list.size(),
                     visitMember,
-                    totalSum, // ✅ 여기에 최종합계 반영
+                    totalSum, // 여기에 최종합계 반영
                     first.getCardUseAddr().getChamMonimapCardUseDetailAddr(),
                     imageUrl,
                     addrId,
