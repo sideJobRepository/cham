@@ -228,6 +228,9 @@ function applyHitStyleToOverlay(overlay) {
   el.style.setProperty('box-shadow', '0 4px 10px rgba(0,0,0,.25)', 'important');
 
   overlay.setZIndex?.(Z_HIT);
+
+  //모바일 즉시 보이게
+  overlay.setMap?.(window.mapInstance);
   (globalThis._searchHitOverlays ||= []).push(overlay);
 }
 
@@ -284,6 +287,7 @@ export default function MapPanel() {
           center: new window.kakao.maps.LatLng(36.3504, 127.3845),
           level: 10, // 구 집계로 시작
         });
+
         const zoomControl = new window.kakao.maps.ZoomControl();
         map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
         window.mapInstance = map;
@@ -293,6 +297,10 @@ export default function MapPanel() {
         bounds.extend(new window.kakao.maps.LatLng(36.461, 127.275));
         bounds.extend(new window.kakao.maps.LatLng(36.281, 127.493));
         map.setBounds(bounds);
+
+        const initCenter = map.getCenter();
+        const initLevel = map.getLevel();
+        window._initialMapView = { bounds, center: initCenter, level: initLevel };
 
         setMapReady(true);
       });
@@ -490,10 +498,18 @@ export default function MapPanel() {
     const map = window.mapInstance;
     if (!window.kakao?.maps || !map) return;
 
-    // 입력 없음 → 초기화
+    // 지도 검색 값이 없을 경우
     if (!kw) {
       clearSearchUI();
-      map.setLevel(10); // 기본 보기
+      const view = window._initialMapView;
+      if (view?.bounds) {
+        map.setBounds(view.bounds); // 최초와 동일한 영역으로
+      } else {
+        map.setCenter(view?.center || new window.kakao.maps.LatLng(36.3504, 127.3845));
+        map.setLevel(view?.level ?? 10);
+      }
+      // 모바일에서 즉시 반영 보장 (선택)
+      window.kakao.maps.event?.trigger(window.mapInstance, 'idle');
       return;
     }
 
