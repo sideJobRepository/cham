@@ -106,7 +106,7 @@ export default function AdminModal() {
   return (
     <AdminWrapper>
       <ExcelSection>
-        <ExcelButton onClick={handleExcelUploadClick}>
+        <ExcelButton color="#1A7D55" onClick={handleExcelUploadClick}>
           <AiOutlineUpload /> 추가
         </ExcelButton>
         <input
@@ -123,6 +123,7 @@ export default function AdminModal() {
           placeholder="삭제키를 입력해주세요."
         />
         <ExcelButton
+          color="#FF5E57"
           onClick={() => {
             confirmAlert({
               message: '해당 엑셀을 삭제하시겠습니까?',
@@ -159,7 +160,8 @@ export default function AdminModal() {
               <tr>
                 <Th style={{ width: '50px' }}> </Th>
                 <Th style={{ width: '200px' }}>이메일</Th>
-                <Th style={{ width: '120px' }}>번호</Th>
+                <Th style={{ width: '100px' }}>이름</Th>
+                <Th style={{ width: '120px' }}>연락처</Th>
                 <Th style={{ width: '150px' }}>권한</Th>
               </tr>
             </thead>
@@ -182,6 +184,7 @@ export default function AdminModal() {
                       />
                     </Td>
                     <Td color="#222">{item.memberEmail}</Td>
+                    <Td color="#222">{item.memberName}</Td>
                     <Td color="#222">{item.memberPhoneNo}</Td>
                     <Td color="#222">
                       <div>
@@ -227,7 +230,6 @@ const AdminWrapper = styled.section`
   height: 100%;
   margin: 0 auto;
   overflow-y: hidden;
-  max-width: 600px;
   padding: 40px;
   @media screen and ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
@@ -247,13 +249,13 @@ const ExcelSection = styled.div`
 const ExcelButton = styled.button`
   display: flex;
   align-items: center;
-  background: ${({ color, theme }) => color || theme.colors.primary};
+  background: ${({ color }) => color};
   border: none;
   color: white;
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.medium};
   padding: 10px 16px;
-  border-radius: 999px;
+  border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
   gap: 6px;
@@ -297,6 +299,10 @@ export const Table = styled.table`
   white-space: nowrap;
   font-size: ${({ theme }) => theme.sizes.medium};
   table-layout: fixed;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.sizes.small};
+  }
 
   th,
   td {
