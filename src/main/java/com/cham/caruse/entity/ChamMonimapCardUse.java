@@ -100,15 +100,26 @@ public class ChamMonimapCardUse extends BaseData {
     }
     
     public String getAmountPerPerson() {
-        if (this.chamMonimapCardUsePersonnel == null ||  chamMonimapCardUseAmount == null && this.chamMonimapCardUseMethod == null) {
-            return null; // 혹은 0 또는 예외 처리
+        if (this.chamMonimapCardUsePersonnel == null || chamMonimapCardUseAmount == null) {
+            return null;
         }
-        if(this.chamMonimapCardUsePersonnel.startsWith("내방객")) {
+    
+        if (this.chamMonimapCardUsePersonnel.startsWith("내방객")) {
             return "내방객등";
         }
-        int personnel = Integer.parseInt(this.chamMonimapCardUsePersonnel);
-        if (personnel == 0) return null; // 0명일 경우 예외 처리
-        
+    
+        // 💡 숫자만 남기기 (쉼표, 공백, 특수문자 제거)
+        String personnelStr = this.chamMonimapCardUsePersonnel.replaceAll("[^0-9]", "");
+    
+        int personnel;
+        try {
+            personnel = Integer.parseInt(personnelStr);
+        } catch (NumberFormatException e) {
+            return null; // 예외 발생 시 그냥 null 반환
+        }
+    
+        if (personnel == 0) return null;
+    
         return String.format("%,d원", chamMonimapCardUseAmount / personnel); // 콤마 포함한 원 단위 출력
         
     }
