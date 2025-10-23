@@ -67,7 +67,7 @@ function fitMapToPoints(map, points, paddingPx = 60) {
 function goDetail(map, lat, lng) {
   const center = new window.kakao.maps.LatLng(lat, lng);
   map.setCenter(center);
-  map.setLevel(2);
+  map.setLevel(3);
 }
 
 /** 검색어가 행정구역일 가능성 추정 */
