@@ -84,7 +84,7 @@ jobs:
             CLIENT_SECRET='${{ secrets.CLIENT_SECRET }}' \
             NAVER_CLIENT_SECRET='${{ secrets.NAVER_CLIENT_SECRET }}' \
             GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
-            GOOGLE_CLIENT_SECRET='${{ secrets.SENDON_APIKEY }}' \
+            SENDON_APIKEY='${{ secrets.SENDON_APIKEY }}' \
             nohup java \
             -Dspring.profiles.active=real \
             -Duser.timezone=Asia/Seoul \
