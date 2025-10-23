@@ -154,7 +154,7 @@ const BottomSheet = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  height: 90%;
+  height: 100%;
   max-height: 80vh;
   background: #fff;
   border-top-left-radius: 16px;
