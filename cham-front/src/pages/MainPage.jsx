@@ -122,7 +122,7 @@ const ListContent = styled.div`
   height: 100%;
   padding-right: 10px;
   overflow-y: auto;
-   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   @media ${({ theme }) => theme.device.mobile} {
     overflow-y: visible;
@@ -136,7 +136,7 @@ const MapSection = styled.div`
   @media ${({ theme }) => theme.device.mobile} {
     flex: none;
     width: 100%;
-    height: calc(100vh - 258px);
+    height: calc(100dvh - 258px);
   }
 `;
 
