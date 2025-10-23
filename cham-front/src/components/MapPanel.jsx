@@ -253,6 +253,35 @@ function clearSearchUI() {
   globalThis._forceShowOverlays?.clear?.();
 }
 
+/** ---------------------- 추가: 대표 디테일 선택 헬퍼 ---------------------- */
+function pickRepresentativeDetailNear(lat, lng, opts = { radiusM: 700, random: true }) {
+  const details = Array.from(globalThis._detailOverlays?.values?.() || []);
+  if (!details.length) return null;
+
+  const withDist = details.map(ov => {
+    const p = ov.getPosition();
+    return {
+      ov,
+      lat: p.getLat(),
+      lng: p.getLng(),
+      d: distanceM(lat, lng, p.getLat(), p.getLng()),
+    };
+  });
+
+  const near = withDist.filter(o => o.d <= (opts.radiusM ?? 700));
+
+  const pickOne = arr => {
+    if (!arr.length) return null;
+    if (opts.random) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    return arr.slice().sort((a, b) => a.d - b.d)[0];
+  };
+
+  return pickOne(near) || withDist.slice().sort((a, b) => a.d - b.d)[0] || null;
+}
+/** ----------------------------------------------------------------------- */
+
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState(); // { details: {...}, summaries: {depth0,depth1,depth2}}
@@ -467,11 +496,28 @@ export default function MapPanel() {
               overlay.setZIndex(Z_BASE);
             });
 
+            /** ---------------------- 수정: 동 클릭 시 대표 디테일로 직행 ---------------------- */
             div.addEventListener('click', () => {
+              if (isDong) {
+                const picked = pickRepresentativeDetailNear(coords.lat, coords.lng, {
+                  radiusM: 700,
+                  random: true, // false면 "최단거리 1개" 고정
+                });
+
+                if (picked) {
+                  goDetail(map, picked.lat, picked.lng);
+                  window.kakao.maps.event?.trigger(window.mapInstance, 'idle');
+                  return;
+                }
+                // 근처 디테일이 전혀 없을 때만 기존처럼 살짝 확대
+              }
+
+              //  시/구 단계(또는 예외)에서는 기존 동작 유지: 중심으로 이동 + 레벨 1단계 다운
               const latlng = new window.kakao.maps.LatLng(coords.lat, coords.lng);
               map.setCenter(latlng);
               map.setLevel(Math.max(1, map.getLevel() - 1));
             });
+            /** ----------------------------------------------------------------------------- */
 
             globalThis._aggOverlays.set(key, overlay);
           } else {
