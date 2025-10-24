@@ -104,6 +104,8 @@ export default function TopHeader() {
           </>
         ),
         gb: true,
+        firstText: '다음에 참여할게요',
+        secondText: '후원으로 응원하기',
         onConfirm: () => window.open('https://secure.donus.org/djcham/pay/step1', '_blank'),
       });
     };
@@ -117,7 +119,9 @@ export default function TopHeader() {
             있습니다.
           </>
         ),
-        gb: false,
+        gb: true,
+        firstText: '둘러보기 계속',
+        secondText: '로그인하고 모든 기능 사용하기',
         onConfirm: () => setIsLoginModalOpen(true),
       });
     };

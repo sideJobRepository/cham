@@ -11,7 +11,6 @@ import { useRecoilValue } from 'recoil';
 import { checkDataState, userState } from '@/recoil/appState.js';
 import api from '@/utils/axiosInstance.js';
 import { toast } from 'react-toastify';
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import basicLogo from '/basicLogo.png';
 
@@ -190,7 +189,9 @@ export default function DetailPage({ initialParams }) {
             있습니다.
           </>
         ),
-        gb: false,
+        gb: true,
+        firstText: '둘러보기 계속',
+        secondText: '로그인하고 모든 기능 사용하기',
         onConfirm: () => {
           setIsLoginModalOpen(true);
         },
@@ -334,12 +335,13 @@ export default function DetailPage({ initialParams }) {
                         <>
                           <WriteButton
                             onClick={() => {
-                              confirmAlert({
-                                message: '해당 댓글을 수정하시겠습니까?',
-                                buttons: [
-                                  { label: '수정', onClick: () => handleUpdate(reply) },
-                                  { label: '취소', onClick: () => {} },
-                                ],
+                              showConfirmModal({
+                                title: <>댓글 수정</>,
+                                message: <>해당 댓글을 수정하시겠습니까?</>,
+                                gb: true,
+                                firstText: '취소',
+                                secondText: '수정',
+                                onConfirm: () => handleUpdate(reply),
                               });
                             }}
                           >
@@ -378,23 +380,21 @@ export default function DetailPage({ initialParams }) {
                               </WriteButton>
                               <WriteButton
                                 onClick={() => {
-                                  confirmAlert({
-                                    message: '해당 댓글을 삭제하시겠습니까?',
-                                    buttons: [
-                                      {
-                                        label: '삭제',
-                                        onClick: async () => {
-                                          try {
-                                            await api.delete(`/cham/reply/${reply.replyId}`);
-                                            toast.success('댓글이 삭제되었습니다.');
-                                            await detailSearch(initialParams.addrDetail);
-                                          } catch (e) {
-                                            toast.error('댓글 삭제가 실패했습니다.');
-                                          }
-                                        },
-                                      },
-                                      { label: '취소', onClick: () => {} },
-                                    ],
+                                  showConfirmModal({
+                                    title: <>댓글 삭제</>,
+                                    message: <>해당 댓글을 삭제하시겠습니까?</>,
+                                    gb: false,
+                                    firstText: '취소',
+                                    secondText: '삭제',
+                                    onConfirm: async () => {
+                                      try {
+                                        await api.delete(`/cham/reply/${reply.replyId}`);
+                                        toast.success('댓글이 삭제되었습니다.');
+                                        await detailSearch(initialParams.addrDetail);
+                                      } catch (e) {
+                                        toast.error('댓글 삭제가 실패했습니다.');
+                                      }
+                                    },
                                   });
                                 }}
                               >

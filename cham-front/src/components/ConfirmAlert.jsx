@@ -1,10 +1,10 @@
 import { confirmAlert } from 'react-confirm-alert';
 import styled from 'styled-components';
 
-function ConfirmUI({ onClose, title, message, onConfirm, onCancel, gb }) {
+function ConfirmUI({ onClose, title, message, onConfirm, onCancel, gb, firstText, secondText }) {
   return (
     <AlertWrapper>
-      <Message $gb={gb}>{title}</Message>
+      <Message>{title}</Message>
       <MessageCont>{message}</MessageCont>
       <ButtonGroup>
         <CancelButton
@@ -13,7 +13,7 @@ function ConfirmUI({ onClose, title, message, onConfirm, onCancel, gb }) {
             onClose();
           }}
         >
-          {gb ? '다음에 참여할게요' : '둘러보기 계속'}
+          {firstText}
         </CancelButton>
 
         <ConfirmButton
@@ -21,8 +21,9 @@ function ConfirmUI({ onClose, title, message, onConfirm, onCancel, gb }) {
             onConfirm();
             onClose();
           }}
+          $gb={gb}
         >
-          {gb ? '후원으로 응원하기' : '로그인하고 모든 기능 사용하기'}
+          {secondText}
         </ConfirmButton>
       </ButtonGroup>
     </AlertWrapper>
@@ -97,6 +98,6 @@ const CancelButton = styled(BaseButton)`
 `;
 
 const ConfirmButton = styled(BaseButton)`
-  background-color: #3e95ff;
+  background-color: ${({ $gb }) => ($gb ? '#3e95ff' : '#FF5E57')};
   color: #ffffff;
 `;

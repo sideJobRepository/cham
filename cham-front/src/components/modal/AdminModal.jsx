@@ -8,7 +8,7 @@ import { useRecoilValue } from 'recoil';
 import { mapSearchFilterState } from '@/recoil/appState.js';
 import { useUserListState } from '@/recoil/useAppState.js';
 import Pagination from '@/components/Pagination.jsx';
-import { confirmAlert } from 'react-confirm-alert';
+import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
 
 export default function AdminModal() {
   const userListFetch = useFetchUserList();
@@ -39,15 +39,27 @@ export default function AdminModal() {
     }
     const formData = new FormData();
     formData.append('multipartFile', file);
+
+    const toastId = toast.loading('엑셀 파일을 업로드 하는 중입니다.');
     try {
       await api.post('/cham/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('엑셀 파일이 업로드되었습니다.');
+      toast.update(toastId, {
+        render: '엑셀 파일 업로드가 완료 되었습니다.',
+        type: 'success',
+        isLoading: false,
+        autoClose: 1000,
+      });
       await handleSearch();
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message ?? '엑셀 업로드 실패');
+      toast.update(toastId, {
+        render: err.response?.data?.message ?? '엑셀 업로드 실패',
+        type: 'error',
+        isLoading: false,
+        autoClose: 1000,
+      });
     } finally {
       e.target.value = '';
     }
@@ -55,36 +67,34 @@ export default function AdminModal() {
 
   //권한 수정
   const handleRoleSubmit = async () => {
-    confirmAlert({
-      message: '권한을 변경하시겠습니까?',
-      buttons: [
-        {
-          label: '확인',
-          onClick: async () => {
-            const selected = checkedIds.map(id => ({
-              memberRoleId: id,
-              roleId: roleMap[id] ?? items.content.find(i => i.memberId === id)?.roleId,
-            }));
+    showConfirmModal({
+      title: <>권한 변경</>,
+      message: <>권한을 변경하시겠습니까?</>,
+      gb: true,
+      firstText: '취소',
+      secondText: '확인',
+      onConfirm: async () => {
+        const selected = checkedIds.map(id => ({
+          memberRoleId: id,
+          roleId: roleMap[id] ?? items.content.find(i => i.memberId === id)?.roleId,
+        }));
 
-            if (selected.length === 0) {
-              toast.error('선택된 행이 없습니다.');
-              return;
-            }
+        if (selected.length === 0) {
+          toast.error('선택된 행이 없습니다.');
+          return;
+        }
 
-            try {
-              await api.put(`/cham/role`, selected, {});
-              setCheckedIds([]);
-              setRoleMap([]);
-              await userListFetch(page);
-              toast.success('권한 수정이 완료되었습니다.');
-            } catch (e) {
-              console.log('error', e);
-              toast.error('권한 수정이 실패하였습니다.');
-            }
-          },
-        },
-        { label: '취소', onClick: () => {} },
-      ],
+        try {
+          await api.put(`/cham/role`, selected, {});
+          setCheckedIds([]);
+          setRoleMap([]);
+          await userListFetch(page);
+          toast.success('권한 수정이 완료되었습니다.');
+        } catch (e) {
+          console.log('error', e);
+          toast.error('권한 수정이 실패하였습니다.');
+        }
+      },
     });
   };
 
@@ -125,25 +135,23 @@ export default function AdminModal() {
         <ExcelButton
           color="#FF5E57"
           onClick={() => {
-            confirmAlert({
-              message: '해당 엑셀을 삭제하시겠습니까?',
-              buttons: [
-                {
-                  label: '삭제',
-                  onClick: async () => {
-                    try {
-                      await api.delete(`/cham/upload/${deleteText}`);
-                      toast.success('엑셀 삭제가 완료되었습니다.');
-                      await handleSearch();
-                    } catch (e) {
-                      console.error(e);
-                      const msg = e.response?.data?.message ?? '삭제 실패';
-                      toast.error(msg);
-                    }
-                  },
-                },
-                { label: '취소', onClick: () => {} },
-              ],
+            showConfirmModal({
+              title: <>엑셀 삭제</>,
+              message: <>해당 엑셀을 삭제하시겠습니까?</>,
+              gb: false,
+              firstText: '취소',
+              secondText: '삭제',
+              onConfirm: async () => {
+                try {
+                  await api.delete(`/cham/upload/${deleteText}`);
+                  toast.success('엑셀 삭제가 완료되었습니다.');
+                  await handleSearch();
+                } catch (e) {
+                  console.error(e);
+                  const msg = e.response?.data?.message ?? '삭제 실패';
+                  toast.error(msg);
+                }
+              },
             });
           }}
         >
