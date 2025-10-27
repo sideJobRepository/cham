@@ -104,8 +104,8 @@ const BottomModalBox = styled.div`
     font-weight: bolder;
 
     img {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
     }
   }
 `;

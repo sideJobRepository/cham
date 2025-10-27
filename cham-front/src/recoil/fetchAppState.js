@@ -124,7 +124,7 @@ export function useFetchUserList() {
     const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
 
     try {
-      const res = await api.get(`/cham/role?page=${page}&size=${10}`);
+      const res = await api.get(`/cham/role?page=${page}&size=${5}`);
 
       setState({
         userData: res.data,

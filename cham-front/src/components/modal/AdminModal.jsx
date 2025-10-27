@@ -9,6 +9,8 @@ import { mapSearchFilterState } from '@/recoil/appState.js';
 import { useUserListState } from '@/recoil/useAppState.js';
 import Pagination from '@/components/Pagination.jsx';
 import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
+import { BiUser } from 'react-icons/bi';
+import { BiMap } from 'react-icons/bi';
 
 export default function AdminModal() {
   const userListFetch = useFetchUserList();
@@ -116,9 +118,6 @@ export default function AdminModal() {
   return (
     <AdminWrapper>
       <ExcelSection>
-        <ExcelButton color="#1A7D55" onClick={handleExcelUploadClick}>
-          <AiOutlineUpload /> 추가
-        </ExcelButton>
         <input
           type="file"
           ref={fileInputRef}
@@ -126,40 +125,55 @@ export default function AdminModal() {
           style={{ display: 'none' }}
           onChange={handleExcelFileChange}
         />
-        <DeleteInput
-          value={deleteText}
-          type="text"
-          onChange={e => setDeleteText(e.target.value)}
-          placeholder="삭제키를 입력해주세요."
-        />
-        <ExcelButton
-          color="#FF5E57"
-          onClick={() => {
-            showConfirmModal({
-              title: <>엑셀 삭제</>,
-              message: <>해당 엑셀을 삭제하시겠습니까?</>,
-              gb: false,
-              firstText: '취소',
-              secondText: '삭제',
-              onConfirm: async () => {
-                try {
-                  await api.delete(`/cham/upload/${deleteText}`);
-                  toast.success('엑셀 삭제가 완료되었습니다.');
-                  await handleSearch();
-                } catch (e) {
-                  console.error(e);
-                  const msg = e.response?.data?.message ?? '삭제 실패';
-                  toast.error(msg);
-                }
-              },
-            });
-          }}
-        >
-          <AiOutlineDelete /> 삭제
-        </ExcelButton>
+        <h2>
+          <BiMap />
+          맛집지도 업로드
+        </h2>
+        <ButtonBox>
+          <DeleteInput
+            value={deleteText}
+            type="text"
+            onChange={e => setDeleteText(e.target.value)}
+            placeholder="삭제키를 입력해주세요."
+          />
+          <div>
+            <ExcelButton color="#1A7D55" onClick={handleExcelUploadClick}>
+              <AiOutlineUpload /> 추가
+            </ExcelButton>
+            <ExcelButton
+              color="#FF5E57"
+              onClick={() => {
+                showConfirmModal({
+                  title: <>엑셀 삭제</>,
+                  message: <>해당 엑셀을 삭제하시겠습니까?</>,
+                  gb: false,
+                  firstText: '취소',
+                  secondText: '삭제',
+                  onConfirm: async () => {
+                    try {
+                      await api.delete(`/cham/upload/${deleteText}`);
+                      toast.success('엑셀 삭제가 완료되었습니다.');
+                      await handleSearch();
+                    } catch (e) {
+                      console.error(e);
+                      const msg = e.response?.data?.message ?? '삭제 실패';
+                      toast.error(msg);
+                    }
+                  },
+                });
+              }}
+            >
+              <AiOutlineDelete /> 삭제
+            </ExcelButton>
+          </div>
+        </ButtonBox>
       </ExcelSection>
       <TableSection>
         <ButtonBox>
+          <h2>
+            <BiUser />
+            회원관리
+          </h2>
           <Button onClick={() => handleRoleSubmit()}>저장</Button>
         </ButtonBox>
         <TableScrollBox>
@@ -245,12 +259,25 @@ const AdminWrapper = styled.section`
     min-height: unset;
     overflow-y: auto;
   }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: ${({ theme }) => theme.colors.topLine};
+    font-size: ${({ theme }) => theme.sizes.large};
+    font-weight: bold;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
 `;
 
 const ExcelSection = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
   z-index: 2;
 `;
@@ -279,6 +306,9 @@ const ExcelButton = styled.button`
 const DeleteInput = styled.input`
   border: none;
   background: unset;
+  flex: 1;
+  min-width: 0;
+
   padding: 4px;
   &:focus {
     outline: none;
@@ -366,14 +396,22 @@ export const PaginationSetion = styled.section`
 const ButtonBox = styled.div`
   display: flex;
   width: 100%;
-  justify-content: right;
+  gap: 12px;
+  justify-content: space-between;
   margin-bottom: 10px;
+  align-items: center;
+
+  > div {
+    display: flex;
+    gap: 8px;
+  }
 `;
 
 const Button = styled.button`
-  padding: 6px 16px;
+  padding: 10px 16px;
   background-color: ${({ theme }) => theme.colors.primary};
   color: #ffffff;
+  font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.medium};
   border: none;
   border-radius: 4px;
