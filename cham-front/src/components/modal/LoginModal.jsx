@@ -91,6 +91,7 @@ const BottomModalBox = styled.div`
   button {
     display: flex;
     align-items: center;
+    justify-content: center;
     max-width: 310px;
     width: 100%;
     padding: 12px 60px;
@@ -99,7 +100,7 @@ const BottomModalBox = styled.div`
     color: #ffffff;
     border: 1px solid rgba(225, 225, 225, 0.25);
     border-radius: 80px;
-    font-size: 14spx;
+    font-size: 14px;
     cursor: pointer;
     font-weight: bolder;
 
