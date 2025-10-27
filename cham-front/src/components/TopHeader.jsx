@@ -112,7 +112,7 @@ export default function TopHeader() {
 
     const openLogin = () => {
       showConfirmModal({
-        title: <>맛집지도' 120% 활용하기</>,
+        title: <>'맛집지도' 120% 활용하기</>,
         message: (
           <>
             로그인하시면 [댓글, 가봤어요, 궁금해요 등 관심가게 등록] 등 더 많은 기능을 이용할 수
@@ -253,7 +253,11 @@ export default function TopHeader() {
         </LinkWrapper>
       </MobileMenu>
       {isLoginModalOpen && (
-        <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
+        <Modal
+          open={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          title="간편 로그인"
+        >
           <LoginMoadl />
         </Modal>
       )}

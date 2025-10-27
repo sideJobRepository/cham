@@ -612,7 +612,11 @@ export default function DetailPage({ initialParams }) {
         }}
       />
       {isLoginModalOpen && (
-        <Modal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title="로그인">
+        <Modal
+          open={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          title="간편 로그인"
+        >
           <LoginMoadl />
         </Modal>
       )}
