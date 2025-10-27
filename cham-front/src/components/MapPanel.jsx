@@ -676,7 +676,7 @@ export default function MapPanel() {
         <MapContainer id="map" />
       </MapBox>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="상세보기">
+      <Modal open={open} onClose={() => setOpen(false)} title="" color="#ffffff">
         <DetailPage initialParams={detailParams} />
       </Modal>
     </>

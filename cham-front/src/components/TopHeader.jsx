@@ -256,13 +256,20 @@ export default function TopHeader() {
         <Modal
           open={isLoginModalOpen}
           onClose={() => setIsLoginModalOpen(false)}
-          title="간편 로그인"
+          title=""
+          color="#093A6E"
+          textColor="#ffffff"
         >
           <LoginMoadl />
         </Modal>
       )}
       {isAdminModalOpen && (
-        <Modal open={isAdminModalOpen} onClose={() => setIsAdminModalOpen(false)} title="관리자">
+        <Modal
+          open={isAdminModalOpen}
+          onClose={() => setIsAdminModalOpen(false)}
+          title=""
+          color="#ffffff"
+        >
           <AdminModal />
         </Modal>
       )}

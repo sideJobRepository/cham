@@ -126,7 +126,7 @@ export default function ItemCard({ data }) {
         </CardBody>
       </Card>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="상세보기">
+      <Modal open={open} onClose={() => setOpen(false)} title="" color="#ffffff">
         <DetailPage initialParams={detailParams} />
       </Modal>
     </>

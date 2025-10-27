@@ -28,7 +28,7 @@ export default function LoginMoadl() {
     <LoginModalWrapper>
       <CenterModalBox>
         <img src={logo} alt="로고" />
-        <h2>대전참여자치시민연대</h2>
+        <h2>로그인</h2>
       </CenterModalBox>
       <BottomModalBox>
         <button onClick={() => login('GOOGLE')}>

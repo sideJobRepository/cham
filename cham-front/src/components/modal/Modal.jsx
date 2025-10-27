@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { FaTimes } from 'react-icons/fa';
 
-export default function Modal({ open, onClose, title, children }) {
+export default function Modal({ open, onClose, title, children, color, textColor }) {
   useEffect(() => {
     if (!open) return;
     const onKey = e => e.key === 'Escape' && onClose?.();
@@ -21,7 +21,7 @@ export default function Modal({ open, onClose, title, children }) {
   return ReactDOM.createPortal(
     <Backdrop onClick={onClose}>
       <Dialog onClick={e => e.stopPropagation()}>
-        <Header>
+        <Header $color={color} $textColor={textColor}>
           <strong>{title}</strong>
           <FaTimes onClick={onClose} />
         </Header>
@@ -62,8 +62,13 @@ const Header = styled.div`
   justify-content: space-between;
   height: 50px;
   padding: 0 20px;
-  color: #ffffff;
-  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ $textColor }) => $textColor};
+  background-color: ${({ $color }) => $color};
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
 `;
 
 const CloseBtn = styled.button`

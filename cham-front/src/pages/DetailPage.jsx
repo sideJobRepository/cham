@@ -615,7 +615,9 @@ export default function DetailPage({ initialParams }) {
         <Modal
           open={isLoginModalOpen}
           onClose={() => setIsLoginModalOpen(false)}
-          title="간편 로그인"
+          title=""
+          color="#093A6E"
+          textColor="#ffffff"
         >
           <LoginMoadl />
         </Modal>
