@@ -69,7 +69,7 @@ const CenterModalBox = styled.div`
   align-items: center;
 
   img {
-    height: 100px;
+    height: 126px;
     width: auto;
   }
 
