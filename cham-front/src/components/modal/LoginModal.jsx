@@ -99,7 +99,7 @@ const BottomModalBox = styled.div`
     color: #ffffff;
     border: 1px solid rgba(225, 225, 225, 0.25);
     border-radius: 80px;
-    font-size: 16px;
+    font-size: 14spx;
     cursor: pointer;
     font-weight: bolder;
 
