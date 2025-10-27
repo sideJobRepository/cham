@@ -66,8 +66,8 @@ const Header = styled.div`
   background-color: ${({ $color }) => $color};
 
   svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
 `;
 

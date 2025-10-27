@@ -28,7 +28,7 @@ export default function LoginMoadl() {
     <LoginModalWrapper>
       <CenterModalBox>
         <img src={logo} alt="로고" />
-        <h2>로그인</h2>
+        <h2>맛집지도 로그인</h2>
       </CenterModalBox>
       <BottomModalBox>
         <button onClick={() => login('GOOGLE')}>
@@ -74,7 +74,7 @@ const CenterModalBox = styled.div`
   }
 
   h2 {
-    font-size: ${({ theme }) => theme.sizes.large};
+    font-size: ${({ theme }) => theme.sizes.bigLarge};
     color: #ffffff;
     font-weight: bold;
   }
@@ -94,12 +94,12 @@ const BottomModalBox = styled.div`
     max-width: 310px;
     width: 100%;
     padding: 12px 60px;
-    gap: 34px;
+    gap: 28px;
     background-color: transparent;
     color: #ffffff;
     border: 1px solid rgba(225, 225, 225, 0.25);
     border-radius: 80px;
-    font-size: ${({ theme }) => theme.sizes.medium};
+    font-size: 16px;
     cursor: pointer;
     font-weight: bolder;
 
