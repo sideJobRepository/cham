@@ -84,6 +84,8 @@ export default function Layout() {
 
               <FooterSection>
                 <h4>도움을 주신 분들</h4>
+                <p>김민수 이문희 정연서 김소담</p>
+                <p>이대희 설재균 정혜용 정서연 전한빛 이호경 펭귄 권혜리 칠초</p>
                 <p>배성환, 박지수</p>
               </FooterSection>
             </FooterBox>
