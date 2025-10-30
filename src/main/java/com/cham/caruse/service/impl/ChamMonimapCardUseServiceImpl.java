@@ -18,6 +18,10 @@ import com.cham.reply.entity.ChamMonimapReply;
 import com.cham.reply.repository.ChamMonimapReplyRepository;
 import com.cham.replyimage.entity.ChamMonimapReplyImage;
 import com.cham.replyimage.repository.ChamMonimapReplyImageRepository;
+import com.cham.theme.dto.response.ThemeGetResponse;
+import com.cham.theme.enumeration.ChamMonimapThemeType;
+import com.cham.theme.respotiroy.ChamMonimapThemeRepository;
+import com.cham.theme.respotiroy.impl.ChamMonimapThemeRepositoryImpl;
 import com.cham.util.ExcelColumns;
 import com.cham.util.PoiUtil;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +65,8 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     
     private final ChamMonimapRegionRepository regionRepository;
     
+    private final ChamMonimapThemeRepository themeRepository;
+    
     @Value("${kakao.clientId}")
     private String kakaoClientId;
     
@@ -72,7 +78,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         List<CardUseSummaryDto> bySumTotalAmount = cardUseRepository.findBySumTotalAmount();
         List<ChamMonimapReply> replies = replyRepository.findByReplys();
         List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
-
+        List<ThemeGetResponse> themes = themeRepository.findByThemes();
         // 1-1) 이름 기준으로 합계 맵핑
         Map<Long, Integer> totalAmountById = bySumTotalAmount.stream()
                 .collect(Collectors.toMap(
@@ -133,6 +139,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             
             String imageUrl = imageUrlByAddrId.get(addrId);
             
+           
             // 댓글 응답 (그대로)
             List<ReplyResponse> replyList = repliesByAddrId.getOrDefault(addrId, Collections.emptyList())
                     .stream()
@@ -157,6 +164,34 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
             String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
             
+            
+            List<ChamMonimapCardUse> cardUseList = entry.getValue();
+            
+            List<String> colors = cardUseList.stream()
+                    .map(use -> {
+                        ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
+                        return themes.stream()
+                                .filter(theme -> {
+                                    if ("OWNER".equals(theme.getThemeType())) {
+                                        return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
+                                    } else if ("INPUT".equals(theme.getThemeType())) {
+                                        return categoryName != null
+                                                && theme.getInputValue() != null
+                                                && categoryName.contains(theme.getInputValue());
+                                    }
+                                    return false;
+                                })
+                                // OWNER 우선
+                                .sorted(Comparator.comparing(
+                                        t -> "OWNER".equals(t.getThemeType()) ? 0 : 1
+                                ))
+                                .map(ThemeGetResponse::getColor)
+                                .findFirst()
+                                .orElse(null);
+                    })
+                    .filter(Objects::nonNull)
+                    .distinct() // 중복 제거
+                    .toList();
             //  DB 집계 값이 우선, 없으면 기존 합계 사용
             int totalSum = (totalSumFromDB != null && totalSumFromDB > 0)
                     ? totalSumFromDB
@@ -176,6 +211,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     xValue,
                     yValue,
                     categoryName,
+                    colors,
                     groupedResponses,
                     replyList
             );
@@ -196,7 +232,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         List<ChamMonimapCardUse> cardUses  = cardUseRepository.findByCardUsesDetail(request);
         List<ChamMonimapReply> replies     = replyRepository.findByReplys();
         List<ChamMonimapReplyImage> images = replyImageRepository.findByReplyImages();
-        
+        List<ThemeGetResponse> themes = themeRepository.findByThemes();
         // 2) 그룹핑 (기존과 동일)
         Map<Long, List<ChamMonimapCardUse>> usesByAddrId = cardUses.stream()
                 .collect(Collectors.groupingBy(u -> u.getCardUseAddr().getChamMonimapCardUseAddrId()));
@@ -268,6 +304,34 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
             String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
+            
+            
+            List<ChamMonimapCardUse> cardUseList = entry.getValue();
+            List<String> colors = cardUseList.stream()
+                    .map(use -> {
+                        ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
+                        return themes.stream()
+                                .filter(theme -> {
+                                    if ("OWNER".equals(theme.getThemeType())) {
+                                        return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
+                                    } else if ("INPUT".equals(theme.getThemeType())) {
+                                        return categoryName != null
+                                                && theme.getInputValue() != null
+                                                && categoryName.contains(theme.getInputValue());
+                                    }
+                                    return false;
+                                })
+                                // OWNER 우선
+                                .sorted(Comparator.comparing(
+                                        t -> "OWNER".equals(t.getThemeType()) ? 0 : 1
+                                ))
+                                .map(ThemeGetResponse::getColor)
+                                .findFirst()
+                                .orElse(null);
+                    })
+                    .filter(Objects::nonNull)
+                    .distinct() // 중복 제거
+                    .toList();
             CardUseResponse resp = new CardUseResponse(
                     first.getCardUseAddr().getChamMonimapCardUseAddrName(),
                     first.getChamMonimapCardUseRegion(),
@@ -282,6 +346,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     xValue,
                     yValue,
                     categoryName,
+                    colors,
                     groupedResponses,
                     replyList
             );

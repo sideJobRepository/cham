@@ -1,5 +1,6 @@
 package com.cham.caruse.repository.impl;
 
+import com.cham.cardowner.entity.QChamMonimapCardOwnerPosition;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.dto.CardUseSummaryDto;
 import com.cham.caruse.repository.query.ChamMonimapCardUseQueryRepository;
@@ -14,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
+import static com.cham.cardowner.entity.QChamMonimapCardOwnerPosition.*;
 import static com.cham.carduseaddr.entity.QChamMonimapCardUseAddr.chamMonimapCardUseAddr;
 import static com.cham.caruse.entity.QChamMonimapCardUse.chamMonimapCardUse;
 import static com.querydsl.core.types.dsl.Expressions.numberTemplate;
@@ -55,6 +57,7 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .selectFrom(chamMonimapCardUse)
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr).fetchJoin()
                 .join(chamMonimapCardUseAddr.chamMonimapRegion, dong).fetchJoin()
+                .join(chamMonimapCardUse.chamMonimapCardOwnerPosition,chamMonimapCardOwnerPosition).fetchJoin()
                 .join(dong.parent, gu).fetchJoin()
                 .join(gu.parent, city).fetchJoin()
                 .where(
@@ -77,6 +80,7 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .selectFrom(chamMonimapCardUse)
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr).fetchJoin()
                 .join(chamMonimapCardUseAddr.chamMonimapRegion, dong).fetchJoin()
+                .join(chamMonimapCardUse.chamMonimapCardOwnerPosition,chamMonimapCardOwnerPosition).fetchJoin()
                 .join(dong.parent, gu).fetchJoin()
                 .join(gu.parent, city).fetchJoin()
                 .where(

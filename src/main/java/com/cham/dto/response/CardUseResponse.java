@@ -23,6 +23,7 @@ public class CardUseResponse {
     private String x;
     private String y;
     private String categoryName;
+    private List<String> color;
     private List<CardUseGroupedResponse> cardUseGroupedResponses;
     private List<ReplyResponse> replies;
     

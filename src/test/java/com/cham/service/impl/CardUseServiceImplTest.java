@@ -4,11 +4,14 @@ import com.cham.RepositoryAndServiceTestSupport;
 import com.cham.caruse.dto.CardUseAggregateResponse;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.dto.request.CardUseConditionRequest;
+import com.cham.dto.response.CardUseResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 class CardUseServiceImplTest extends RepositoryAndServiceTestSupport {
     
@@ -23,9 +26,14 @@ class CardUseServiceImplTest extends RepositoryAndServiceTestSupport {
     void test(){
         LocalDate startDate = LocalDate.of(2022, 1, 1);
         CardUseConditionRequest cardUseConditionRequest = new CardUseConditionRequest();
-        cardUseConditionRequest.setInput("사이언스");
         CardUseAggregateResponse  responseMap =  cardUseService.selectCardUse(cardUseConditionRequest);
-        System.out.println("responseMap = " + responseMap);
+        Map<Long, CardUseResponse> details = responseMap.getDetails();
+        Map<Long, CardUseResponse> collect = details
+                .entrySet()
+                .stream()
+                .filter(item -> !item.getValue().getColor().isEmpty())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        System.out.println("responseMap = " + collect);
     }
     
     
