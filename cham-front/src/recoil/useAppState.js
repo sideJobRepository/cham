@@ -1,5 +1,11 @@
 import { useRecoilValue } from 'recoil';
-import { detailState, mapState, selectSearchState, userListState } from './appState';
+import {
+  detailState,
+  mapState,
+  selectSearchState,
+  themeListState,
+  userListState,
+} from './appState';
 
 export const useSelectSearchState = () => {
   return useRecoilValue(selectSearchState);
@@ -15,4 +21,8 @@ export const useDetailMapState = () => {
 
 export const useUserListState = () => {
   return useRecoilValue(userListState);
+};
+
+export const useThemeListState = () => {
+  return useRecoilValue(themeListState);
 };

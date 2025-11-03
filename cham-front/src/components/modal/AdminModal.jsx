@@ -1,30 +1,89 @@
 import { useEffect, useRef, useState } from 'react';
-import { useFetchUserList, useMapSearch } from '@/recoil/fetchAppState.js';
+import { useFetchThemeList, useFetchUserList, useMapSearch } from '@/recoil/fetchAppState.js';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
 import api from '@/utils/axiosInstance.js';
 import { AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { useRecoilValue } from 'recoil';
 import { mapSearchFilterState } from '@/recoil/appState.js';
-import { useUserListState } from '@/recoil/useAppState.js';
+import { useSelectSearchState, useThemeListState, useUserListState } from '@/recoil/useAppState.js';
 import Pagination from '@/components/Pagination.jsx';
 import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
-import { BiUser } from 'react-icons/bi';
-import { BiMap } from 'react-icons/bi';
+import { FaUser, FaMapMarkedAlt, FaPalette } from 'react-icons/fa';
+import Select from 'react-select';
 
 export default function AdminModal() {
+  //유저리스트
   const userListFetch = useFetchUserList();
   const userListData = useUserListState();
+
+  //테마리스트
+  const themeListFetch = useFetchThemeList();
+  const themeListData = useThemeListState();
+  console.log('themeListData----', themeListData);
 
   const [checkedIds, setCheckedIds] = useState([]);
 
   const [page, setPage] = useState(0);
   const totalPages = userListData?.userData?.totalPages ?? 0;
 
+  const [themePage, setThemePage] = useState(0);
+  const totalThemePages = themeListData?.themeData?.totalPages ?? 0;
+
   const [roleMap, setRoleMap] = useState({});
 
   const fileInputRef = useRef(null);
   const [deleteText, setDeleteText] = useState('');
+
+  //직위
+  const { selectData, selectLoading } = useSelectSearchState();
+  const [roleOptions, setRoleOptions] = useState([]);
+
+  console.log('selectData ---- 직위 데이터', selectData);
+
+  const [themes, setThemes] = useState([]);
+
+  const handleAddTheme = () => {
+    setThemes(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        target: roleOptions[0] ?? null,
+        keyword: '',
+        color: '#ffffff',
+        image: null,
+        previewUrl: '',
+      },
+    ]);
+  };
+
+  const handleChangeTheme = (id, field, value) => {
+    setThemes(prev => prev.map(t => (t.id === id ? { ...t, [field]: value } : t)));
+  };
+
+  const handleImageChange = (id, file) => {
+    const url = URL.createObjectURL(file);
+    setThemes(prev => prev.map(t => (t.id === id ? { ...t, image: file, previewUrl: url } : t)));
+  };
+
+  const handleDeleteTheme = id => {
+    setThemes(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleSaveThemes = async () => {
+    const formData = new FormData();
+    themes.forEach((t, i) => {
+      formData.append(`themes[${i}].target`, t.target?.value ?? '');
+      formData.append(`themes[${i}].color`, t.color);
+      if (t.image) formData.append(`themes[${i}].image`, t.image);
+    });
+
+    await api.post('/cham/theme', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    toast.success('테마 저장 완료');
+  };
+
   const mapSearch = useMapSearch();
 
   const searchCondition = useRecoilValue(mapSearchFilterState);
@@ -115,6 +174,73 @@ export default function AdminModal() {
     userListFetch(page);
   }, [page]);
 
+  useEffect(() => {
+    themeListFetch(themePage);
+  }, [themePage]);
+
+  useEffect(() => {
+    if (!selectLoading && selectData.length > 0) {
+      const defaultOption = { label: '직접 입력', value: null };
+      const optionsWithAll = [defaultOption, ...selectData];
+      setRoleOptions(optionsWithAll);
+    }
+  }, [selectLoading, selectData]);
+
+  useEffect(() => {
+    if (themeListData?.themeData?.length > 0 && roleOptions.length > 0) {
+      const mappedThemes = themeListData.themeData.map(t => ({
+        id: t.themeId,
+        target:
+          t.themeType === 'OWNER'
+            ? (roleOptions.find(o => o.label === t.positionName) ?? null)
+            : roleOptions[0],
+        keyword: t.inputValue ?? '',
+        color: t.color ?? '#ffffff',
+        image: null,
+        previewUrl: '',
+      }));
+      setThemes(mappedThemes);
+    }
+  }, [themeListData, roleOptions]);
+
+  const searchSelect = {
+    control: provided => ({
+      ...provided,
+      width: '130px',
+      border: '1px solid',
+      cursor: 'pointer',
+      fontSize: '13px',
+      boxShadow: 'none',
+      outline: 'none',
+      '&:hover': {
+        borderColor: '#093A6E',
+        outline: 'none',
+      },
+    }),
+    singleValue: provided => ({
+      ...provided,
+      color: 'black',
+      fontSize: '13px',
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      fontSize: '13px',
+      color: state.isSelected ? '#fff' : '#093A6E',
+      backgroundColor: state.isSelected ? '#093A6E' : '#fff',
+      cursor: 'pointer',
+    }),
+    indicatorsContainer: provided => ({
+      ...provided,
+      display: 'none',
+    }),
+    menuPortal: base => ({ ...base, zIndex: 99999 }),
+    menu: provided => ({
+      ...provided,
+      width: 110,
+      zIndex: 9999,
+    }),
+  };
+
   return (
     <AdminWrapper>
       <ExcelSection>
@@ -126,7 +252,7 @@ export default function AdminModal() {
           onChange={handleExcelFileChange}
         />
         <h2>
-          <BiMap />
+          <FaMapMarkedAlt />
           맛집지도 업로드
         </h2>
         <ButtonBox>
@@ -171,10 +297,95 @@ export default function AdminModal() {
       <TableSection>
         <ButtonBox>
           <h2>
-            <BiUser />
+            <FaPalette />
+            테마관리
+          </h2>
+        </ButtonBox>
+        <div className="theme-button-box">
+          <Button $color="#1A7D55" onClick={handleAddTheme}>
+            추가
+          </Button>
+          <Button $color="#093A6E" onClick={() => setThemes([])}>
+            저장
+          </Button>
+        </div>
+        <TableScrollBox>
+          <Table>
+            <thead>
+              <tr>
+                <Th style={{ width: '160px' }}>대상</Th>
+                <Th style={{ width: '160px' }}>키워드</Th>
+                <Th style={{ width: '100px' }}>색상</Th>
+                <Th style={{ width: '120px' }}>이미지</Th>
+                <Th style={{ width: '60px' }}> </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {themes.map(theme => (
+                <tr key={theme.id}>
+                  <Td>
+                    <SortSelect>
+                      <Select
+                        value={theme.target}
+                        options={roleOptions}
+                        styles={searchSelect}
+                        isSearchable={false}
+                        menuPortalTarget={document.body}
+                        onChange={opt => handleChangeTheme(theme.id, 'target', opt)}
+                      />
+                    </SortSelect>
+                  </Td>
+                  <Td>
+                    {theme.target?.value === null && (
+                      <DeleteInput
+                        type="text"
+                        placeholder="키워드를 입력해주세요."
+                        value={theme.keyword ?? ''}
+                        onChange={e => handleChangeTheme(theme.id, 'keyword', e.target.value)}
+                      />
+                    )}
+                  </Td>
+                  <Td>
+                    <input
+                      type="color"
+                      value={theme.color}
+                      onChange={e => handleChangeTheme(theme.id, 'color', e.target.value)}
+                    />
+                  </Td>
+                  <Td>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleImageChange(theme.id, e.target.files[0])}
+                    />
+                  </Td>
+                  <Td>
+                    <ExcelButton color="#FF5E57" onClick={() => handleDeleteTheme(theme.id)}>
+                      삭제
+                    </ExcelButton>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </TableScrollBox>
+        <PaginationSetion>
+          <Pagination
+            current={themePage}
+            totalPages={totalThemePages}
+            onChange={p => setThemePage(p)}
+          />
+        </PaginationSetion>
+      </TableSection>
+      <TableSection>
+        <ButtonBox>
+          <h2>
+            <FaUser />
             회원관리
           </h2>
-          <Button onClick={() => handleRoleSubmit()}>저장</Button>
+          <Button $color="#093A6E" onClick={() => handleRoleSubmit()}>
+            저장
+          </Button>
         </ButtonBox>
         <TableScrollBox>
           <Table>
@@ -249,28 +460,27 @@ const AdminWrapper = styled.section`
   display: flex;
   flex-direction: column;
   gap: 40px;
-  height: 100%;
+  max-height: 80dvh;
   margin: 0 auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   padding: 40px;
   @media screen and ${({ theme }) => theme.device.mobile} {
     max-width: 100%;
     min-width: 100%;
     min-height: unset;
-    overflow-y: auto;
   }
 
   h2 {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     color: ${({ theme }) => theme.colors.topLine};
     font-size: ${({ theme }) => theme.sizes.large};
     font-weight: bold;
 
     svg {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
     }
   }
 `;
@@ -280,6 +490,7 @@ const ExcelSection = styled.div`
   flex-direction: column;
   gap: 8px;
   z-index: 2;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
 const ExcelButton = styled.button`
   display: flex;
@@ -322,6 +533,14 @@ export const TableSection = styled.div`
   width: 100%;
   height: 100%;
   margin: 0 auto;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+
+  .theme-button-box {
+    display: flex;
+    gap: 4px;
+    justify-content: right;
+    margin-bottom: 4px;
+  }
 `;
 
 export const TableScrollBox = styled.div`
@@ -372,7 +591,6 @@ export const Td = styled.td`
   div {
     display: flex;
     align-items: center;
-    justify-content: center;
     label {
       display: flex;
       gap: 4px;
@@ -409,7 +627,7 @@ const ButtonBox = styled.div`
 
 const Button = styled.button`
   padding: 10px 16px;
-  background-color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ $color }) => $color};
   color: #ffffff;
   font-weight: bold;
   font-size: ${({ theme }) => theme.sizes.medium};
@@ -420,4 +638,9 @@ const Button = styled.button`
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.sizes.small};
   }
+`;
+
+const SortSelect = styled.div`
+  display: flex;
+  gap: 6px;
 `;

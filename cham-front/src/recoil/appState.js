@@ -61,3 +61,12 @@ export const userListState = atom({
     userLoading: true,
   },
 });
+
+//테마
+export const themeListState = atom({
+  key: 'themeListState',
+  default: {
+    themeData: null,
+    themeLoading: true,
+  },
+});

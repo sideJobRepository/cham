@@ -7,6 +7,7 @@ import {
   checkDataState,
   userState,
   userListState,
+  themeListState,
 } from './appState.js';
 import { toast } from 'react-toastify';
 
@@ -116,7 +117,7 @@ export function useFetchCard() {
   };
 }
 
-//관리자
+//관리자 유저 정보
 export function useFetchUserList() {
   const setState = useSetRecoilState(userListState);
 
@@ -143,6 +144,38 @@ export function useFetchUserList() {
       setState({
         userData: [],
         userLoading: false,
+      });
+    }
+  };
+}
+
+//관리자 테마 정보
+export function useFetchThemeList() {
+  const setState = useSetRecoilState(themeListState);
+
+  return async (page = {}) => {
+    const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
+
+    try {
+      const res = await api.get(`/cham/theme?page=${page}&size=${5}`);
+
+      setState({
+        themeData: res.data,
+        themeLoading: false,
+      });
+
+      toast.dismiss(toastId);
+    } catch (e) {
+      toast.update(toastId, {
+        render: '검색에 실패하였습니다.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+      });
+      console.error('검색 실패:', e);
+      setState({
+        themeData: [],
+        themeLoading: false,
       });
     }
   };
