@@ -1,7 +1,7 @@
 package com.cham.memberrole.entity;
 
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.member.entity.ChamMonimapMember;
 import com.cham.role.entity.ChamMonimapRole;
 import jakarta.persistence.*;

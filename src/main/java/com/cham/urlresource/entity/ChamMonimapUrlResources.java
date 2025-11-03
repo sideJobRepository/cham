@@ -1,6 +1,6 @@
 package com.cham.urlresource.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import jakarta.persistence.*;
 import lombok.Getter;
 

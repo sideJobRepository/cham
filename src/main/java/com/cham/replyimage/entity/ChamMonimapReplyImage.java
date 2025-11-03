@@ -1,6 +1,6 @@
 package com.cham.replyimage.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.reply.entity.ChamMonimapReply;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -1,9 +1,8 @@
 package com.cham.member.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.security.service.impl.response.SocialProfile;
 import com.enumtype.SocialType;
-import com.cham.security.service.impl.response.KakaoProfileResponse;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;

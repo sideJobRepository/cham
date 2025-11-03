@@ -1,6 +1,6 @@
 package com.cham.theme.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.theme.dto.request.ThemePutRequest;
 import com.cham.theme.enumeration.ChamMonimapThemeType;
 import jakarta.persistence.*;

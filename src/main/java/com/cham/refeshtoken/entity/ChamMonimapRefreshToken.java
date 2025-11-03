@@ -1,7 +1,7 @@
 package com.cham.refeshtoken.entity;
 
 import com.cham.member.entity.ChamMonimapMember;
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import jakarta.persistence.*;
 import lombok.*;
 

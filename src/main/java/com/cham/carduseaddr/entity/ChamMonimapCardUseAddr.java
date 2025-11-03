@@ -1,7 +1,7 @@
 package com.cham.carduseaddr.entity;
 
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.region.entity.ChamMonimapRegion;
 import jakarta.persistence.*;
 import lombok.Getter;

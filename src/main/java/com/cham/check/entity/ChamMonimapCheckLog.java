@@ -1,6 +1,6 @@
 package com.cham.check.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.member.entity.ChamMonimapMember;
 import jakarta.persistence.*;

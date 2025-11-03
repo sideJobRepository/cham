@@ -1,5 +1,6 @@
 package com.cham.theme.service.impl;
 
+import com.cham.config.S3FileUtils;
 import com.cham.dto.response.ApiResponse;
 import com.cham.theme.dto.request.ThemePostRequest;
 import com.cham.theme.dto.request.ThemePutRequest;
@@ -21,6 +22,8 @@ import java.util.Objects;
 public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
 
     private final ChamMonimapThemeRepository chamMonimapThemeRepository;
+    
+    private final S3FileUtils s3FileUtils;
     
     @Override
     public List<ThemeGetResponse> getThemes() {
@@ -49,6 +52,7 @@ public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
                 );
             }
         }
+        
         List<ChamMonimapTheme> themes = request.stream()
                 .map(item -> ChamMonimapTheme
                         .builder()

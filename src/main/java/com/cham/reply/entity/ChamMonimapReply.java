@@ -2,7 +2,7 @@ package com.cham.reply.entity;
 
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.dto.request.ReplyModifyRequest;
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import com.cham.member.entity.ChamMonimapMember;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

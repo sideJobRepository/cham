@@ -1,6 +1,6 @@
 package com.cham.cardowner.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

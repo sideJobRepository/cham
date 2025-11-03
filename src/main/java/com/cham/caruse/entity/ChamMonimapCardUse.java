@@ -2,15 +2,13 @@ package com.cham.caruse.entity;
 
 import com.cham.cardowner.entity.ChamMonimapCardOwnerPosition;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
-import com.base.BaseData;
-import com.cham.dto.response.CardOwnerPositionDto;
+import com.cham.base.BaseData;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
 
 @Entity

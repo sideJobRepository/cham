@@ -1,6 +1,6 @@
 package com.cham.sendon.entity;
 
-import com.base.BaseData;
+import com.cham.base.BaseData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
