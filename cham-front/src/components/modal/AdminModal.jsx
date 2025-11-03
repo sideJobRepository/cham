@@ -302,7 +302,7 @@ export default function AdminModal() {
     menuPortal: base => ({ ...base, zIndex: 99999 }),
     menu: provided => ({
       ...provided,
-      width: 110,
+      width: 130,
       zIndex: 9999,
     }),
   };
@@ -366,23 +366,22 @@ export default function AdminModal() {
             <FaPalette />
             테마관리
           </h2>
+          <div className="theme-button-box">
+            <Button $color="#1A7D55" onClick={handleAddTheme}>
+              추가
+            </Button>
+            <Button $color="#093A6E" onClick={() => handleSaveThemes()}>
+              저장
+            </Button>
+          </div>
         </ButtonBox>
-        <div className="theme-button-box">
-          <Button $color="#1A7D55" onClick={handleAddTheme}>
-            추가
-          </Button>
-          <Button $color="#093A6E" onClick={() => handleSaveThemes()}>
-            저장
-          </Button>
-        </div>
         <TableScrollBox>
           <Table>
             <thead>
               <tr>
-                <Th style={{ width: '160px' }}>대상</Th>
-                <Th style={{ width: '160px' }}>키워드</Th>
+                <Th style={{ width: '300px' }}>대상</Th>
                 <Th style={{ width: '100px' }}>색상</Th>
-                <Th style={{ width: '120px' }}>이미지</Th>
+                <Th style={{ width: '200px' }}>이미지</Th>
                 <Th style={{ width: '60px' }}> </Th>
               </tr>
             </thead>
@@ -399,17 +398,15 @@ export default function AdminModal() {
                         menuPortalTarget={document.body}
                         onChange={opt => handleChangeTheme(theme.id, 'target', opt)}
                       />
+                      {theme.target?.value === null && (
+                        <DeleteInput
+                          type="text"
+                          placeholder="키워드를 입력해주세요."
+                          value={theme.keyword ?? ''}
+                          onChange={e => handleChangeTheme(theme.id, 'keyword', e.target.value)}
+                        />
+                      )}
                     </SortSelect>
-                  </Td>
-                  <Td>
-                    {theme.target?.value === null && (
-                      <DeleteInput
-                        type="text"
-                        placeholder="키워드를 입력해주세요."
-                        value={theme.keyword ?? ''}
-                        onChange={e => handleChangeTheme(theme.id, 'keyword', e.target.value)}
-                      />
-                    )}
                   </Td>
                   <Td>
                     <input
