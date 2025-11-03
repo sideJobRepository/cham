@@ -87,8 +87,9 @@ export default function AdminModal() {
         onConfirm: async () => {
           try {
             await api.delete(`/cham/theme/${id}`);
-            await themeListFetch(themePage);
             toast.success('테마 삭제가 완료되었습니다.');
+            await themeListFetch(themePage);
+            await handleSearch();
           } catch (e) {
             console.error(e);
             const msg = e.response?.data?.message ?? '삭제 실패';
@@ -127,13 +128,14 @@ export default function AdminModal() {
           await api.post('/cham/theme', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-          await themeListFetch(themePage);
           toast.update(toastId, {
             render: '테마 업로드를 완료됐습니다.',
             type: 'success',
             isLoading: false,
             autoClose: 1000,
           });
+          await themeListFetch(themePage);
+          await handleSearch();
         } catch (err) {
           console.log('err', err);
           toast.update(toastId, {
