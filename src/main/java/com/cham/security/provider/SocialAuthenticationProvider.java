@@ -60,10 +60,10 @@ public class SocialAuthenticationProvider implements AuthenticationProvider {
     
     private SocialService getSocialServiceByLoginUrl(String loginUrl) {
         return switch (loginUrl) {
-            case "/cham/kakao-login" -> kakaoService;
-            case "/cham/naver-login" -> naverService;
-            case "/cham/google-login" -> googleService;
-            default -> throw new BadCredentialsException("존재하지 않는 소셜 로그인 URL입니다: " + loginUrl);
-        };
+           case "/cham/kakao-login" -> kakaoService;
+           case "/cham/naver-login" -> naverService;
+           case "/cham/google-login" -> googleService;
+           default -> throw new BadCredentialsException("존재하지 않는 소셜 로그인 URL입니다: " + loginUrl);
+       };
     }
 }

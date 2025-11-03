@@ -24,12 +24,12 @@ public class ChamMonimapThemeController {
     }
     
     @PostMapping("/theme")
-    public ApiResponse saveTheme(@RequestBody List<ThemePostRequest> requests) {
+    public ApiResponse saveTheme(@ModelAttribute List<ThemePostRequest> requests) {
         return chamMonimapThemeService.saveTheme(requests);
     }
     
     @PutMapping("/theme")
-    public ApiResponse updateTheme(@RequestBody List<ThemePutRequest> requests) {
+    public ApiResponse updateTheme(@ModelAttribute List<ThemePutRequest> requests) {
         return chamMonimapThemeService.modifyTheme(requests);
     }
     
