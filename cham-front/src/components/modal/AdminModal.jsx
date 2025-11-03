@@ -47,41 +47,104 @@ export default function AdminModal() {
     setThemes(prev => [
       ...prev,
       {
-        id: Date.now(),
+        id: null,
         target: roleOptions[0] ?? null,
         keyword: '',
         color: '#ffffff',
         image: null,
         previewUrl: '',
+        flag: 'C',
       },
     ]);
   };
 
   const handleChangeTheme = (id, field, value) => {
-    setThemes(prev => prev.map(t => (t.id === id ? { ...t, [field]: value } : t)));
+    setThemes(prev =>
+      prev.map(t => (t.id === id ? { ...t, [field]: value, flag: t.flag === 'C' ? 'C' : 'P' } : t))
+    );
   };
 
   const handleImageChange = (id, file) => {
     const url = URL.createObjectURL(file);
-    setThemes(prev => prev.map(t => (t.id === id ? { ...t, image: file, previewUrl: url } : t)));
+    setThemes(prev =>
+      prev.map(t =>
+        t.id === id ? { ...t, image: file, previewUrl: url, flag: t.flag === 'C' ? 'C' : 'P' } : t
+      )
+    );
   };
 
   const handleDeleteTheme = id => {
-    setThemes(prev => prev.filter(t => t.id !== id));
+    console.log('themeid', id);
+    if (!id) {
+      setThemes(prev => prev.filter(t => t.id !== id));
+    } else {
+      showConfirmModal({
+        title: <>테마 삭제</>,
+        message: <>해당 테마를 삭제하시겠습니까?</>,
+        gb: false,
+        firstText: '취소',
+        secondText: '삭제',
+        onConfirm: async () => {
+          try {
+            await api.delete(`/cham/theme/${id}`);
+            await themeListFetch(themePage);
+            toast.success('테마 삭제가 완료되었습니다.');
+          } catch (e) {
+            console.error(e);
+            const msg = e.response?.data?.message ?? '삭제 실패';
+            toast.error(msg);
+          }
+        },
+      });
+    }
   };
 
   const handleSaveThemes = async () => {
-    const formData = new FormData();
-    themes.forEach((t, i) => {
-      formData.append(`themes[${i}].target`, t.target?.value ?? '');
-      formData.append(`themes[${i}].color`, t.color);
-      if (t.image) formData.append(`themes[${i}].image`, t.image);
-    });
+    showConfirmModal({
+      title: <>테마 저장</>,
+      message: <>테마를 저장하시겠습니까?</>,
+      gb: true,
+      firstText: '취소',
+      secondText: '확인',
+      onConfirm: async () => {
+        const formData = new FormData();
 
-    await api.post('/cham/theme', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+        const toastId = toast.loading('테마 업로드 중 입니다.');
+
+        themes.forEach((t, i) => {
+          const themeType = t.target?.value === null ? 'INPUT' : 'OWNER';
+
+          if (t.id) formData.append(`themes[${i}].themeId`, t.id);
+          formData.append(`themes[${i}].type`, themeType);
+          formData.append(`themes[${i}].targetId`, t.target?.value ?? '');
+          formData.append(`themes[${i}].color`, t.color);
+          formData.append(`themes[${i}].flag`, t.flag);
+          formData.append(`themes[${i}].inputValue`, t.keyword);
+          if (t.image) formData.append(`themes[${i}].file`, t.image);
+        });
+
+        try {
+          await api.post('/cham/theme', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          await themeListFetch(themePage);
+          toast.update(toastId, {
+            render: '테마 업로드를 완료됐습니다.',
+            type: 'success',
+            isLoading: false,
+            autoClose: 1000,
+          });
+        } catch (err) {
+          console.log('err', err);
+          toast.update(toastId, {
+            render: '테마 업로드에 실패하였습니다.',
+            type: 'error',
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
+      },
     });
-    toast.success('테마 저장 완료');
   };
 
   const mapSearch = useMapSearch();
@@ -198,6 +261,7 @@ export default function AdminModal() {
         color: t.color ?? '#ffffff',
         image: null,
         previewUrl: '',
+        flag: 'P',
       }));
       setThemes(mappedThemes);
     }
@@ -305,7 +369,7 @@ export default function AdminModal() {
           <Button $color="#1A7D55" onClick={handleAddTheme}>
             추가
           </Button>
-          <Button $color="#093A6E" onClick={() => setThemes([])}>
+          <Button $color="#093A6E" onClick={() => handleSaveThemes()}>
             저장
           </Button>
         </div>
@@ -321,8 +385,8 @@ export default function AdminModal() {
               </tr>
             </thead>
             <tbody>
-              {themes.map(theme => (
-                <tr key={theme.id}>
+              {themes.map((theme, index) => (
+                <tr key={index}>
                   <Td>
                     <SortSelect>
                       <Select
