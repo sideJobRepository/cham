@@ -287,6 +287,7 @@ function pickRepresentativeDetailNear(lat, lng, opts = { radiusM: 700, random: t
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState(); // { details: {...}, summaries: {depth0,depth1,depth2}}
+  console.log('map', mapData);
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
 
@@ -375,10 +376,13 @@ export default function MapPanel() {
 
         // 오버레이 생성 (카테고리/금액/방문수 표기 + 클릭시 상세 모달)
         if (!overlay) {
+          console.log('-------컬러다잉 color', item.color);
+          const color = item.color ? item.color : theme.colors.primary;
+
           const div = document.createElement('div');
           div.style.cssText = `
             display:flex;align-items:center;justify-content:center;
-            background:${theme.colors.primary};color:white;padding:5px 12px;
+            background:${color};color:white;padding:5px 12px;
             border-radius:20px;font-weight:bold;font-size:${theme.sizes.medium};
             white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);height:30px;cursor:pointer;
           `;
