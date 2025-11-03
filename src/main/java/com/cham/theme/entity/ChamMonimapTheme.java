@@ -1,6 +1,7 @@
 package com.cham.theme.entity;
 
 import com.cham.base.BaseData;
+import com.cham.theme.dto.request.ThemePostRequest;
 import com.cham.theme.dto.request.ThemePutRequest;
 import com.cham.theme.enumeration.ChamMonimapThemeType;
 import jakarta.persistence.*;
@@ -36,10 +37,10 @@ public class ChamMonimapTheme extends BaseData {
     @Column(name = "CHAM_MONIMAP_INPUT_VALUE")
     private String inputValue;
     
-    public void modify(ThemePutRequest themePutRequest) {
-        this.targetId = themePutRequest.getTargetId();
-        this.color = themePutRequest.getColor();
-        this.type = themePutRequest.getType();
-        this.inputValue = themePutRequest.getInputValue();
+    public void modify(ThemePostRequest themePostRequest) {
+        this.targetId = themePostRequest.getTargetId();
+        this.color = themePostRequest.getColor();
+        this.type = themePostRequest.getType();
+        this.inputValue = themePostRequest.getInputValue();
     }
 }

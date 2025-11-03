@@ -6,6 +6,7 @@ import com.cham.dto.request.CardUseAddrImageRequest;
 import com.cham.dto.response.ApiResponse;
 import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.ChamMonimapCardUseAddrRepository;
+import com.cham.file.UploadResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,12 +31,12 @@ public class ChamMonimapCardUseAddrServiceImpl implements ChamMonimapCardUseAddr
         if(StringUtils.hasText(byCardUseImageUrl)) {
             s3FileUtils.deleteFile(byCardUseImageUrl);
         }
-        String s3Url = s3FileUtils.storeFile(cardUseImageUrl);
+        UploadResult s3Url = s3FileUtils.storeFile(cardUseImageUrl);
         
         ChamMonimapCardUseAddr cardUseAddr = cardUseAddrRepository
                 .findById(request.getCardUseAddrId())
                 .orElseThrow(() -> new RuntimeException("해당 장소는 존재하지 않습니다."));
-        cardUseAddr.updateImage(s3Url);
+        cardUseAddr.updateImage(s3Url.getUrl());
         return new ApiResponse(200,true,"이미지 업로드가 성공하였습니다.");
     }
 }

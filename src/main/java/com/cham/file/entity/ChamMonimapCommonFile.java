@@ -3,11 +3,14 @@ package com.cham.file.entity;
 import com.cham.base.BaseData;
 import com.cham.file.enumeration.ChamMonimapFileType;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 @Table(name = "CHAM_MONIMAP_COMMON_FILE")
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class ChamMonimapCommonFile extends BaseData {
 
     

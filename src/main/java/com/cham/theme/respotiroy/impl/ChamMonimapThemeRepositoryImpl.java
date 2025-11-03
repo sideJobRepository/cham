@@ -1,6 +1,7 @@
 package com.cham.theme.respotiroy.impl;
 
 import com.cham.cardowner.entity.QChamMonimapCardOwnerPosition;
+import com.cham.file.entity.QChamMonimapCommonFile;
 import com.cham.theme.dto.response.QThemeGetResponse;
 import com.cham.theme.dto.response.ThemeGetResponse;
 import com.cham.theme.entity.ChamMonimapTheme;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import static com.cham.cardowner.entity.QChamMonimapCardOwnerPosition.*;
+import static com.cham.file.entity.QChamMonimapCommonFile.*;
 import static com.cham.theme.entity.QChamMonimapTheme.chamMonimapTheme;
 
 @RequiredArgsConstructor
@@ -28,12 +30,15 @@ public class ChamMonimapThemeRepositoryImpl implements ChamMonimapThemeQueryRepo
                                 chamMonimapTheme.color,
                                 chamMonimapTheme.type.stringValue(),
                                 chamMonimapTheme.inputValue,
-                                chamMonimapCardOwnerPosition.chamMonimapCardOwnerPositionName
+                                chamMonimapCardOwnerPosition.chamMonimapCardOwnerPositionName,
+                                chamMonimapCommonFile.fileUrl
                         )
                 )
                 .from(chamMonimapTheme)
                 .leftJoin(chamMonimapCardOwnerPosition)
                 .on(chamMonimapTheme.targetId.eq(chamMonimapCardOwnerPosition.chamMonimapCardOwnerPositionId))
+                .leftJoin(chamMonimapCommonFile)
+                .on(chamMonimapTheme.id.eq(chamMonimapCommonFile.targetId))
                 .fetch();
     }
     

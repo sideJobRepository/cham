@@ -21,13 +21,17 @@ public class ThemeGetResponse {
     
     private String positionName;
     
+    private String fileUrl;
+    
     @QueryProjection
-    public ThemeGetResponse(Long themeId, Long targetId, String color, String themeType, String inputValue, String positionName) {
+    
+    public ThemeGetResponse(Long themeId, Long targetId, String color, String themeType, String inputValue, String positionName, String fileUrl) {
         this.themeId = themeId;
         this.targetId = targetId;
         this.color = color;
         this.themeType = themeType;
         this.inputValue = inputValue;
         this.positionName = positionName;
+        this.fileUrl = fileUrl;
     }
 }

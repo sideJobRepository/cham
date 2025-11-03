@@ -1,5 +1,6 @@
 package com.cham.config;
 
+import com.cham.file.UploadResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
@@ -22,8 +25,8 @@ public class S3FileUtils {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
     
-    public List<String> storeFiles(List<MultipartFile> multipartFiles) {
-        List<String> uploadFiles = new ArrayList<>();
+    public List<UploadResult> storeFiles(List<MultipartFile> multipartFiles) {
+        List<UploadResult> uploadFiles = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
             if (!multipartFile.isEmpty()) {
                 uploadFiles.add(storeFile(multipartFile));
@@ -33,31 +36,35 @@ public class S3FileUtils {
     }
     
     
-    public String storeFile(MultipartFile multipartFile) {
+    public UploadResult storeFile(MultipartFile multipartFile) {
         
-        if (multipartFile.isEmpty()) {
-            return null;
-        }
+        if (multipartFile.isEmpty()) return null;
         
         String originalFilename = multipartFile.getOriginalFilename();
-        String storeFileName = createStoreFileName(originalFilename);
+        String uuid = UUID.randomUUID().toString();
+        String ext = extractExt(originalFilename);
+        String storeFileName =  uuid + "." + ext;
         
         try {
+            String encodedFilename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8);
             Map<String, String> metadata = new HashMap<>();
             metadata.put("Content-Type", multipartFile.getContentType());
             metadata.put("Content-Disposition", "inline");
+            metadata.put("original-filename", encodedFilename); //원래 파일명 메타데이터에 저장
             
-            s3Client.putObject(PutObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(storeFileName)
-                            .metadata(metadata)
-                            .build(),
-                    RequestBody.fromBytes(multipartFile.getBytes())
-            );
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(storeFileName)
+                    .metadata(metadata)
+                    .build();
             
-            return s3Client.utilities()
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(multipartFile.getBytes()));
+            
+            String url = s3Client.utilities()
                     .getUrl(b -> b.bucket(bucketName).key(storeFileName))
                     .toExternalForm();
+            
+            return new UploadResult(url, uuid,originalFilename);
             
         } catch (IOException e) {
             throw new RuntimeException(e);

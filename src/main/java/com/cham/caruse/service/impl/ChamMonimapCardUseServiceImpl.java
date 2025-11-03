@@ -167,31 +167,34 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             
             List<ChamMonimapCardUse> cardUseList = entry.getValue();
             
-            List<String> colors = cardUseList.stream()
+            String color = cardUseList.stream()
                     .map(use -> {
                         ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
+                        
+                        // Theme 리스트 중에서 해당 카드와 매칭되는 것 찾기
                         return themes.stream()
                                 .filter(theme -> {
-                                    if ("OWNER".equals(theme.getThemeType())) {
-                                        return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
-                                    } else if ("INPUT".equals(theme.getThemeType())) {
+                                    if ("INPUT".equals(theme.getThemeType())) {
+                                        // INPUT 타입 우선: 카테고리 이름이 inputValue를 포함하는지
                                         return categoryName != null
                                                 && theme.getInputValue() != null
                                                 && categoryName.contains(theme.getInputValue());
+                                    } else if ("OWNER".equals(theme.getThemeType())) {
+                                        // OWNER 타입: position ID 매칭
+                                        return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
                                     }
                                     return false;
                                 })
-                                // OWNER 우선
-                                .sorted(Comparator.comparing(
-                                        t -> "OWNER".equals(t.getThemeType()) ? 0 : 1
-                                ))
+                                // INPUT 타입 우선 정렬
+                                .sorted(Comparator.comparing((ThemeGetResponse t) ->
+                                        "INPUT".equals(t.getThemeType()) ? 0 : 1))
                                 .map(ThemeGetResponse::getColor)
                                 .findFirst()
                                 .orElse(null);
                     })
                     .filter(Objects::nonNull)
-                    .distinct() // 중복 제거
-                    .toList();
+                    .findFirst()  //  첫 번째 색상만 반환
+                    .orElse(null);
             //  DB 집계 값이 우선, 없으면 기존 합계 사용
             int totalSum = (totalSumFromDB != null && totalSumFromDB > 0)
                     ? totalSumFromDB
@@ -211,7 +214,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     xValue,
                     yValue,
                     categoryName,
-                    colors,
+                    color,
                     groupedResponses,
                     replyList
             );
@@ -307,31 +310,34 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             
             
             List<ChamMonimapCardUse> cardUseList = entry.getValue();
-            List<String> colors = cardUseList.stream()
+            String color = cardUseList.stream()
                     .map(use -> {
                         ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
+                        
+                        // Theme 리스트 중에서 해당 카드와 매칭되는 것 찾기
                         return themes.stream()
                                 .filter(theme -> {
-                                    if ("OWNER".equals(theme.getThemeType())) {
-                                        return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
-                                    } else if ("INPUT".equals(theme.getThemeType())) {
+                                    if ("INPUT".equals(theme.getThemeType())) {
+                                        // INPUT 타입 우선: 카테고리 이름이 inputValue를 포함하는지
                                         return categoryName != null
                                                 && theme.getInputValue() != null
                                                 && categoryName.contains(theme.getInputValue());
+                                    } else if ("OWNER".equals(theme.getThemeType())) {
+                                        // OWNER 타입: position ID 매칭
+                                        return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
                                     }
                                     return false;
                                 })
-                                // OWNER 우선
-                                .sorted(Comparator.comparing(
-                                        t -> "OWNER".equals(t.getThemeType()) ? 0 : 1
-                                ))
+                                // INPUT 타입 우선 정렬
+                                .sorted(Comparator.comparing((ThemeGetResponse t) ->
+                                        "INPUT".equals(t.getThemeType()) ? 0 : 1))
                                 .map(ThemeGetResponse::getColor)
                                 .findFirst()
                                 .orElse(null);
                     })
                     .filter(Objects::nonNull)
-                    .distinct() // 중복 제거
-                    .toList();
+                    .findFirst()  //  첫 번째 색상만 반환
+                    .orElse(null);
             CardUseResponse resp = new CardUseResponse(
                     first.getCardUseAddr().getChamMonimapCardUseAddrName(),
                     first.getChamMonimapCardUseRegion(),
@@ -346,7 +352,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     xValue,
                     yValue,
                     categoryName,
-                    colors,
+                    color,
                     groupedResponses,
                     replyList
             );

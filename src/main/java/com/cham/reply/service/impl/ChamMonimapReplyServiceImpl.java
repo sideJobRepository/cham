@@ -4,6 +4,7 @@ import com.cham.config.S3FileUtils;
 import com.cham.dto.request.ReplyCreateRequest;
 import com.cham.dto.request.ReplyModifyRequest;
 import com.cham.dto.response.ApiResponse;
+import com.cham.file.UploadResult;
 import com.cham.reply.entity.ChamMonimapReply;
 import com.cham.replyimage.entity.ChamMonimapReplyImage;
 import com.cham.reply.service.ChamMonimapReplyService;
@@ -28,10 +29,10 @@ public class ChamMonimapReplyServiceImpl implements ChamMonimapReplyService {
     public ApiResponse insertReply(ReplyCreateRequest request) {
         ChamMonimapReply reply = new ChamMonimapReply(request.getMemberId(), request.getCardUseAddrId(), request.getReplyCont());
         ChamMonimapReply saveReply = replyRepository.save(reply);
-        List<String> list = s3FileUtils.storeFiles(request.getFileList());
+        List<UploadResult> list = s3FileUtils.storeFiles(request.getFileList());
         if(!list.isEmpty()){
-            for (String image : list) {
-                replyImageRepository.save(new ChamMonimapReplyImage(saveReply, image));
+            for (UploadResult image : list) {
+                replyImageRepository.save(new ChamMonimapReplyImage(saveReply, image.getUrl()));
             }
         }
         return new ApiResponse(200,true,"댓글이 작성 되었습니다.");
@@ -53,7 +54,7 @@ public class ChamMonimapReplyServiceImpl implements ChamMonimapReplyService {
         request.getImages()
                 .stream().filter(img -> "create".equals(img.getState()))
                 .forEach(item -> {
-                    replyImageRepository.save(new ChamMonimapReplyImage(reply, s3FileUtils.storeFile(item.getFile())));
+                    replyImageRepository.save(new ChamMonimapReplyImage(reply, s3FileUtils.storeFile(item.getFile()).getUrl()));
                 });
         return new ApiResponse(200,true,"댓글이 수정 되었습니다.");
     }
