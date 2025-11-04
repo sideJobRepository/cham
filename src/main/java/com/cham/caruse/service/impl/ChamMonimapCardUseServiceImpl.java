@@ -44,6 +44,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.cham.caruse.dto.RegionSummaryDto.toSummarySkeleton;
 
@@ -162,8 +163,11 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             
             String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
-            String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
-            
+            String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName(); // 카테고리 이름
+            String useUser = first.getChamMonimapCardUseUser();
+            String cardUseName = first.getChamMonimapCardUseName(); // 이장우
+            String region = first.getChamMonimapCardUseRegion(); // 대전
+            String usePurpose = first.getChamMonimapCardUsePurpose();
             
             List<ChamMonimapCardUse> cardUseList = entry.getValue();
             
@@ -171,30 +175,24 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     .map(use -> {
                         ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
                         
-                        // Theme 리스트 중에서 해당 카드와 매칭되는 것 찾기
+                        // Theme 리스트 중 매칭되는 색상 찾기
                         return themes.stream()
+                                .sorted(Comparator.comparing(theme -> !"INPUT".equals(theme.getThemeType()))) // INPUT 우선
                                 .filter(theme -> {
                                     if ("INPUT".equals(theme.getThemeType())) {
-                                        // INPUT 타입 우선: 카테고리 이름이 inputValue를 포함하는지
-                                        return categoryName != null
-                                                && theme.getInputValue() != null
-                                                && categoryName.contains(theme.getInputValue());
+                                        return matchesThemeInput(theme, categoryName, useUser, cardUseName, region, usePurpose);
                                     } else if ("OWNER".equals(theme.getThemeType())) {
-                                        // OWNER 타입: position ID 매칭
                                         return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
                                     }
                                     return false;
                                 })
-                                // INPUT 타입 우선 정렬
-                                .sorted(Comparator.comparing((ThemeGetResponse t) ->
-                                        "INPUT".equals(t.getThemeType()) ? 0 : 1))
-                                .map(ThemeGetResponse::getColor)
                                 .findFirst()
+                                .map(ThemeGetResponse::getColor)
                                 .orElse(null);
                     })
-                    .filter(Objects::nonNull)
-                    .findFirst()  //  첫 번째 색상만 반환
-                    .orElse(null);
+                    .filter(Objects::nonNull) // color가 null인 항목 제외
+                    .findFirst()
+                    .orElse(null); // 전체 결과도 null 허용
             //  DB 집계 값이 우선, 없으면 기존 합계 사용
             int totalSum = (totalSumFromDB != null && totalSumFromDB > 0)
                     ? totalSumFromDB
@@ -306,38 +304,36 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                     .toList();
             String xValue = first.getCardUseAddr().getChamMonimapCardUseXValue();
             String yValue = first.getCardUseAddr().getChamMonimapCardUseYValue();
-            String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName();
-            
+            String categoryName = first.getCardUseAddr().getChamMonimapCardUseCategoryName(); // 카테고리 이름
+            String useUser = first.getChamMonimapCardUseUser();
+            String cardUseName = first.getChamMonimapCardUseName(); // 이장우
+            String region = first.getChamMonimapCardUseRegion(); // 대전
+            String usePurpose = first.getChamMonimapCardUsePurpose();
             
             List<ChamMonimapCardUse> cardUseList = entry.getValue();
+            
             String color = cardUseList.stream()
                     .map(use -> {
                         ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
                         
-                        // Theme 리스트 중에서 해당 카드와 매칭되는 것 찾기
+                        // Theme 리스트 중 매칭되는 색상 찾기
                         return themes.stream()
+                                .sorted(Comparator.comparing(theme -> !"INPUT".equals(theme.getThemeType()))) // INPUT 우선
                                 .filter(theme -> {
                                     if ("INPUT".equals(theme.getThemeType())) {
-                                        // INPUT 타입 우선: 카테고리 이름이 inputValue를 포함하는지
-                                        return categoryName != null
-                                                && theme.getInputValue() != null
-                                                && categoryName.contains(theme.getInputValue());
+                                        return matchesThemeInput(theme, categoryName, useUser, cardUseName, region, usePurpose);
                                     } else if ("OWNER".equals(theme.getThemeType())) {
-                                        // OWNER 타입: position ID 매칭
                                         return Objects.equals(theme.getTargetId(), position.getChamMonimapCardOwnerPositionId());
                                     }
                                     return false;
                                 })
-                                // INPUT 타입 우선 정렬
-                                .sorted(Comparator.comparing((ThemeGetResponse t) ->
-                                        "INPUT".equals(t.getThemeType()) ? 0 : 1))
-                                .map(ThemeGetResponse::getColor)
                                 .findFirst()
+                                .map(ThemeGetResponse::getColor)
                                 .orElse(null);
                     })
-                    .filter(Objects::nonNull)
-                    .findFirst()  //  첫 번째 색상만 반환
-                    .orElse(null);
+                    .filter(Objects::nonNull) // color가 null인 항목 제외
+                    .findFirst()
+                    .orElse(null); // 전체 결과도 null 허용
             CardUseResponse resp = new CardUseResponse(
                     first.getCardUseAddr().getChamMonimapCardUseAddrName(),
                     first.getChamMonimapCardUseRegion(),
@@ -754,5 +750,22 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 .depth1(depth1)
                 .depth2(depth2)
                 .build();
+    }
+    
+    private boolean matchesThemeInput(ThemeGetResponse theme,
+                                      String categoryName,
+                                      String useUser,
+                                      String cardUseName,
+                                      String region,
+                                      String usePurpose) {
+        String input = theme.getInputValue();
+        if (input == null || input.isBlank()) return false;
+        
+        // 비교 안정화 (공백/제어문자 제거)
+        String normalizedInput = input.strip().replaceAll("\\s+", "");
+        return Stream.of(categoryName, useUser, cardUseName, region, usePurpose)
+                .filter(Objects::nonNull)
+                .map(v -> v.strip().replaceAll("\\s+", ""))
+                .anyMatch(v -> v.contains(normalizedInput));
     }
 }
