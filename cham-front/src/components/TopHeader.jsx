@@ -106,7 +106,7 @@ export default function TopHeader() {
         gb: true,
         firstText: '다음에 참여할게요',
         secondText: '후원으로 응원하기',
-        onConfirm: () => window.open('https://secure.donus.org/djcham/pay/step1', '_blank'),
+        onConfirm: () => window.open('https://box.donus.org/box/djcham/monimap', '_blank'),
       });
     };
 
