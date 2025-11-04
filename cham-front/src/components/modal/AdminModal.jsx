@@ -289,12 +289,7 @@ export default function AdminModal() {
         );
 
         setThemes(mappedThemes);
-        toast.update(toastId, {
-          render: '테마를 불러왔습니다.',
-          type: 'success',
-          isLoading: false,
-          autoClose: 1000,
-        });
+        toast.dismiss(toastId);
       };
 
       loadThemes().then();

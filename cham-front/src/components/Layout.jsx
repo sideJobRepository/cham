@@ -1,7 +1,7 @@
 import styled, { useTheme } from 'styled-components';
 import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFetchSelectSearch, useFetchThemeList } from '@/recoil/fetchAppState.js';
 import { useSetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
@@ -16,6 +16,7 @@ export default function Layout() {
   //테마 가져오기
   const themeListFetch = useFetchThemeList();
   const themeListData = useThemeListState();
+  const openedRef = useRef(false);
 
   useEffect(() => {
     const handler = e => {
@@ -30,7 +31,7 @@ export default function Layout() {
 
   useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
-    themeListFetch(0, 100); // 테마정보
+    themeListFetch(0, 5); // 테마정보
   }, []);
 
   useEffect(() => {
@@ -44,9 +45,57 @@ export default function Layout() {
   }, [theme.device.mobile]);
 
   useEffect(() => {
-    if (themeListData) {
-      console.log('themeListData', themeListData);
-    }
+    if (!themeListData?.themeData?.length) return;
+    if (openedRef.current) return;
+    openedRef.current = true;
+
+    themeListData.themeData.forEach(t => {
+      if (!t.fileUrl) return;
+
+      // 이미지 미리 로드해서 width/height 가져오기
+      const img = new Image();
+      img.src = t.fileUrl;
+
+      img.onload = () => {
+        const w = img.width;
+        const h = img.height;
+
+        const popup = window.open(
+          '',
+          `_popup_${t.themeId}`,
+          `width=${w},height=${h},resizable=yes,scrollbars=yes`
+        );
+
+        if (!popup) return;
+
+        popup.document.write(`
+        <html>
+          <head>
+            <title>${t.fileName}</title>
+            <style>
+              body {
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #111;
+                height: 100vh;
+              }
+              img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${t.fileUrl}" />
+          </body>
+        </html>
+      `);
+        popup.document.close();
+      };
+    });
   }, [themeListData]);
 
   if (isMobile === null) return null;
