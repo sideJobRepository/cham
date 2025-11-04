@@ -30,8 +30,6 @@ public class ChamMonimapThemeController {
     private final ChamMonimapThemeService chamMonimapThemeService;
     
     private final S3Client s3Client;
-     
-     private final S3FileUtils s3FileUtils;
     
     @Value("${spring.cloud.aws.s3.bucket}")
      private String bucketName;
@@ -58,11 +56,11 @@ public class ChamMonimapThemeController {
     
     @GetMapping("/theme/file")
     public ResponseEntity<byte[]> getThemeFile(@RequestParam String url) throws IOException {
-        
+        String key = url.substring(url.lastIndexOf("/") + 1);
         ResponseInputStream<GetObjectResponse> object = s3Client.getObject(
                 GetObjectRequest.builder()
                         .bucket(bucketName)
-                        .key(url)
+                        .key(key)
                         .build()
         );
     
