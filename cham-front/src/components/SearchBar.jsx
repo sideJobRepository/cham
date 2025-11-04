@@ -172,10 +172,11 @@ export default function SearchBar() {
           <Divider />
 
           <Field>
-            <label>지역, 사용자, 이름, 사용장소,집행목적</label>
+            <label>검색어</label>
             <input
               type="text"
               value={searchCondition.input}
+              placeholder="지역, 사용자, 이름, 사용장소, 집행목적"
               onChange={e =>
                 setSearchCondition(prev => ({
                   ...prev,
