@@ -26,9 +26,6 @@ export default function AdminModal() {
   const [page, setPage] = useState(0);
   const totalPages = userListData?.userData?.totalPages ?? 0;
 
-  const [themePage, setThemePage] = useState(0);
-  const totalThemePages = themeListData?.themeData?.totalPages ?? 0;
-
   const [roleMap, setRoleMap] = useState({});
 
   const fileInputRef = useRef(null);
@@ -87,7 +84,7 @@ export default function AdminModal() {
           try {
             await api.delete(`/cham/theme/${id}`);
             toast.success('테마 삭제가 완료되었습니다.');
-            await themeListFetch(themePage, 5);
+            await themeListFetch();
             await handleSearch();
           } catch (e) {
             console.error(e);
@@ -133,7 +130,7 @@ export default function AdminModal() {
             isLoading: false,
             autoClose: 1000,
           });
-          await themeListFetch(themePage, 5);
+          await themeListFetch();
           await handleSearch();
         } catch (err) {
           console.log('err', err);
@@ -239,8 +236,8 @@ export default function AdminModal() {
   }, [page]);
 
   useEffect(() => {
-    themeListFetch(themePage, 5);
-  }, [themePage]);
+    themeListFetch();
+  }, []);
 
   useEffect(() => {
     if (!selectLoading && selectData.length > 0) {
@@ -469,13 +466,6 @@ export default function AdminModal() {
             </tbody>
           </Table>
         </TableScrollBox>
-        <PaginationSetion>
-          <Pagination
-            current={themePage}
-            totalPages={totalThemePages}
-            onChange={p => setThemePage(p)}
-          />
-        </PaginationSetion>
       </TableSection>
       <TableSection>
         <ButtonBox>

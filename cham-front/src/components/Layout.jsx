@@ -6,6 +6,7 @@ import { useFetchSelectSearch, useFetchThemeList } from '@/recoil/fetchAppState.
 import { useSetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
 import { useThemeListState } from '@/recoil/useAppState.js';
+import ImageModal from '@/components/modal/ImageModal.jsx';
 
 export default function Layout() {
   const fetchSelect = useFetchSelectSearch();
@@ -17,6 +18,9 @@ export default function Layout() {
   const themeListFetch = useFetchThemeList();
   const themeListData = useThemeListState();
   const openedRef = useRef(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewList, setPreviewList] = useState([]); // fileUrl 배열
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   useEffect(() => {
     const handler = e => {
@@ -31,7 +35,7 @@ export default function Layout() {
 
   useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
-    themeListFetch(0, 5); // 테마정보
+    themeListFetch(); // 테마정보
   }, []);
 
   useEffect(() => {
@@ -49,53 +53,13 @@ export default function Layout() {
     if (openedRef.current) return;
     openedRef.current = true;
 
-    themeListData.themeData.forEach(t => {
-      if (!t.fileUrl) return;
+    const urls = themeListData.themeData.filter(t => t.fileUrl).map(t => t.fileUrl);
 
-      // 이미지 미리 로드해서 width/height 가져오기
-      const img = new Image();
-      img.src = t.fileUrl;
+    if (urls.length === 0) return;
 
-      img.onload = () => {
-        const w = img.width;
-        const h = img.height;
-
-        const popup = window.open(
-          '',
-          `_popup_${t.themeId}`,
-          `width=${w},height=${h},resizable=yes,scrollbars=yes`
-        );
-
-        if (!popup) return;
-
-        popup.document.write(`
-        <html>
-          <head>
-            <title>${t.fileName}</title>
-            <style>
-              body {
-                margin: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background: #111;
-                height: 100vh;
-              }
-              img {
-                max-width: 100%;
-                max-height: 100%;
-                object-fit: contain;
-              }
-            </style>
-          </head>
-          <body>
-            <img src="${t.fileUrl}" />
-          </body>
-        </html>
-      `);
-        popup.document.close();
-      };
-    });
+    setPreviewList(urls);
+    setPreviewIndex(0);
+    setPreviewOpen(true);
   }, [themeListData]);
 
   if (isMobile === null) return null;
@@ -153,6 +117,13 @@ export default function Layout() {
           </Footer>
         </MainArea>
       </Inner>
+      <ImageModal
+        open={previewOpen}
+        urls={previewList}
+        index={previewIndex}
+        setIndex={setPreviewIndex}
+        onClose={() => setPreviewOpen(false)}
+      />
     </Wrapper>
   );
 }

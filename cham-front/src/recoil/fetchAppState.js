@@ -153,11 +153,11 @@ export function useFetchUserList() {
 export function useFetchThemeList() {
   const setState = useSetRecoilState(themeListState);
 
-  return async (page, size = {}) => {
+  return async () => {
     const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
 
     try {
-      const res = await api.get(`/cham/theme?page=${page}&size=${size}`);
+      const res = await api.get(`/cham/theme`);
 
       setState({
         themeData: res.data,
