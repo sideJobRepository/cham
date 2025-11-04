@@ -31,7 +31,8 @@ public class ChamMonimapThemeRepositoryImpl implements ChamMonimapThemeQueryRepo
                                 chamMonimapTheme.type.stringValue(),
                                 chamMonimapTheme.inputValue,
                                 chamMonimapCardOwnerPosition.chamMonimapCardOwnerPositionName,
-                                chamMonimapCommonFile.fileUrl
+                                chamMonimapCommonFile.fileUrl,
+                                chamMonimapCommonFile.fileName
                         )
                 )
                 .from(chamMonimapTheme)

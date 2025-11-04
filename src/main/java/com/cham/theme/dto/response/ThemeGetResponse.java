@@ -1,6 +1,5 @@
 package com.cham.theme.dto.response;
 
-import com.cham.theme.enumeration.ChamMonimapThemeType;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,9 +22,11 @@ public class ThemeGetResponse {
     
     private String fileUrl;
     
+    private String fileName;
+    
     @QueryProjection
     
-    public ThemeGetResponse(Long themeId, Long targetId, String color, String themeType, String inputValue, String positionName, String fileUrl) {
+    public ThemeGetResponse(Long themeId, Long targetId, String color, String themeType, String inputValue, String positionName, String fileUrl, String fileName) {
         this.themeId = themeId;
         this.targetId = targetId;
         this.color = color;
@@ -33,5 +34,6 @@ public class ThemeGetResponse {
         this.inputValue = inputValue;
         this.positionName = positionName;
         this.fileUrl = fileUrl;
+        this.fileName = fileName;
     }
 }
