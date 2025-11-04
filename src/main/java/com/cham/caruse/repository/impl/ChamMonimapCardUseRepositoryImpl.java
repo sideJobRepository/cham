@@ -128,12 +128,13 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
     }
     private BooleanExpression inputOrCondition(CardUseConditionRequest request) {
         String input = request.getInput();
-        // 지역 /사용자 / 이름 / 집행목적
+        // 지역 /사용자 / 이름 / 집행목적 // 가게이름
         if (StringUtils.hasText(input)) {
             return chamMonimapCardUse.chamMonimapCardUseRegion.like("%" + input + "%")
                     .or(chamMonimapCardUse.chamMonimapCardUseUser.like("%" + input + "%"))
                     .or(chamMonimapCardUse.chamMonimapCardUseName.like("%" + input + "%"))
-                    .or(chamMonimapCardUse.chamMonimapCardUsePurpose.like("%" + input + "%"));
+                    .or(chamMonimapCardUse.chamMonimapCardUsePurpose.like("%" + input + "%"))
+                    .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.like("%" + input + "%"));
         }
         return null;
     }

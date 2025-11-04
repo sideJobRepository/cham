@@ -172,7 +172,7 @@ export default function SearchBar() {
           <Divider />
 
           <Field>
-            <label>지역, 사용자, 이름, 집행목적</label>
+            <label>지역, 사용자, 이름, 사용장소,집행목적</label>
             <input
               type="text"
               value={searchCondition.input}
