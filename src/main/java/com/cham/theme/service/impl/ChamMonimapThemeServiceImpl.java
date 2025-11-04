@@ -15,13 +15,9 @@ import com.cham.theme.respotiroy.ChamMonimapThemeRepository;
 import com.cham.theme.service.ChamMonimapThemeService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +25,6 @@ import java.util.Objects;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Slf4j
 public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
 
     private final ChamMonimapThemeRepository chamMonimapThemeRepository;
@@ -40,74 +35,7 @@ public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
     
     @Override
     public List<ThemeGetResponse> getThemes() {
-        List<ThemeGetResponse> themes = chamMonimapThemeRepository.findByThemes();
-    
-        // fileUrl → MultipartFile 변환
-        themes.forEach(t -> {
-              if (t.getFileUrl() != null && !t.getFileUrl().isBlank()) {
-                  try {
-                      URL url = new URL(t.getFileUrl());
-      
-                      // URL → byte[]
-                      byte[] bytes;
-                      try (InputStream in = url.openStream()) {
-                          bytes = IOUtils.toByteArray(in);
-                      }
-      
-                      // MultipartFile 구현체 직접 생성
-                      MultipartFile multipartFile = new MultipartFile() {
-                          @Override
-                          public String getName() {
-                              return "file";
-                          }
-      
-                          @Override
-                          public String getOriginalFilename() {
-                              return extractFileName(t.getFileUrl());
-                          }
-      
-                          @Override
-                          public String getContentType() {
-                              return "application/octet-stream";
-                          }
-      
-                          @Override
-                          public boolean isEmpty() {
-                              return bytes.length == 0;
-                          }
-      
-                          @Override
-                          public long getSize() {
-                              return bytes.length;
-                          }
-      
-                          @Override
-                          public byte[] getBytes() {
-                              return bytes;
-                          }
-      
-                          @Override
-                          public InputStream getInputStream() {
-                              return new ByteArrayInputStream(bytes);
-                          }
-      
-                          @Override
-                          public void transferTo(File dest) throws IOException {
-                              try (FileOutputStream fos = new FileOutputStream(dest)) {
-                                  fos.write(bytes);
-                              }
-                          }
-                      };
-      
-                      t.setFile(multipartFile);
-      
-                  } catch (Exception e) {
-                      log.warn("파일 변환 실패: {}", t.getFileUrl(), e);
-                  }
-              }
-          });
-      
-          return themes;
+         return chamMonimapThemeRepository.findByThemes();
     }
     
     @Override
@@ -211,9 +139,5 @@ public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
         }
         chamMonimapThemeRepository.delete(theme);
         return new ApiResponse(200,true,"테마가 삭제 되었습니다.");
-    }
-    // URL에서 파일명만 추출하는 유틸
-    private String extractFileName(String url) {
-        return url.substring(url.lastIndexOf('/') + 1);
     }
 }
