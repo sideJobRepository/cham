@@ -48,11 +48,11 @@ const ArrowBase = styled.button`
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.2);
   border: none;
   color: #fff;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
   border-radius: 999px;
   display: flex;
@@ -65,7 +65,7 @@ const ArrowBase = styled.button`
   }
 
   &:hover {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.4);
   }
 `;
 
