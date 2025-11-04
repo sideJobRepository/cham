@@ -15,9 +15,26 @@ import com.cham.theme.respotiroy.ChamMonimapThemeRepository;
 import com.cham.theme.service.ChamMonimapThemeService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +48,13 @@ public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
     
     private final ChamMonimapCommonFileRepository chamMonimapCommonFileRepository;
     
-    private final S3FileUtils s3FileUtils;
+    private final S3Client s3Client;
+     
+     private final S3FileUtils s3FileUtils;
+    
+    @Value("${spring.cloud.aws.s3.bucket}")
+     private String bucketName;
+
     
     @Override
     public List<ThemeGetResponse> getThemes() {
@@ -139,5 +162,26 @@ public class ChamMonimapThemeServiceImpl implements ChamMonimapThemeService {
         }
         chamMonimapThemeRepository.delete(theme);
         return new ApiResponse(200,true,"테마가 삭제 되었습니다.");
+    }
+    
+    @GetMapping("/theme/file")
+    public ResponseEntity<byte[]> getThemeFile(@RequestParam String url) throws IOException {
+        
+        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(
+                GetObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(url)
+                        .build()
+        );
+    
+        byte[] fileBytes = object.readAllBytes();
+    
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(object.response().contentType())); // 예: image/png
+        headers.setContentLength(fileBytes.length);
+        headers.setContentDispositionFormData("inline", url); // attachment -> 다운로드, inline -> 미리보기
+    
+        return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+
     }
 }
