@@ -253,19 +253,46 @@ export default function AdminModal() {
 
   useEffect(() => {
     if (themeListData?.themeData?.length > 0 && roleOptions.length > 0) {
-      const mappedThemes = themeListData.themeData.map(t => ({
-        id: t.themeId,
-        target:
-          t.themeType === 'OWNER'
-            ? (roleOptions.find(o => o.label === t.positionName) ?? null)
-            : roleOptions[0],
-        keyword: t.inputValue ?? '',
-        color: t.color ?? '#ffffff',
-        image: null,
-        previewUrl: '',
-        flag: 'P',
-      }));
-      setThemes(mappedThemes);
+      // URL → File 변환 함수
+      const urlToFile = async (url, filename) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const file = new File([blob], filename, { type: blob.type });
+        return file;
+      };
+
+      const loadThemes = async () => {
+        const mappedThemes = await Promise.all(
+          themeListData.themeData.map(async t => {
+            let fileObj = null;
+
+            if (t.fileUrl) {
+              try {
+                fileObj = await api.get('cham/theme/file', { params: { url: t.fileUrl } });
+                console.log('file', fileObj);
+              } catch (err) {
+                console.error('이미지 변환 실패:', err);
+              }
+            }
+
+            return {
+              id: t.themeId,
+              target:
+                t.themeType === 'OWNER'
+                  ? (roleOptions.find(o => o.label === t.positionName) ?? null)
+                  : roleOptions[0],
+              keyword: t.inputValue ?? '',
+              color: t.color ?? '#ffffff',
+              image: fileObj,
+              flag: 'P',
+            };
+          })
+        );
+
+        setThemes(mappedThemes);
+      };
+
+      loadThemes().then();
     }
   }, [themeListData, roleOptions]);
 
