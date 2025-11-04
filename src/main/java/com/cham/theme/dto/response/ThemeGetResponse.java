@@ -1,9 +1,9 @@
 package com.cham.theme.dto.response;
 
-import com.cham.theme.enumeration.ChamMonimapThemeType;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
@@ -22,6 +22,8 @@ public class ThemeGetResponse {
     private String positionName;
     
     private String fileUrl;
+    
+    private MultipartFile file;
     
     @QueryProjection
     
