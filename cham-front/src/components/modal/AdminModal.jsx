@@ -20,7 +20,6 @@ export default function AdminModal() {
   //테마리스트
   const themeListFetch = useFetchThemeList();
   const themeListData = useThemeListState();
-  console.log('themeListData----', themeListData);
 
   const [checkedIds, setCheckedIds] = useState([]);
 
@@ -88,7 +87,7 @@ export default function AdminModal() {
           try {
             await api.delete(`/cham/theme/${id}`);
             toast.success('테마 삭제가 완료되었습니다.');
-            await themeListFetch(themePage);
+            await themeListFetch(themePage, 5);
             await handleSearch();
           } catch (e) {
             console.error(e);
@@ -134,7 +133,7 @@ export default function AdminModal() {
             isLoading: false,
             autoClose: 1000,
           });
-          await themeListFetch(themePage);
+          await themeListFetch(themePage, 5);
           await handleSearch();
         } catch (err) {
           console.log('err', err);
@@ -240,7 +239,7 @@ export default function AdminModal() {
   }, [page]);
 
   useEffect(() => {
-    themeListFetch(themePage);
+    themeListFetch(themePage, 5);
   }, [themePage]);
 
   useEffect(() => {
@@ -253,23 +252,22 @@ export default function AdminModal() {
 
   useEffect(() => {
     if (themeListData?.themeData?.length > 0 && roleOptions.length > 0) {
-      // URL → File 변환 함수
-      const urlToFile = async (url, filename) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const file = new File([blob], filename, { type: blob.type });
-        return file;
-      };
-
       const loadThemes = async () => {
+        const toastId = toast.loading('테마 정보를 불러오는 중입니다.');
         const mappedThemes = await Promise.all(
           themeListData.themeData.map(async t => {
             let fileObj = null;
+            let file = null;
 
             if (t.fileUrl) {
               try {
-                fileObj = await api.get('cham/theme/file', { params: { url: t.fileUrl } });
+                fileObj = await api.get('cham/theme/file', {
+                  params: { url: t.fileUrl },
+                  responseType: 'blob',
+                });
                 console.log('file', fileObj);
+                const blob = new Blob([fileObj.data], { type: fileObj.headers['content-type'] });
+                file = new File([blob], t.fileName, { type: blob.type });
               } catch (err) {
                 console.error('이미지 변환 실패:', err);
               }
@@ -283,18 +281,28 @@ export default function AdminModal() {
                   : roleOptions[0],
               keyword: t.inputValue ?? '',
               color: t.color ?? '#ffffff',
-              image: fileObj,
+              image: file,
               flag: 'P',
+              fileName: t.fileName,
             };
           })
         );
 
         setThemes(mappedThemes);
+        toast.update(toastId, {
+          render: '테마를 불러왔습니다.',
+          type: 'success',
+          isLoading: false,
+          autoClose: 1000,
+        });
       };
 
       loadThemes().then();
     }
-  }, [themeListData, roleOptions]);
+  }, [themeListData]);
+
+  //파일 네임
+  const getThemeFileName = t => t?.image?.name ?? t?.file ?? '선택된 파일이 없습니다.';
 
   const searchSelect = {
     control: provided => ({
@@ -443,11 +451,18 @@ export default function AdminModal() {
                     />
                   </Td>
                   <Td>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleImageChange(theme.id, e.target.files[0])}
-                    />
+                    <div>
+                      <label htmlFor={`file-${theme.id}`}>
+                        <CustomButton>파일 선택</CustomButton>
+                      </label>
+                      <HiddenFileInput
+                        id={`file-${theme.id}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={e => handleImageChange(theme.id, e.target.files?.[0])}
+                      />
+                      <span className="ellipsis">{getThemeFileName(theme)}</span>
+                    </div>
                   </Td>
                   <Td>
                     <ExcelButton color="#FF5E57" onClick={() => handleDeleteTheme(theme.id)}>
@@ -673,6 +688,16 @@ export const Td = styled.td`
   color: ${({ color }) => color};
   overflow: hidden;
 
+  .ellipsis {
+    display: block;
+    text-align: left;
+    padding: 0 12px;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
   input[type='checkbox'] {
     accent-color: ${({ theme }) => theme.colors.primary};
     cursor: pointer;
@@ -733,4 +758,36 @@ const Button = styled.button`
 const SortSelect = styled.div`
   display: flex;
   gap: 6px;
+`;
+
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+const CustomButton = styled.div`
+  display: flex;
+  align-items: center;
+  background: lightgray;
+  border: none;
+  color: ${({ theme }) => theme.colors.text};
+  font-weight: bold;
+  font-size: ${({ theme }) => theme.sizes.medium};
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  gap: 6px;
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.sizes.small};
+    padding: 6px 12px;
+  }
+`;
+
+const FileName = styled.span`
+  margin-left: 10px;
+  font-size: 14px;
 `;

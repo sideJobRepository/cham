@@ -376,7 +376,6 @@ export default function MapPanel() {
 
         // 오버레이 생성 (카테고리/금액/방문수 표기 + 클릭시 상세 모달)
         if (!overlay) {
-          console.log('-------컬러다잉 color', item.color);
           const color = item.color ? item.color : theme.colors.primary;
 
           const div = document.createElement('div');

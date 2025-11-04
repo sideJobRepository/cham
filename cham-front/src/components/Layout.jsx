@@ -2,15 +2,20 @@ import styled, { useTheme } from 'styled-components';
 import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useFetchSelectSearch } from '@/recoil/fetchAppState.js';
+import { useFetchSelectSearch, useFetchThemeList } from '@/recoil/fetchAppState.js';
 import { useSetRecoilState } from 'recoil';
 import { userState } from '@/recoil/appState.js';
+import { useThemeListState } from '@/recoil/useAppState.js';
 
 export default function Layout() {
   const fetchSelect = useFetchSelectSearch();
   const setUser = useSetRecoilState(userState);
   const theme = useTheme();
   const [isMobile, setIsMobile] = useState(null);
+
+  //테마 가져오기
+  const themeListFetch = useFetchThemeList();
+  const themeListData = useThemeListState();
 
   useEffect(() => {
     const handler = e => {
@@ -25,6 +30,7 @@ export default function Layout() {
 
   useEffect(() => {
     fetchSelect(); // 서버에서 최초 한 번 불러오기
+    themeListFetch(0, 100); // 테마정보
   }, []);
 
   useEffect(() => {
@@ -36,6 +42,12 @@ export default function Layout() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, [theme.device.mobile]);
+
+  useEffect(() => {
+    if (themeListData) {
+      console.log('themeListData', themeListData);
+    }
+  }, [themeListData]);
 
   if (isMobile === null) return null;
 
