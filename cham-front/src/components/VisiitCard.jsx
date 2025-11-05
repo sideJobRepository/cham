@@ -7,9 +7,9 @@ export default function VisitCard(item) {
     <CardWrapper>
       <CardContent>
         <CardTitle>
-          {item.data.userName}
+          {item.data.region} {item.data.useUser} {item.data.userName}
           <span>
-            대상인원
+            대상인원{' '}
             {Number(item.data.cardUsePersonnel)
               ? item.data.cardUsePersonnel + '명'
               : item.data.cardUsePersonnel}
