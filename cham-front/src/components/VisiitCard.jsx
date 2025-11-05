@@ -49,6 +49,7 @@ const CardContent = styled.div`
 const CardTitle = styled.div`
   display: flex;
   align-items: center;
+  word-break: keep-all;
   margin: 0;
   color: black;
   font-size: ${({ theme }) => theme.sizes.large};
@@ -56,6 +57,7 @@ const CardTitle = styled.div`
 
   span {
     margin-left: 8px;
+    word-break: keep-all;
     font-weight: normal;
     font-size: ${({ theme }) => theme.sizes.medium};
     color: ${({ theme }) => theme.colors.liteGray};
