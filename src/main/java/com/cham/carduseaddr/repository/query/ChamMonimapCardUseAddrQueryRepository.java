@@ -13,5 +13,5 @@ public interface ChamMonimapCardUseAddrQueryRepository {
     List<CardUseAddrDto> findByCardUseAddrDtos();
     
     List<ChamMonimapCardUseAddr> findImageUrlsByAddrIds(Set<Long> addrIds);
-    Optional<ChamMonimapCardUseAddr> findByXValueAndYValue(String x, String y);
+    Optional<ChamMonimapCardUseAddr> findByXValueAndYValue(String x, String y,double range);
 }

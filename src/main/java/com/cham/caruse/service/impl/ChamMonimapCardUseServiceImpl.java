@@ -529,7 +529,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         //  DB 중복 체크 (이미 저장된 동일 좌표 있는지)
         if (x != null && y != null) {
             Optional<ChamMonimapCardUseAddr> existing = cardUseAddrRepository
-                    .findByXValueAndYValue(x, y);
+                    .findByXValueAndYValue(x, y, 0.0005); //약 50m범위
             if (existing.isPresent()) {
                 ChamMonimapCardUseAddr found = existing.get();
                 cache.put(coordKey, new CardUseAddrDto(

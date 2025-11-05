@@ -4,6 +4,7 @@ import com.cham.carduseaddr.entity.ChamMonimapCardUseAddr;
 import com.cham.carduseaddr.repository.query.ChamMonimapCardUseAddrQueryRepository;
 import com.cham.dto.response.CardUseAddrDto;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -50,14 +51,29 @@ public class ChamMonimapCardUseAddrRepositoryImpl implements ChamMonimapCardUseA
                 .fetch();
     }
     @Override
-    public Optional<ChamMonimapCardUseAddr> findByXValueAndYValue(String x, String y) {
+    public Optional<ChamMonimapCardUseAddr> findByXValueAndYValue(String x, String y,double range) {
+        double xd, yd;
+        try {
+            xd = Double.parseDouble(x);
+            yd = Double.parseDouble(y);
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+        
+        // 문자열 컬럼을 double로 캐스팅
+        var xNum = Expressions.numberTemplate(Double.class,
+                "CAST({0} AS DOUBLE)", chamMonimapCardUseAddr.chamMonimapCardUseXValue);
+        var yNum = Expressions.numberTemplate(Double.class,
+                "CAST({0} AS DOUBLE)", chamMonimapCardUseAddr.chamMonimapCardUseYValue);
+        
         ChamMonimapCardUseAddr result = queryFactory
                 .selectFrom(chamMonimapCardUseAddr)
                 .where(
-                        chamMonimapCardUseAddr.chamMonimapCardUseXValue.eq(x),
-                        chamMonimapCardUseAddr.chamMonimapCardUseYValue.eq(y)
+                        xNum.between(xd - range, xd + range),
+                        yNum.between(yd - range, yd + range)
                 )
                 .fetchFirst();
+        
         return Optional.ofNullable(result);
     }
 }
