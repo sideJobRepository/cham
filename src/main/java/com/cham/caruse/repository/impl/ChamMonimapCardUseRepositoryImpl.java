@@ -61,7 +61,6 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .join(dong.parent, gu).fetchJoin()
                 .join(gu.parent, city).fetchJoin()
                 .where(
-                        chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
                         chamMonimapCardUseAddr.chamMonimapCardUseAddrName.notLike("%플라워%"),
                         chamMonimapCardUseAddr.chamMonimapCardUseAddrName.notLike("%경조사비%"),
                         chamMonimapCardUseAddr.chamMonimapCardUseAddrName.notLike("%직원%"),
@@ -84,7 +83,6 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .join(dong.parent, gu).fetchJoin()
                 .join(gu.parent, city).fetchJoin()
                 .where(
-                        chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
                         chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
                                 .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("경조사비")) //경조사비 제외
                                 .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("직원")) //직원 제외
@@ -107,7 +105,6 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
                 .from(chamMonimapCardUse)
                 .join(chamMonimapCardUse.cardUseAddr, chamMonimapCardUseAddr)
                 .where(
-                        chamMonimapCardUse.chamMonimapCardUseAmount.goe(100000),
                         chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("플라워")// 화환 제외
                                 .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("경조사비")) //경조사비 제외
                                 .or(chamMonimapCardUse.cardUseAddr.chamMonimapCardUseAddrName.contains("직원")) //직원 제외
