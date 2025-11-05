@@ -20,8 +20,11 @@ public class CardUseGroupedResponse {
     private String cardUsePurpose;
     private String cardUsePersonnel;
     private String cardUseDate;
+    private String region;
+    private String useUser;
     
-    public CardUseGroupedResponse(String userName, String amountPerPerson, String cardUseMethod, Integer cardUseAmount, String cardUsePurpose, String cardUsePersonnel, LocalDate useDate, LocalTime useTime) {
+    
+    public CardUseGroupedResponse(String userName, String amountPerPerson, String cardUseMethod, Integer cardUseAmount, String cardUsePurpose, String cardUsePersonnel, LocalDate useDate, LocalTime useTime,String region,String useUser) {
         this.userName = userName;
         this.amountPerPerson = amountPerPerson;
         this.cardUseMethod = cardUseMethod;
@@ -33,5 +36,7 @@ public class CardUseGroupedResponse {
         String useDateStr = useDate.format(dateFormatter);  // "2025-06-24"
         String useTimeStr = useTime.format(timeFormatter);  // "14:30"
         this.cardUseDate = useDateStr +  " " + useTimeStr;
+        this.region = region;
+        this.useUser = useUser;
     }
 }

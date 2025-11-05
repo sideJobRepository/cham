@@ -125,6 +125,7 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             String visitMember = buildVisitMember(uniqueNames);
             
             // 상세 행 응답
+          
             List<CardUseGroupedResponse> groupedResponses = list.stream()
                     .map(use -> new CardUseGroupedResponse(
                             use.getChamMonimapCardUseName(),
@@ -134,7 +135,9 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                             use.getChamMonimapCardUsePurpose(),
                             use.getChamMonimapCardUsePersonnel(),
                             use.getChamMonimapCardUseDate(),
-                            use.getChamMonimapCardUseTime()
+                            use.getChamMonimapCardUseTime(),
+                            use.getChamMonimapCardUseRegion(),
+                            use.getChamMonimapCardUseUser()
                     ))
                     .toList();
             
@@ -277,7 +280,9 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                             use.getChamMonimapCardUsePurpose(),
                             use.getChamMonimapCardUsePersonnel(),
                             use.getChamMonimapCardUseDate(),
-                            use.getChamMonimapCardUseTime()
+                            use.getChamMonimapCardUseTime(),
+                            use.getChamMonimapCardUseRegion(),
+                            use.getChamMonimapCardUseUser()
                     ))
                     .toList();
             
