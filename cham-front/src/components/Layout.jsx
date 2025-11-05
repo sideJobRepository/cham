@@ -3,16 +3,20 @@ import TopHeader from './TopHeader.jsx';
 import { Outlet } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useFetchSelectSearch, useFetchThemeList } from '@/recoil/fetchAppState.js';
-import { useSetRecoilState } from 'recoil';
-import { userState } from '@/recoil/appState.js';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { loadingState, userState } from '@/recoil/appState.js';
 import { useThemeListState } from '@/recoil/useAppState.js';
 import ImageModal from '@/components/modal/ImageModal.jsx';
+import Loading from '@/components/Loading.jsx';
 
 export default function Layout() {
   const fetchSelect = useFetchSelectSearch();
   const setUser = useSetRecoilState(userState);
   const theme = useTheme();
   const [isMobile, setIsMobile] = useState(null);
+
+  //로딩바
+  const isLoading = useRecoilValue(loadingState);
 
   //테마 가져오기
   const themeListFetch = useFetchThemeList();
@@ -71,6 +75,7 @@ export default function Layout() {
           <TopHeader />
         </TopArea>
         <MainArea>
+          {isLoading && <Loading />}
           {isMobile ? (
             <OutletWrapper>
               <Outlet />

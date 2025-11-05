@@ -5,9 +5,9 @@ import {
   mapState,
   detailState,
   checkDataState,
-  userState,
   userListState,
   themeListState,
+  loadingState,
 } from './appState.js';
 import { toast } from 'react-toastify';
 
@@ -34,9 +34,10 @@ export function useFetchSelectSearch() {
 //메인데이터
 export function useMapSearch() {
   const setState = useSetRecoilState(mapState);
+  const setLoading = useSetRecoilState(loadingState);
 
   return async (params = {}) => {
-    const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
+    setLoading(true);
 
     try {
       let url = `/cham/cardUse`;
@@ -53,20 +54,15 @@ export function useMapSearch() {
         mapData: res.data,
         mapLoading: false,
       });
-
-      toast.dismiss(toastId);
     } catch (e) {
-      toast.update(toastId, {
-        render: '검색에 실패하였습니다.',
-        type: 'error',
-        isLoading: false,
-        autoClose: 3000,
-      });
+      toast.error('지도 조회에 실패하였습니다.');
       console.error('검색 실패:', e);
       setState({
         data: [],
         mapLoading: false,
       });
+    } finally {
+      setLoading(false);
     }
   };
 }
@@ -74,29 +70,25 @@ export function useMapSearch() {
 //디테일데이터
 export function useFetchDetailData() {
   const setDetailState = useSetRecoilState(detailState);
+  const setLoading = useSetRecoilState(loadingState);
 
   return async addr => {
-    const toastId = toast.loading('상세 정보를 불러오는 중 입니다.');
+    setLoading(true);
     try {
       const res = await api.get(`/cham/cardUseDetail?addrDetail=${addr}`);
       setDetailState({
         mapDetailData: res.data.details,
         mapDetailLoading: false,
       });
-
-      toast.dismiss(toastId);
     } catch (e) {
       console.error('디테일 요청 실패:', e);
-      toast.update(toastId, {
-        render: '디테일 조회에 실패하였습니다.',
-        type: 'error',
-        isLoading: false,
-        autoClose: 3000,
-      });
+      toast.error('디테일 조회에 실패하였습니다.');
       setDetailState({
         mapDetailData: [],
         mapDetailLoading: false,
       });
+    } finally {
+      setLoading(false);
     }
   };
 }
@@ -120,9 +112,10 @@ export function useFetchCard() {
 //관리자 유저 정보
 export function useFetchUserList() {
   const setState = useSetRecoilState(userListState);
+  const setLoading = useSetRecoilState(loadingState);
 
   return async (page = {}) => {
-    const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
+    setLoading(true);
 
     try {
       const res = await api.get(`/cham/role?page=${page}&size=${5}`);
@@ -131,20 +124,15 @@ export function useFetchUserList() {
         userData: res.data,
         userLoading: false,
       });
-
-      toast.dismiss(toastId);
     } catch (e) {
-      toast.update(toastId, {
-        render: '검색에 실패하였습니다.',
-        type: 'error',
-        isLoading: false,
-        autoClose: 3000,
-      });
+      toast.error('유저 조회에 실패하였습니다.');
       console.error('검색 실패:', e);
       setState({
         userData: [],
         userLoading: false,
       });
+    } finally {
+      setLoading(false);
     }
   };
 }
@@ -152,9 +140,10 @@ export function useFetchUserList() {
 //관리자 테마 정보
 export function useFetchThemeList() {
   const setState = useSetRecoilState(themeListState);
+  const setLoading = useSetRecoilState(loadingState);
 
   return async () => {
-    const toastId = toast.loading('요청하신 정보를 불러오는 중 입니다.');
+    setLoading(true);
 
     try {
       const res = await api.get(`/cham/theme`);
@@ -163,20 +152,15 @@ export function useFetchThemeList() {
         themeData: res.data,
         themeLoading: false,
       });
-
-      toast.dismiss(toastId);
     } catch (e) {
-      toast.update(toastId, {
-        render: '검색에 실패하였습니다.',
-        type: 'error',
-        isLoading: false,
-        autoClose: 3000,
-      });
+      toast.error('테마 조회에 실패하였습니다.');
       console.error('검색 실패:', e);
       setState({
         themeData: [],
         themeLoading: false,
       });
+    } finally {
+      setLoading(false);
     }
   };
 }

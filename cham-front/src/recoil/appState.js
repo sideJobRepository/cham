@@ -1,7 +1,10 @@
 import { atom } from 'recoil';
 
-const today = new Date();
-const oneMonthAgo = new Date(new Date().getFullYear(), 0, 1);
+//로딩바
+export const loadingState = atom({
+  key: 'isLoadingState',
+  default: false,
+});
 
 export const userState = atom({
   key: 'userState',

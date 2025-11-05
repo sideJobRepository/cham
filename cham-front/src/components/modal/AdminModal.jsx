@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { toast } from 'react-toastify';
 import api from '@/utils/axiosInstance.js';
 import { AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
-import { useRecoilValue } from 'recoil';
-import { mapSearchFilterState } from '@/recoil/appState.js';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { loadingState, mapSearchFilterState } from '@/recoil/appState.js';
 import { useSelectSearchState, useThemeListState, useUserListState } from '@/recoil/useAppState.js';
 import Pagination from '@/components/Pagination.jsx';
 import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
@@ -13,6 +13,7 @@ import { FaUser, FaMapMarkedAlt, FaPalette } from 'react-icons/fa';
 import Select from 'react-select';
 
 export default function AdminModal() {
+  const setLoading = useSetRecoilState(loadingState);
   //유저리스트
   const userListFetch = useFetchUserList();
   const userListData = useUserListState();
@@ -81,6 +82,7 @@ export default function AdminModal() {
         firstText: '취소',
         secondText: '삭제',
         onConfirm: async () => {
+          setLoading(true);
           try {
             await api.delete(`/cham/theme/${id}`);
             toast.success('테마 삭제가 완료되었습니다.');
@@ -90,6 +92,8 @@ export default function AdminModal() {
             console.error(e);
             const msg = e.response?.data?.message ?? '삭제 실패';
             toast.error(msg);
+          } finally {
+            setLoading(false);
           }
         },
       });
@@ -106,8 +110,6 @@ export default function AdminModal() {
       onConfirm: async () => {
         const formData = new FormData();
 
-        const toastId = toast.loading('테마 업로드 중 입니다.');
-
         themes.forEach((t, i) => {
           const themeType = t.target?.value === null ? 'INPUT' : 'OWNER';
 
@@ -120,26 +122,20 @@ export default function AdminModal() {
           if (t.image) formData.append(`themes[${i}].file`, t.image);
         });
 
+        setLoading(true);
+
         try {
           await api.post('/cham/theme', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-          toast.update(toastId, {
-            render: '테마 업로드를 완료됐습니다.',
-            type: 'success',
-            isLoading: false,
-            autoClose: 1000,
-          });
+          toast.success('테마 업로드에 성공하였습니다.');
           await themeListFetch();
           await handleSearch();
         } catch (err) {
           console.log('err', err);
-          toast.update(toastId, {
-            render: '테마 업로드에 실패하였습니다.',
-            type: 'error',
-            isLoading: false,
-            autoClose: 3000,
-          });
+          toast.error('테마 업로드에 실패하였습니다.');
+        } finally {
+          setLoading(false);
         }
       },
     });
@@ -162,27 +158,19 @@ export default function AdminModal() {
     const formData = new FormData();
     formData.append('multipartFile', file);
 
-    const toastId = toast.loading('엑셀 파일을 업로드 하는 중입니다.');
+    setLoading(true);
     try {
       await api.post('/cham/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.update(toastId, {
-        render: '엑셀 파일 업로드가 완료 되었습니다.',
-        type: 'success',
-        isLoading: false,
-        autoClose: 1000,
-      });
+      toast.success('엑셀 파일 업로드가 완료 되었습니다.');
+
       await handleSearch();
     } catch (err) {
       console.error(err);
-      toast.update(toastId, {
-        render: err.response?.data?.message ?? '엑셀 업로드 실패',
-        type: 'error',
-        isLoading: false,
-        autoClose: 1000,
-      });
+      toast.error(err.response?.data?.message ?? '엑셀 업로드 실패');
     } finally {
+      setLoading(false);
       e.target.value = '';
     }
   };
@@ -206,6 +194,8 @@ export default function AdminModal() {
           return;
         }
 
+        setLoading(true);
+
         try {
           await api.put(`/cham/role`, selected, {});
           setCheckedIds([]);
@@ -215,6 +205,8 @@ export default function AdminModal() {
         } catch (e) {
           console.log('error', e);
           toast.error('권한 수정이 실패하였습니다.');
+        } finally {
+          setLoading(false);
         }
       },
     });
@@ -250,7 +242,7 @@ export default function AdminModal() {
   useEffect(() => {
     if (themeListData?.themeData?.length > 0 && roleOptions.length > 0) {
       const loadThemes = async () => {
-        const toastId = toast.loading('테마 정보를 불러오는 중입니다.');
+        setLoading(true);
         const mappedThemes = await Promise.all(
           themeListData.themeData.map(async t => {
             let fileObj = null;
@@ -286,7 +278,7 @@ export default function AdminModal() {
         );
 
         setThemes(mappedThemes);
-        toast.dismiss(toastId);
+        setLoading(false);
       };
 
       loadThemes().then();
@@ -369,6 +361,7 @@ export default function AdminModal() {
                   firstText: '취소',
                   secondText: '삭제',
                   onConfirm: async () => {
+                    setLoading(true);
                     try {
                       await api.delete(`/cham/upload/${deleteText}`);
                       toast.success('엑셀 삭제가 완료되었습니다.');
@@ -377,6 +370,8 @@ export default function AdminModal() {
                       console.error(e);
                       const msg = e.response?.data?.message ?? '삭제 실패';
                       toast.error(msg);
+                    } finally {
+                      setLoading(false);
                     }
                   },
                 });
