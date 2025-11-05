@@ -2,13 +2,14 @@ import styled from 'styled-components';
 import test from '/test.jpg';
 
 export default function VisitCard(item) {
+  console.log('item', item);
   return (
     <CardWrapper>
       <CardContent>
         <CardTitle>
           {item.data.userName}
           <span>
-            대상인원{' '}
+            대상인원
             {Number(item.data.cardUsePersonnel)
               ? item.data.cardUsePersonnel + '명'
               : item.data.cardUsePersonnel}

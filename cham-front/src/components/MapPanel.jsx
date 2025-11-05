@@ -429,7 +429,12 @@ export default function MapPanel() {
               sortOrder: searchCondition.sortOrder,
               addrDetail: item.addrDetail,
               detail: true,
-              catLabel: item.categoryName || '기타',
+              catLabel:
+                item.categoryName
+                  ?.split('>')
+                  .map(s => s.trim())
+                  ?.slice(0, 3)
+                  ?.join(' > ') || '기타',
             };
             setDetailParams(params);
             setOpen(true);
