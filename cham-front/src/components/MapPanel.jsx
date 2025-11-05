@@ -8,286 +8,12 @@ import DetailPage from '@/pages/DetailPage.jsx';
 import { FiSearch } from 'react-icons/fi';
 import { FaWalking } from 'react-icons/fa';
 import { renderToString } from 'react-dom/server';
-
-/** ====== 줌 기준 (카카오: 값이 작을수록 더 확대됨) ====== */
-const DETAIL_MAX_LEVEL = 4; // 디테일의 최대 값 4, 검색 및 동 > 디테일 이동시 3
-const DONG_MAX_LEVEL_MIN = 5; // 동의 최소값 5~6
-const DONG_MAX_LEVEL_MAX = 6; // 동의 최대값
-const GU_LEVEL_MIN = 7; // 구의 최소값 7 ~ 10
-const GU_LEVEL_MAX = 10; //구의 최대값
-const SIDO_LEVEL_MIN = 11; // ≥11 : 시/도 집계
-
-/** z-index 규칙 */
-const Z_BASE = 1;
-const Z_HOVER = 50000; // 일반 hover
-const Z_HIT = 100000; // 검색 히트(고정 최상위)
-
-/** 행정구역 추정용 접미사 */
-const REGION_SUFFIX = /(특별시|광역시|도|시|군|구|동|읍|면)$/;
-
-/** 공통 색상 (핀/히트 마커 통일) */
-const PIN_COLOR = '#357ae9';
-
-/** DB 좌표 파싱 (x=경도, y=위도) */
-function toLatLng(x, y) {
-  const lng = parseFloat(x);
-  const lat = parseFloat(y);
-  if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
-  return null;
-}
-
-/** 현재 지도 bounds 내에 있는지 */
-function inView(lat, lng, map) {
-  const b = map.getBounds();
-  const sw = b.getSouthWest();
-  const ne = b.getNorthEast();
-  return lat >= sw.getLat() && lat <= ne.getLat() && lng >= sw.getLng() && lng <= ne.getLng();
-}
-
-/** 카테고리 표시(두 번째 단계 우선, 없으면 첫 단계) */
-function getCatLabel(categoryName) {
-  if (!categoryName) return '기타';
-  const parts = String(categoryName)
-    .split('>')
-    .map(s => s.trim())
-    .filter(Boolean);
-  return parts[1] || parts[0] || '기타';
-}
-
-/** 여러 점 bounds 맞추기(패딩 포함) + 줌 레벨 보정 */
-function fitMapToPoints(map, points, paddingPx = 60) {
-  const bounds = new window.kakao.maps.LatLngBounds();
-  points.forEach(p => bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng)));
-  map.setBounds(bounds, paddingPx, paddingPx, paddingPx, paddingPx);
-
-  const level = map.getLevel();
-  if (points.length > 1 && level < 5) map.setLevel(5);
-  if (level > 12) map.setLevel(12);
-}
-
-/** 한 점으로 이동(디테일 모드) */
-function goDetail(map, lat, lng) {
-  const center = new window.kakao.maps.LatLng(lat, lng);
-  map.setCenter(center);
-  map.setLevel(3);
-}
-
-/** 검색어가 행정구역일 가능성 추정 */
-function looksLikeRegion(keyword) {
-  const kw = keyword.trim();
-  if (!kw) return false;
-  if (REGION_SUFFIX.test(kw)) return true;
-  return kw.split(/\s+/).some(tok => REGION_SUFFIX.test(tok));
-}
-
-/** 중복 좌표(같은 건물 내 분점 등) 제거 */
-function dedupPoints(points) {
-  const seen = new Set();
-  const out = [];
-  for (const p of points) {
-    const key = `${p.lat.toFixed(7)},${p.lng.toFixed(7)}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      out.push(p);
-    }
-  }
-  return out;
-}
-
-/** 하버사인 거리(m) */
-function distanceM(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const toRad = d => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
-}
-
-/** ===== 전역 보관소 ===== */
-if (!globalThis._searchOverlays) globalThis._searchOverlays = [];
-if (!globalThis._detailOverlays) globalThis._detailOverlays = new Map();
-if (!globalThis._aggOverlays) globalThis._aggOverlays = new Map();
-if (!globalThis._forceShowOverlays) globalThis._forceShowOverlays = new Set();
-if (!globalThis._searchHitOverlays) globalThis._searchHitOverlays = [];
-
-/** 임시 핀 생성(검색 좌표용 - 뾰족핀) */
-function createTempPin(lat, lng) {
-  const map = window.mapInstance;
-
-  const wrap = document.createElement('div');
-  wrap.style.cssText = `
-    transform: translate(-50%, -100%);
-    display:flex;flex-direction:column;align-items:center;gap:0;
-    pointer-events:auto;
-  `;
-
-  const head = document.createElement('div');
-  head.style.cssText = `
-    width:20px;height:20px;border-radius:50%;
-    background:${PIN_COLOR};
-    border:3px solid white;
-  `;
-
-  const tip = document.createElement('div');
-  tip.style.cssText = `
-    width:0;height:0;margin-top:1px;
-    border-left:6px solid transparent;
-    border-right:6px solid transparent;
-    border-top:10px solid ${PIN_COLOR};
-    position:relative;
-  `;
-
-  wrap.appendChild(head);
-  wrap.appendChild(tip);
-
-  const ov = new window.kakao.maps.CustomOverlay({
-    position: new window.kakao.maps.LatLng(lat, lng),
-    content: wrap,
-    yAnchor: 1,
-    zIndex: Z_HIT,
-  });
-  ov.setMap(map);
-  globalThis._searchOverlays.push(ov);
-}
-
-/** 임시 핀 제거 */
-function clearSearchPins() {
-  (globalThis._searchOverlays || []).forEach(ov => ov.setMap(null));
-  globalThis._searchOverlays = [];
-}
-
-/** 가까운 디테일 오버레이 찾기 */
-function findNearestDetail(lat, lng) {
-  if (!globalThis._detailOverlays) return null;
-  let best = null;
-  let bestD = Infinity;
-  globalThis._detailOverlays.forEach(ov => {
-    const pos = ov.getPosition();
-    const d = distanceM(lat, lng, pos.getLat(), pos.getLng());
-    if (d < bestD) {
-      bestD = d;
-      best = ov;
-    }
-  });
-  return best ? { overlay: best, distance: bestD } : null;
-}
-
-/** 디테일 오버레이 펄스 하이라이트 (링) */
-function pulseOverlay(overlay) {
-  const content = overlay.__body;
-  if (!(content instanceof HTMLElement)) return;
-  content.style.position = 'relative';
-
-  if (!document.getElementById('search-pulse-style')) {
-    const style = document.createElement('style');
-    style.id = 'search-pulse-style';
-    style.innerHTML = `
-      @keyframes search-pulse {
-        0% { opacity:.7; transform: scale(1); }
-        100% { opacity:0; transform: scale(1.6); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  const ring = document.createElement('div');
-  ring.style.cssText = `
-    position:absolute; inset:-10px; border-radius:999px;
-    border:3px solid rgba(53,122,233,.45);
-    animation: search-pulse 1s ease-out 0s 3;
-    pointer-events:none;
-  `;
-  content.appendChild(ring);
-
-  const origZ = overlay.getZIndex?.() ?? Z_BASE;
-  overlay.setZIndex?.(Z_HIT);
-  setTimeout(() => {
-    try {
-      ring.remove();
-    } catch {}
-    overlay.setZIndex?.(origZ);
-  }, 1600);
-}
-
-/** 히트 강조 — 본체에 직접 칠함 */
-function applyHitStyleToOverlay(overlay) {
-  const el = overlay?.__body;
-  if (!el || overlay.__hitApplied) return;
-
-  overlay.__hitApplied = true;
-
-  // 원복용 백업
-  el.dataset.prevStyle = el.getAttribute('style') || '';
-  el.dataset.prevZ = String(overlay.getZIndex?.() ?? 1);
-
-  // 강제 컬러 적용
-  el.style.setProperty('background', PIN_COLOR, 'important');
-  el.style.setProperty('background-color', PIN_COLOR, 'important');
-  el.style.setProperty('color', '#fff', 'important');
-  el.style.setProperty('box-shadow', '0 4px 10px rgba(0,0,0,.25)', 'important');
-
-  overlay.setZIndex?.(Z_HIT);
-
-  //모바일 즉시 보이게
-  overlay.setMap?.(window.mapInstance);
-  (globalThis._searchHitOverlays ||= []).push(overlay);
-}
-
-/** 검색 UI 초기화: 임시핀 제거 + 강조 원복 + 강제표시 해제 */
-function clearSearchUI() {
-  clearSearchPins();
-
-  (globalThis._searchHitOverlays || []).forEach(ov => {
-    const el = ov?.__body;
-    if (el && ov.__hitApplied) {
-      const prev = el.dataset.prevStyle || '';
-      el.setAttribute('style', prev); // 인라인 스타일 전체 복구
-      ov.setZIndex?.(Number(el.dataset.prevZ || 1));
-      delete el.dataset.prevStyle;
-      delete el.dataset.prevZ;
-      ov.__hitApplied = false;
-    }
-  });
-  globalThis._searchHitOverlays = [];
-  globalThis._forceShowOverlays?.clear?.();
-}
-
-/** ---------------------- 추가: 대표 디테일 선택 헬퍼 ---------------------- */
-function pickRepresentativeDetailNear(lat, lng, opts = { radiusM: 700, random: true }) {
-  const details = Array.from(globalThis._detailOverlays?.values?.() || []);
-  if (!details.length) return null;
-
-  const withDist = details.map(ov => {
-    const p = ov.getPosition();
-    return {
-      ov,
-      lat: p.getLat(),
-      lng: p.getLng(),
-      d: distanceM(lat, lng, p.getLat(), p.getLng()),
-    };
-  });
-
-  const near = withDist.filter(o => o.d <= (opts.radiusM ?? 700));
-
-  const pickOne = arr => {
-    if (!arr.length) return null;
-    if (opts.random) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-    return arr.slice().sort((a, b) => a.d - b.d)[0];
-  };
-
-  return pickOne(near) || withDist.slice().sort((a, b) => a.d - b.d)[0] || null;
-}
-/** ----------------------------------------------------------------------- */
+import { useMediaQuery } from 'react-responsive';
 
 export default function MapPanel() {
   const theme = useTheme();
   const { mapData } = useSearchMapState(); // { details: {...}, summaries: {depth0,depth1,depth2}}
-  console.log('map', mapData);
+
   const setCenterAddr = useSetRecoilState(mapCenterAddrState);
   const [mapReady, setMapReady] = useState(false);
 
@@ -299,6 +25,283 @@ export default function MapPanel() {
 
   const [mapSearchText, setMapSearchText] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
+
+  const isMobile = useMediaQuery({ query: '(max-width: 844px)' });
+
+  /** ====== 줌 기준 (카카오: 값이 작을수록 더 확대됨) ====== */
+  const DETAIL_MAX_LEVEL = isMobile ? 5 : 4; // 디테일의 최대 값 4, 검색 및 동 > 디테일 이동시 3
+  const DONG_MAX_LEVEL_MIN = isMobile ? 6 : 5; // 동의 최소값 5~6
+  const DONG_MAX_LEVEL_MAX = 6; // 동의 최대값
+  const GU_LEVEL_MIN = 7; // 구의 최소값 7 ~ 10
+  const GU_LEVEL_MAX = 10; //구의 최대값
+  const SIDO_LEVEL_MIN = 11; // ≥11 : 시/도 집계
+
+  /** z-index 규칙 */
+  const Z_BASE = 1;
+  const Z_HOVER = 50000; // 일반 hover
+  const Z_HIT = 100000; // 검색 히트(고정 최상위)
+
+  /** 행정구역 추정용 접미사 */
+  const REGION_SUFFIX = /(특별시|광역시|도|시|군|구|동|읍|면)$/;
+
+  /** 공통 색상 (핀/히트 마커 통일) */
+  const PIN_COLOR = '#357ae9';
+
+  /** DB 좌표 파싱 (x=경도, y=위도) */
+  function toLatLng(x, y) {
+    const lng = parseFloat(x);
+    const lat = parseFloat(y);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    return null;
+  }
+
+  /** 현재 지도 bounds 내에 있는지 */
+  function inView(lat, lng, map) {
+    const b = map.getBounds();
+    const sw = b.getSouthWest();
+    const ne = b.getNorthEast();
+    return lat >= sw.getLat() && lat <= ne.getLat() && lng >= sw.getLng() && lng <= ne.getLng();
+  }
+
+  /** 카테고리 표시(두 번째 단계 우선, 없으면 첫 단계) */
+  function getCatLabel(categoryName) {
+    if (!categoryName) return '기타';
+    const parts = String(categoryName)
+      .split('>')
+      .map(s => s.trim())
+      .filter(Boolean);
+    return parts[1] || parts[0] || '기타';
+  }
+
+  /** 여러 점 bounds 맞추기(패딩 포함) + 줌 레벨 보정 */
+  function fitMapToPoints(map, points, paddingPx = 60) {
+    const bounds = new window.kakao.maps.LatLngBounds();
+    points.forEach(p => bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng)));
+    map.setBounds(bounds, paddingPx, paddingPx, paddingPx, paddingPx);
+
+    const level = map.getLevel();
+    if (points.length > 1 && level < 5) map.setLevel(5);
+    if (level > 12) map.setLevel(12);
+  }
+
+  /** 한 점으로 이동(디테일 모드) */
+  function goDetail(map, lat, lng) {
+    const center = new window.kakao.maps.LatLng(lat, lng);
+    map.setCenter(center);
+    map.setLevel(4);
+  }
+
+  /** 검색어가 행정구역일 가능성 추정 */
+  function looksLikeRegion(keyword) {
+    const kw = keyword.trim();
+    if (!kw) return false;
+    if (REGION_SUFFIX.test(kw)) return true;
+    return kw.split(/\s+/).some(tok => REGION_SUFFIX.test(tok));
+  }
+
+  /** 중복 좌표(같은 건물 내 분점 등) 제거 */
+  function dedupPoints(points) {
+    const seen = new Set();
+    const out = [];
+    for (const p of points) {
+      const key = `${p.lat.toFixed(7)},${p.lng.toFixed(7)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push(p);
+      }
+    }
+    return out;
+  }
+
+  /** 하버사인 거리(m) */
+  function distanceM(lat1, lng1, lat2, lng2) {
+    const R = 6371000;
+    const toRad = d => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  /** ===== 전역 보관소 ===== */
+  if (!globalThis._searchOverlays) globalThis._searchOverlays = [];
+  if (!globalThis._detailOverlays) globalThis._detailOverlays = new Map();
+  if (!globalThis._aggOverlays) globalThis._aggOverlays = new Map();
+  if (!globalThis._forceShowOverlays) globalThis._forceShowOverlays = new Set();
+  if (!globalThis._searchHitOverlays) globalThis._searchHitOverlays = [];
+
+  /** 임시 핀 생성(검색 좌표용 - 뾰족핀) */
+  function createTempPin(lat, lng) {
+    const map = window.mapInstance;
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `
+    transform: translate(-50%, -100%);
+    display:flex;flex-direction:column;align-items:center;gap:0;
+    pointer-events:auto;
+  `;
+
+    const head = document.createElement('div');
+    head.style.cssText = `
+    width:20px;height:20px;border-radius:50%;
+    background:${PIN_COLOR};
+    border:3px solid white;
+  `;
+
+    const tip = document.createElement('div');
+    tip.style.cssText = `
+    width:0;height:0;margin-top:1px;
+    border-left:6px solid transparent;
+    border-right:6px solid transparent;
+    border-top:10px solid ${PIN_COLOR};
+    position:relative;
+  `;
+
+    wrap.appendChild(head);
+    wrap.appendChild(tip);
+
+    const ov = new window.kakao.maps.CustomOverlay({
+      position: new window.kakao.maps.LatLng(lat, lng),
+      content: wrap,
+      yAnchor: 1,
+      zIndex: Z_HIT,
+    });
+    ov.setMap(map);
+    globalThis._searchOverlays.push(ov);
+  }
+
+  /** 임시 핀 제거 */
+  function clearSearchPins() {
+    (globalThis._searchOverlays || []).forEach(ov => ov.setMap(null));
+    globalThis._searchOverlays = [];
+  }
+
+  /** 가까운 디테일 오버레이 찾기 */
+  function findNearestDetail(lat, lng) {
+    if (!globalThis._detailOverlays) return null;
+    let best = null;
+    let bestD = Infinity;
+    globalThis._detailOverlays.forEach(ov => {
+      const pos = ov.getPosition();
+      const d = distanceM(lat, lng, pos.getLat(), pos.getLng());
+      if (d < bestD) {
+        bestD = d;
+        best = ov;
+      }
+    });
+    return best ? { overlay: best, distance: bestD } : null;
+  }
+
+  /** 디테일 오버레이 펄스 하이라이트 (링) */
+  function pulseOverlay(overlay) {
+    const content = overlay.__body;
+    if (!(content instanceof HTMLElement)) return;
+    content.style.position = 'relative';
+
+    if (!document.getElementById('search-pulse-style')) {
+      const style = document.createElement('style');
+      style.id = 'search-pulse-style';
+      style.innerHTML = `
+      @keyframes search-pulse {
+        0% { opacity:.7; transform: scale(1); }
+        100% { opacity:0; transform: scale(1.6); }
+      }
+    `;
+      document.head.appendChild(style);
+    }
+
+    const ring = document.createElement('div');
+    ring.style.cssText = `
+    position:absolute; inset:-10px; border-radius:999px;
+    border:3px solid rgba(53,122,233,.45);
+    animation: search-pulse 1s ease-out 0s 3;
+    pointer-events:none;
+  `;
+    content.appendChild(ring);
+
+    const origZ = overlay.getZIndex?.() ?? Z_BASE;
+    overlay.setZIndex?.(Z_HIT);
+    setTimeout(() => {
+      try {
+        ring.remove();
+      } catch {}
+      overlay.setZIndex?.(origZ);
+    }, 1600);
+  }
+
+  /** 히트 강조 — 본체에 직접 칠함 */
+  function applyHitStyleToOverlay(overlay) {
+    const el = overlay?.__body;
+    if (!el || overlay.__hitApplied) return;
+
+    overlay.__hitApplied = true;
+
+    // 원복용 백업
+    el.dataset.prevStyle = el.getAttribute('style') || '';
+    el.dataset.prevZ = String(overlay.getZIndex?.() ?? 1);
+
+    // 강제 컬러 적용
+    el.style.setProperty('background', PIN_COLOR, 'important');
+    el.style.setProperty('background-color', PIN_COLOR, 'important');
+    el.style.setProperty('color', '#fff', 'important');
+    el.style.setProperty('box-shadow', '0 4px 10px rgba(0,0,0,.25)', 'important');
+
+    overlay.setZIndex?.(Z_HIT);
+
+    //모바일 즉시 보이게
+    overlay.setMap?.(window.mapInstance);
+    (globalThis._searchHitOverlays ||= []).push(overlay);
+  }
+
+  /** 검색 UI 초기화: 임시핀 제거 + 강조 원복 + 강제표시 해제 */
+  function clearSearchUI() {
+    clearSearchPins();
+
+    (globalThis._searchHitOverlays || []).forEach(ov => {
+      const el = ov?.__body;
+      if (el && ov.__hitApplied) {
+        const prev = el.dataset.prevStyle || '';
+        el.setAttribute('style', prev); // 인라인 스타일 전체 복구
+        ov.setZIndex?.(Number(el.dataset.prevZ || 1));
+        delete el.dataset.prevStyle;
+        delete el.dataset.prevZ;
+        ov.__hitApplied = false;
+      }
+    });
+    globalThis._searchHitOverlays = [];
+    globalThis._forceShowOverlays?.clear?.();
+  }
+
+  /** ---------------------- 추가: 대표 디테일 선택 헬퍼 ---------------------- */
+  function pickRepresentativeDetailNear(lat, lng, opts = { radiusM: 700, random: true }) {
+    const details = Array.from(globalThis._detailOverlays?.values?.() || []);
+    if (!details.length) return null;
+
+    const withDist = details.map(ov => {
+      const p = ov.getPosition();
+      return {
+        ov,
+        lat: p.getLat(),
+        lng: p.getLng(),
+        d: distanceM(lat, lng, p.getLat(), p.getLng()),
+      };
+    });
+
+    const near = withDist.filter(o => o.d <= (opts.radiusM ?? 700));
+
+    const pickOne = arr => {
+      if (!arr.length) return null;
+      if (opts.random) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      return arr.slice().sort((a, b) => a.d - b.d)[0];
+    };
+
+    return pickOne(near) || withDist.slice().sort((a, b) => a.d - b.d)[0] || null;
+  }
+  /** ----------------------------------------------------------------------- */
 
   /** 최초 지도 생성 */
   useEffect(() => {
