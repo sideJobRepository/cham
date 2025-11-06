@@ -27,7 +27,6 @@ export default function MainPage() {
         {isMobile ? (
           <>
             <SearchBar />
-
             <ListSection>
               <MapSection>
                 <MapPanel />

@@ -12,13 +12,19 @@ export default function SearchBar() {
   const mapSearch = useMapSearch();
 
   const [searchCondition, setSearchCondition] = useRecoilState(mapSearchFilterState);
+  const [keyword, setKeyword] = useState('');
 
   const centerAddr = useRecoilValue(mapCenterAddrState);
 
   const handleSearch = () => {
+    setSearchCondition(prev => ({
+      ...prev,
+      input: keyword,
+    }));
+
     const params = {
       cardOwnerPositionId: searchCondition.selectedRole?.value,
-      input: searchCondition.input,
+      input: keyword,
       sortOrder: searchCondition.sortOrder,
       addrDetail: '',
     };
@@ -28,6 +34,8 @@ export default function SearchBar() {
 
   //초기화
   const resetSearch = () => {
+    setKeyword('');
+
     setSearchCondition({
       cardOwnerPositionId: null,
       input: '',
@@ -175,14 +183,9 @@ export default function SearchBar() {
             <label>검색어</label>
             <input
               type="text"
-              value={searchCondition.input}
+              value={keyword}
               placeholder="지역, 사용자, 이름, 사용장소, 집행목적"
-              onChange={e =>
-                setSearchCondition(prev => ({
-                  ...prev,
-                  input: e.target.value,
-                }))
-              }
+              onChange={e => setKeyword(e.target.value)}
             />
           </Field>
         </FieldsWrapper>
