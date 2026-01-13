@@ -27,7 +27,7 @@ public class ChamMonimapCardUseController {
     
     @GetMapping("/cardUseDetail")
     public CardUseAggregateResponse getCardUseDetail(@RequestParam(name = "addrDetail") String addrDetail) {
-        return cardUseService.selectCardUseDetail(addrDetail);
+         return cardUseService.selectCardUseDetail(addrDetail);
     }
     
 }
