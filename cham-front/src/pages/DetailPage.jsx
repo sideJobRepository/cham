@@ -3,7 +3,7 @@ import VisitCard from '../components/VisiitCard.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { FaCommentDots } from 'react-icons/fa';
 import { GiFootprint } from 'react-icons/gi';
-import { FaEye, FaPen, FaCheckCircle } from 'react-icons/fa';
+import { FaEye, FaPen, FaCheckCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 import { useFetchCard, useFetchDetailData, useMapSearch } from '@/recoil/fetchAppState.js';
 import { useDetailMapState } from '@/recoil/useAppState.js';
@@ -223,6 +223,16 @@ export default function DetailPage({ initialParams }) {
     }
   };
 
+  //바텀 카드 이동
+  const cardRef = useRef();
+
+  const handleScroll = (direction) => {
+    if (cardRef.current) {
+      const cardWidth = cardRef.current.firstChild?.offsetWidth || 300;
+      cardRef.current.scrollBy({ left: direction === 'left' ? -cardWidth : cardWidth, behavior: 'smooth' });
+    }
+  };
+
   // 초기/파라미터 변경 시 조회
   useEffect(() => {
     if (initialParams) {
@@ -296,11 +306,21 @@ export default function DetailPage({ initialParams }) {
                   총 이용 금액 <strong>{detail.totalSum.toLocaleString()}원</strong>
                 </TotalPrice>
                 <SubMeta>방문횟수 {detail.visits}</SubMeta>
-                <BottomCards>
-                  {detail.cardUseGroupedResponses.map((item, i) => (
-                    <VisitCard key={i} data={item} />
-                  ))}
-                </BottomCards>
+                <BottomCardsWrapper>
+                  <ScrollButtonLeft onClick={() => handleScroll('left')}>
+                    <FaChevronLeft />
+                  </ScrollButtonLeft>
+
+                  <BottomCards ref={cardRef}>
+                    {detail.cardUseGroupedResponses.map((item, i) => (
+                        <VisitCard key={i} data={item} />
+                    ))}
+                  </BottomCards>
+
+                  <ScrollButtonRight onClick={() => handleScroll('right')}>
+                    <FaChevronRight />
+                  </ScrollButtonRight>
+                </BottomCardsWrapper>
               </InfoBox>
             </TopContent>
           </FixedTop>
@@ -830,7 +850,7 @@ const BottomCards = styled.div`
   gap: 12px;
   min-width: 0;
   max-width: 100%;
-
+  
   & > * {
     flex: 0 0 calc(50% - 6px);
     width: calc(50% - 6px);
@@ -990,4 +1010,55 @@ const DeleteBtn = styled.button`
   height: 20px;
   font-size: 12px;
   cursor: pointer;
+`;
+
+const BottomCardsWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+const ScrollButtonLeft = styled.button`
+  position: absolute;
+  display: flex;
+  left: 6px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  z-index: 1;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+
+  svg{
+    color: #ffffff;
+     width: 20px;
+     height: 20px;
+   }
+`;
+
+const ScrollButtonRight = styled.button`
+  position: absolute;
+  display: flex;
+  right: 6px;
+  background: ${({ theme }) => theme.colors.primary};
+  z-index: 1;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  font-size: 24px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+  svg{
+    color: #ffffff;
+    width: 20px;
+    height: 20px;
+  }
 `;
