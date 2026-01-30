@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useUserStore } from '@/store/user';
 import { withBasePath } from '@/lib/path';
 import { useMediaQuery } from 'react-responsive';
+import { SignIn } from 'phosphor-react';
 
 export default function TopHeader() {
   // useFetchMainMenu();
@@ -133,6 +134,10 @@ export default function TopHeader() {
           />
         </Link>
       </LogoBox>
+      <Login>
+        <SignIn />
+        <Link href="/login">로그인</Link>
+      </Login>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
         <MenuTopBox>
           <h5>목차</h5>
@@ -220,6 +225,30 @@ const LogoBox = styled.div`
 
     @media ${({ theme }) => theme.device.tablet} {
       width: 184px;
+    }
+  }
+`;
+
+const Login = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: ${({ theme }) => theme.desktop.sizes.h5Size};
+  color: ${({ theme }) => theme.colors.blackColor};
+  font-weight: 600;
+  padding: 4px 0;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      width: 14px;
+      height: 14px;
     }
   }
 `;
