@@ -21,7 +21,7 @@ jobs:
               - 'settings.gradle'
             frontend:
               - 'cham-front/**'
-            next-frontend
+            next-frontend:
               - 'cham-next-front/**'
 
     outputs:
