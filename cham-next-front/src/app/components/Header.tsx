@@ -134,6 +134,9 @@ export default function TopHeader() {
         </Link>
       </LogoBox>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
+        <MenuTopBox>
+          <h5>목차</h5>
+        </MenuTopBox>
         <ul>
           {menuData?.map((menu, i) => (
             <React.Fragment key={i}>
@@ -324,6 +327,22 @@ const Menu = styled.div<{ $open: boolean }>`
       svg {
         margin-left: auto;
       }
+    }
+  }
+`;
+
+const MenuTopBox = styled.div`
+  background-color: ${({ theme }) => theme.colors.blueColor};
+  padding: 24px 8px;
+  text-align: center;
+
+  h5 {
+    font-size: ${({ theme }) => theme.desktop.sizes.h5Size} !important;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.whiteColor};
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
     }
   }
 `;
