@@ -5,9 +5,11 @@ import styles from './page.module.css';
 import { Wrapper } from '@/styles/Wrapper.styles';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { ArrowRight, HandPointing } from 'phosphor-react';
+import { ArrowRight, HandPointing, MagnifyingGlass } from 'phosphor-react';
+import { useState } from 'react';
 
 export default function Home() {
+  const [searchKeyword, setSearchKeyword] = useState('');
   return (
     <Wrapper>
       <Hero>
@@ -40,9 +42,28 @@ export default function Home() {
               대전참여자치시민연대입니다.
             </h4>
             <ButtonBox>
-              <Button $bg="#093A6E" $color="#fff">
-                키워드검색 넣을거 <ArrowRight weight="bold" />
-              </Button>
+              <SearchGroup
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // onSearch?.();
+                }}
+              >
+                <FieldsWrapper>
+                  <Field>
+                    <label>키워드</label>
+                    <input
+                      type="text"
+                      placeholder="검색어를 입력해주세요."
+                      value={searchKeyword ?? ''}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                    />
+                  </Field>
+                </FieldsWrapper>
+                <SearchButton type="submit">
+                  <MagnifyingGlass weight="bold" />
+                  검색
+                </SearchButton>
+              </SearchGroup>
               <Button $bg="#093A6E" $color="#fff">
                 의견 보기 <ArrowRight weight="bold" />
               </Button>
@@ -106,7 +127,7 @@ const HeroContent = styled.div`
     font-size: ${({ theme }) => theme.desktop.sizes.h4Size};
     font-weight: 600;
     color: ${({ theme }) => theme.colors.softColor};
-    letter-spacing: 0.1rem;
+    letter-spacing: 0.06rem;
 
     @media ${({ theme }) => theme.device.mobile} {
       font-size: ${({ theme }) => theme.mobile.sizes.h4Size};
@@ -116,7 +137,8 @@ const HeroContent = styled.div`
 
 const ButtonBox = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  margin-top: 44px;
 `;
 
 const Button = styled.button<{ $bg: string; $color: string }>`
@@ -130,8 +152,88 @@ const Button = styled.button<{ $bg: string; $color: string }>`
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-
   font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.xl};
+  }
+`;
+const SearchGroup = styled.form`
+  display: flex;
+  background-color: ${({ theme }) => theme.colors.white};
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 2px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.lineColor};
+  border-radius: 4px;
+  flex-wrap: nowrap;
+  max-width: 260px;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    width: 100%;
+  }
+`;
+
+const FieldsWrapper = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex: 1;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  overflow-y: hidden;
+`;
+
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-shrink: 0;
+
+  label {
+    font-size: ${({ theme }) => theme.desktop.sizes.md};
+    color: ${({ theme }) => theme.colors.blackColor};
+    font-weight: 600;
+    text-align: left;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.md};
+    }
+  }
+
+  input {
+    border: none;
+    width: 100%;
+    padding-right: 8px;
+    outline: none;
+    color: ${({ theme }) => theme.colors.inputColor};
+    background: transparent;
+    font-size: ${({ theme }) => theme.desktop.sizes.xl};
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.xl};
+    }
+  }
+`;
+
+const SearchButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #093a6e;
+  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    opacity: 0.8;
+  }
 
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.xl};

@@ -201,7 +201,7 @@ const Left = styled.div`
   justify-content: flex-start;
 
   img {
-    width: 120px;
+    width: 184px;
     object-fit: cover;
     cursor: pointer;
   }
