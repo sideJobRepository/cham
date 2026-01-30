@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface LegislationRepository extends JpaRepository<Legislation,Long> {
     Optional<Legislation> findByBillVersion(String billVersion);
+    
+    Optional<Legislation> findFirstByOrderByIdAsc();
 }

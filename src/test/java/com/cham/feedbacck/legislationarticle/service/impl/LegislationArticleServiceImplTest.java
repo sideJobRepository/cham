@@ -1,6 +1,8 @@
 package com.cham.feedbacck.legislationarticle.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
+import com.cham.feedbacck.legislation.dto.response.LegislationFullResponse;
+import com.cham.feedbacck.legislation.service.LegislationService;
 import com.cham.feedbacck.legislationarticle.service.LegislationArticleService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,17 +12,27 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class LegislationArticleServiceImplTest extends RepositoryAndServiceTestSupport {
     
     @Autowired
     private LegislationArticleService legislationArticleService;
     
+    
+    @Autowired
+    private LegislationService legislationService;
+    
+    
     @DisplayName("")
     @Test
-    void test1() {
-        try (FileInputStream file = new FileInputStream("src/test/java/com/cham/대전.xlsx")) {
+    void test1(){
+        LegislationFullResponse fullLegislation = legislationService.getAllFullLegislations();
+        System.out.println("fullLegislation = " + fullLegislation);
+    }
+    
+    @DisplayName("")
+    @Test
+    void test2() {
+        try (FileInputStream file = new FileInputStream("src/test/java/com/cham/광주전남.xlsx")) {
             MockMultipartFile mockMultipartFile = new MockMultipartFile(
                     "file",
                     "sample.xlsx",
@@ -33,4 +45,5 @@ class LegislationArticleServiceImplTest extends RepositoryAndServiceTestSupport 
             throw new RuntimeException(e);
         }
     }
+   
 }
