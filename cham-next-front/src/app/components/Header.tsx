@@ -230,7 +230,7 @@ const Login = styled.div`
   font-weight: 600;
   padding: 4px 0;
 
-  @media ${({ theme }) => theme.device.mobile} {
+  @media ${({ theme }) => theme.device.tablet} {
     font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
   }
 
@@ -239,8 +239,8 @@ const Login = styled.div`
     height: 16px;
 
     @media ${({ theme }) => theme.device.mobile} {
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
     }
   }
 `;
