@@ -172,14 +172,6 @@ export default function TopHeader() {
               ))}
             </React.Fragment>
           ))}
-          <SubMainLi
-            onClick={() => {
-              toggleMenu();
-              router.push('/login');
-            }}
-          >
-            {user ? '로그아웃' : '로그인'}
-          </SubMainLi>
         </ul>
       </Menu>
     </Wrapper>
