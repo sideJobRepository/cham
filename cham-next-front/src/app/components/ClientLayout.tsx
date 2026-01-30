@@ -35,6 +35,9 @@ const Inner = styled.div`
   flex-direction: column;
   height: 100%;
   flex: 1;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
 `;
 
 const LeftArea = styled.header`
@@ -45,7 +48,7 @@ const LeftArea = styled.header`
   width: 100%;
   height: 80px;
   background-color: ${({ theme }) => theme.colors.whiteColor};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
+  // border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
   z-index: 3;
 `;
 
@@ -58,6 +61,8 @@ const MainArea = styled.main`
   background-color: ${({ theme }) => theme.colors.whiteColor};
   margin-top: 80px;
   overflow-x: clip;
-  //overflow-y: auto;
-  //overflow-x: hidden;
+  @media ${({ theme }) => theme.device.desktop} {
+    margin-left: 300px;
+    width: calc(100% - 300px);
+  }
 `;

@@ -5,11 +5,11 @@ import StyledComponentsRegistry from '@/app/registry';
 import { DialogProvider } from '@/app/components/DialogProvider';
 
 export const metadata: Metadata = {
-  title: '기억함',
-  description: '인터넷 추모 공간',
+  title: '대전참여자치시민연대',
+  description: '법령',
   openGraph: {
-    title: '기억함',
-    description: '인터넷 추모 공간',
+    title: '대전참여자치시민연대',
+    description: '법령',
     url: '',
     images: [
       {
@@ -22,19 +22,19 @@ export const metadata: Metadata = {
   },
 };
 export default function RootLayout({
-                                     children,
-                                   }: Readonly<{
+  children,
+}: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-      <html lang="ko">
+    <html lang="ko">
       <body>
-      <StyledComponentsRegistry>
-        <DialogProvider>
-          <ClientLayout>{children}</ClientLayout>
-        </DialogProvider>
-      </StyledComponentsRegistry>
+        <StyledComponentsRegistry>
+          <DialogProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </DialogProvider>
+        </StyledComponentsRegistry>
       </body>
-      </html>
+    </html>
   );
 }

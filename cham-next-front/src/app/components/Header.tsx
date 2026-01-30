@@ -11,6 +11,7 @@ import { useMenuStore } from '@/store/menu';
 import Link from 'next/link';
 import { useUserStore } from '@/store/user';
 import { withBasePath } from '@/lib/path';
+import { useMediaQuery } from 'react-responsive';
 
 export default function TopHeader() {
   // useFetchMainMenu();
@@ -52,10 +53,11 @@ export default function TopHeader() {
       ],
     },
   ];
-  console.log('menuDAta', menuData);
 
   const router = useRouter();
   const pathname = usePathname();
+
+  const isDesktop = useMediaQuery({ minWidth: 1281 });
 
   const [isSubOpen, setIsSubOpen] = useState(false);
 
@@ -72,6 +74,11 @@ export default function TopHeader() {
   const [isMobileSubOpen, setIsMobileSubOpen] = useState<string | null>(null);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
+
+  //최초 진입시 데스크탑은 메뉴바 열기
+  useEffect(() => {
+    setIsOpen(isDesktop);
+  }, [isDesktop]);
 
   //메뉴바 닫기
   useEffect(() => {
@@ -104,7 +111,18 @@ export default function TopHeader() {
   return (
     <Wrapper onMouseLeave={() => setIsSubOpen(false)}>
       <BgSubWrapper $height={subMenuHeight} className={isSubOpen ? 'show' : ''} />
-      <Left onClick={() => {}}>
+      {!isDesktop && (
+        <div ref={hamburgerRef}>
+          <div ref={hamburgerRef}>
+            <HamburgerButton $open={isOpen} onClick={toggleMenu}>
+              <span />
+              <span />
+              <span />
+            </HamburgerButton>
+          </div>
+        </div>
+      )}
+      <LogoBox onClick={() => {}}>
         <Link href="/">
           <img
             src={withBasePath('/headerLogo.png')}
@@ -114,16 +132,7 @@ export default function TopHeader() {
             }}
           />
         </Link>
-      </Left>
-      <div ref={hamburgerRef}>
-        <div ref={hamburgerRef}>
-          <HamburgerButton $open={isOpen} onClick={toggleMenu}>
-            <span />
-            <span />
-            <span />
-          </HamburgerButton>
-        </div>
-      </div>
+      </LogoBox>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
         <ul>
           {menuData?.map((menu, i) => (
@@ -170,9 +179,10 @@ export default function TopHeader() {
 }
 
 const Wrapper = styled.div`
+  position: relative;
   height: 80px;
   width: 100%;
-  max-width: 1320px;
+  max-width: 1600px;
   padding: 0 12px;
   margin: 0 auto;
   display: flex;
@@ -194,16 +204,20 @@ const Wrapper = styled.div`
   }
 `;
 
-const Left = styled.div`
+const LogoBox = styled.div`
   display: flex;
   align-items: center;
   height: 100%;
   justify-content: flex-start;
 
   img {
-    width: 184px;
+    width: 224px;
     object-fit: cover;
     cursor: pointer;
+
+    @media ${({ theme }) => theme.device.tablet} {
+      width: 184px;
+    }
   }
 `;
 
@@ -274,7 +288,7 @@ const Menu = styled.div<{ $open: boolean }>`
   width: 50%;
   max-width: 300px;
   height: calc(100vh - 80px);
-  border-top: 1px solid ${({ theme }) => theme.colors.lineColor};
+  // border-top: 1px solid ${({ theme }) => theme.colors.lineColor};
   background-color: ${({ theme }) => theme.colors.softColor2};
   transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(-100%)')};
   opacity: ${({ $open }) => ($open ? 0.96 : 0)};
