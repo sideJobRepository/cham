@@ -33,6 +33,8 @@ public class ChamSecurityConfig {
     private final String[] resource = {"/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*"};
     private final List<String> url = List.of(
             "http://localhost:5173",
+            "http://localhost:3000",
+            "https://www.cham-monimap.com/feedback",
             "https://www.cham-monimap.com",
             "https://cham-monimap.com"
     );

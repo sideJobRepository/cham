@@ -22,7 +22,9 @@ public class ChamAuthenticationFilter extends AbstractAuthenticationProcessingFi
         super(new OrRequestMatcher(
                 new AntPathRequestMatcher("/cham/kakao-login", "POST"),
                 new AntPathRequestMatcher("/cham/naver-login", "POST"),
-                new AntPathRequestMatcher("/cham/google-login", "POST")
+                new AntPathRequestMatcher("/cham/google-login", "POST"),
+                new AntPathRequestMatcher("/cham/next/kakao-login", "POST"),
+                new AntPathRequestMatcher("/cham/next/naver-login", "POST")
         ));
     }
     

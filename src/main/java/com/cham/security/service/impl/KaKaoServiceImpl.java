@@ -24,6 +24,8 @@ public class KaKaoServiceImpl implements SocialService {
     private String kakaoClientId;
     @Value("${kakao.redirecturi}")
     private String kakaoRedirectUri;
+    @Value("${kakao.redirecturi2}")
+    private String kakaoRedirectUri2;
     @Value("${kakao.client-secret}")
     private String kakaoClientSecret;
     
@@ -33,14 +35,18 @@ public class KaKaoServiceImpl implements SocialService {
     }
     
     @Override
-    public AccessTokenResponse getAccessToken(String code) {
+    public AccessTokenResponse getAccessToken(String code, String loginUrl) {
         RestClient restClient = RestClient.create();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         
         params.add("code", code);
         params.add("client_id", kakaoClientId);
-        params.add("redirect_uri", kakaoRedirectUri);
+        if("/cham/kakao-login".equals(loginUrl)){
+            params.add("redirect_uri", kakaoRedirectUri);
+        }else {
+            params.add("redirect_uri", kakaoRedirectUri2);
+        }
         params.add("grant_type", "authorization_code");
         params.add("client_secret",kakaoClientSecret);
         

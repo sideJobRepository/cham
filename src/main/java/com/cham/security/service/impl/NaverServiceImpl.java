@@ -2,7 +2,6 @@ package com.cham.security.service.impl;
 
 import com.cham.security.service.SocialService;
 import com.cham.security.service.impl.response.AccessTokenResponse;
-import com.cham.security.service.impl.response.KakaoProfileResponse;
 import com.cham.security.service.impl.response.NaverProfileResponse;
 import com.cham.security.service.impl.response.SocialProfile;
 import com.enumtype.SocialType;
@@ -27,6 +26,8 @@ public class NaverServiceImpl implements SocialService {
     private String naverClientId;
     @Value("${naver.redirecturi}")
     private String naverRedirectUri;
+    @Value("${naver.redirecturi2}")
+    private String naverRedirectUri2;
     @Value("${naver.client-secret}")
     private String naverClientSecret;
     
@@ -36,16 +37,20 @@ public class NaverServiceImpl implements SocialService {
     }
     
     @Override
-    public AccessTokenResponse getAccessToken(String code) {
+    public AccessTokenResponse getAccessToken(String code, String loginUrl) {
         RestClient restClient = RestClient.create();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         
         params.add("code", code);
         params.add("client_id", naverClientId);
-        params.add("redirect_uri", naverRedirectUri);
+        if ("/cham/naver-login".equals(loginUrl)) {
+            params.add("redirect_uri", naverRedirectUri);
+        }else {
+            params.add("redirect_uri", naverRedirectUri2);
+        }
         params.add("grant_type", "authorization_code");
-        params.add("client_secret",naverClientSecret);
+        params.add("client_secret", naverClientSecret);
         params.add("state", UUID.randomUUID().toString());
         
         ResponseEntity<AccessTokenResponse> response = restClient.post()
@@ -71,16 +76,16 @@ public class NaverServiceImpl implements SocialService {
         
         
         String id = np != null ? np.getResponse().getId() : null;
-        String nickname      = np   != null ? np.getResponse().getNickname() : null;
-        String profileImage      = np   != null ? np.getResponse().getProfile_image() : null;
+        String nickname = np != null ? np.getResponse().getNickname() : null;
+        String profileImage = np != null ? np.getResponse().getProfile_image() : null;
         String thumbnail = null;
-        String email = np   != null ? np.getResponse().getEmail() : null;
-        String name = np != null  ? np.getResponse().getName()  : null;
-        String phone = np != null  ? np.getResponse().getMobile() : null;
+        String email = np != null ? np.getResponse().getEmail() : null;
+        String name = np != null ? np.getResponse().getName() : null;
+        String phone = np != null ? np.getResponse().getMobile() : null;
         
         return new SocialProfile(
                 SocialType.NAVER,
-                 id ,
+                id,
                 email,
                 name,
                 nickname,

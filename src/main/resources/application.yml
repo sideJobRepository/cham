@@ -27,6 +27,7 @@ spring:
 
 naver:
   redirecturi: http://localhost:5173/oauth/naver/callback
+  redirecturi2: http://localhost:3000/next/oauth/naver/callback
   clientId: 91cWDibxUKEhVvewsjk7
   client-secret: ${NAVER_CLIENT_SECRET}
 
@@ -37,6 +38,7 @@ google:
 
 kakao:
   redirecturi: http://localhost:5173/oauth/kakao/callback
+  redirecturi2: http://localhost:3000/feedback/oauth/kakao/callback
   clientId: ff0c6740d1fc373d03b97e072f7efbb2
   client-secret: ${CLIENT_SECRET}
 

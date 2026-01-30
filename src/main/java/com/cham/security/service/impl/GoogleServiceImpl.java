@@ -15,7 +15,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service("googleService")
 @Transactional
@@ -35,7 +34,7 @@ public class GoogleServiceImpl implements SocialService {
     }
     
     @Override
-    public AccessTokenResponse getAccessToken(String code) {
+    public AccessTokenResponse getAccessToken(String code, String loginUrl) {
         RestClient restClient = RestClient.create();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();

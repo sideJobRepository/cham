@@ -28,6 +28,7 @@ spring:
 
 naver:
   redirecturi: https://cham-monimap.com/oauth/naver/callback
+  redirecturi2: https://cham-monimap.com/feedback/oauth/naver/callback
   clientId: 91cWDibxUKEhVvewsjk7
   client-secret: ${NAVER_CLIENT_SECRET}
 
@@ -38,6 +39,7 @@ google:
 
 kakao:
   redirecturi: https://cham-monimap.com/oauth/kakao/callback
+  redirecturi2: https://cham-monimap.com/feedback/oauth/kakao/callback
   clientId: ff0c6740d1fc373d03b97e072f7efbb2
   client-secret: ${CLIENT_SECRET}
 
