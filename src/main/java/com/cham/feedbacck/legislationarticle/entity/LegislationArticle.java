@@ -32,6 +32,9 @@ public class LegislationArticle extends BaseData {
     @Column(name = "PART")
     private String part;
     
+    @Column(name = "CHAPTER")
+    private String chapter;
+    
     // 섹션
     @Column(name = "SECTION")
     private String section;

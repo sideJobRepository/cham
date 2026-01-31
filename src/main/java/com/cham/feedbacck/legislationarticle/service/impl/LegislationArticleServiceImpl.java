@@ -54,6 +54,7 @@ public class LegislationArticleServiceImpl implements LegislationArticleService 
                 if (row == null) continue;
 
                 String part = getString(row.getCell(1));
+                String chapter = getString(row.getCell(2));
                 String section = getString(row.getCell(3));
                 String articleNo = getString(row.getCell(4));
                 String articleTitle = getString(row.getCell(5));
@@ -66,6 +67,7 @@ public class LegislationArticleServiceImpl implements LegislationArticleService 
                 LegislationArticle article = LegislationArticle.builder()
                         .legislation(legislation)
                         .part(part)
+                        .chapter(chapter)
                         .section(section) // null 허용
                         .articleNo(articleNo)
                         .articleTitle(articleTitle)

@@ -37,10 +37,17 @@ public class LegislationFullResponse {
      @AllArgsConstructor
      public static class Part {
          private String part;
-         private List<Section> sections;
+         private List<Chapter> chapters;
      }
- 
-     @Getter
+    @Getter
+    @AllArgsConstructor
+    public static class Chapter {
+        private String chapter;
+        private List<Section> sections;
+    }
+    
+    
+    @Getter
      @AllArgsConstructor
      public static class Section {
          private String section; // null 가능
