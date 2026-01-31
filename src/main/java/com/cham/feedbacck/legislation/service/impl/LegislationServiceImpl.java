@@ -44,9 +44,7 @@ public class LegislationServiceImpl implements LegislationService {
             Legislation legislation) {
 
         //법안마다 조문 개별 조회 (중요)
-        List<LegislationArticle> articles =
-                legislationArticleRepository
-                        .findByLegislationOrderByOrdersNo(legislation);
+        List<LegislationArticle> articles = legislationArticleRepository.findByLegislationOrderByOrdersNo(legislation);
 
         // part → section → article
         Map<String, Map<String, List<LegislationArticle>>> grouped =
