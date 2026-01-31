@@ -18,7 +18,7 @@ public class LegislationArticleReply extends BaseData {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "LEGISLATION_ARTICLE_REPLY")
+    @Column(name = "LEGISLATION_ARTICLE_REPLY_ID")
     private Long id;
     
     // 작성자 (회원)
