@@ -15,6 +15,12 @@ import { useMediaQuery } from 'react-responsive';
 import { SignIn } from 'phosphor-react';
 
 export default function TopHeader() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // useFetchMainMenu();
   // const menuData = useMenuStore((state) => state.menu);
   const user = useUserStore((state) => state.user);
@@ -58,7 +64,9 @@ export default function TopHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isDesktop = useMediaQuery({ minWidth: 1281 });
+  const isDesktopQuery = useMediaQuery({ minWidth: 1281 });
+
+  const isDesktop = mounted ? isDesktopQuery : false;
 
   const [isSubOpen, setIsSubOpen] = useState(false);
 
@@ -123,8 +131,8 @@ export default function TopHeader() {
           </div>
         </div>
       )}
-      <LogoBox onClick={() => {}}>
-        <Link href="/">
+      <Link href="/">
+        <LogoBox>
           <img
             src={withBasePath('/headerLogo.png')}
             alt="로고"
@@ -132,8 +140,8 @@ export default function TopHeader() {
               setIsSubOpen(false);
             }}
           />
-        </Link>
-      </LogoBox>
+        </LogoBox>
+      </Link>
       <Login>
         <SignIn />
         <Link href="/login">로그인</Link>
