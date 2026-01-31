@@ -186,7 +186,6 @@ export default function TopHeader() {
                               key={article.articleId}
                               onClick={() => {
                                 console.log('article click', article);
-                                toggleMenu();
                               }}
                             >
                               <span>
@@ -204,7 +203,6 @@ export default function TopHeader() {
                           key={article.articleId}
                           onClick={() => {
                             console.log('article click', article);
-                            toggleMenu();
                           }}
                         >
                           <span>
