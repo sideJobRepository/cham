@@ -10,7 +10,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   console.log('ClientLayout styled ===', styled);
   return (
     <ClientProviders>
-      {/*<AuthListener />*/}
+      <AuthListener />
       <Wrapper>
         <Inner>
           <LeftArea>

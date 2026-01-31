@@ -12,7 +12,7 @@ export function useLoginPost() {
   const postUser = (code: string, name: string, onSuccess?: () => void) => {
     request(
       () =>
-        api.post(`/api/${name}-login`, { code }).then((res) => {
+        api.post(`/cham/next/${name}-login`, { code }).then((res) => {
           const token = res.data.token as string;
           tokenStore.set(token);
 
