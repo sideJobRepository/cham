@@ -66,6 +66,7 @@ declare module 'styled-components' {
         tree: string;
         tree2: string;
         tree3: string;
+        tree4: string;
       };
     };
     mobile: {
@@ -83,6 +84,7 @@ declare module 'styled-components' {
         tree: string;
         tree2: string;
         tree3: string;
+        tree4: string;
       };
     };
     weight: {

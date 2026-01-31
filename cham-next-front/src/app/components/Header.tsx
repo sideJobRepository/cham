@@ -494,14 +494,20 @@ const ChapterLi = styled.li`
   a {
     padding-left: 8px;
   }
+
+  font-size: ${({ theme }) => theme.desktop.sizes.tree2};
+
+  @media ${({ theme }) => theme.device.tablet} {
+    font-size: ${({ theme }) => theme.mobile.sizes.tree2};
+  }
 `;
 
 const SubLi = styled.li<{ $open?: boolean }>`
   color: ${({ $open, theme }) => ($open ? '#1E40AF' : '000000')};
-  font-size: ${({ theme }) => theme.desktop.sizes.tree2};
+  font-size: ${({ theme }) => theme.desktop.sizes.tree3};
   font-weight: 600;
   @media ${({ theme }) => theme.device.tablet} {
-    font-size: ${({ theme }) => theme.mobile.sizes.tree2};
+    font-size: ${({ theme }) => theme.mobile.sizes.tree3};
   }
 
   a {
@@ -512,10 +518,10 @@ const SubLi = styled.li<{ $open?: boolean }>`
 const ArticleLi = styled.li`
   font-weight: 400;
   cursor: pointer;
-  font-size: ${({ theme }) => theme.desktop.sizes.tree3};
+  font-size: ${({ theme }) => theme.desktop.sizes.tree4};
 
   @media ${({ theme }) => theme.device.tablet} {
-    font-size: ${({ theme }) => theme.mobile.sizes.tree3};
+    font-size: ${({ theme }) => theme.mobile.sizes.tree4};
   }
 
   span {
