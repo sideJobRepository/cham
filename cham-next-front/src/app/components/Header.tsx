@@ -350,6 +350,7 @@ const HamburgerButton = styled.button<{ $open: boolean }>`
 
 const Menu = styled.div<{ $open: boolean }>`
   position: absolute;
+  overflow: auto;
   top: 100%;
   left: 0;
   width: 50%;
@@ -383,7 +384,6 @@ const Menu = styled.div<{ $open: boolean }>`
     font-size: ${({ theme }) => theme.desktop.sizes.tree};
     font-weight: 600;
     padding: 0 12px;
-    overflow: auto;
     gap: 8px;
 
     @media ${({ theme }) => theme.device.tablet} {
