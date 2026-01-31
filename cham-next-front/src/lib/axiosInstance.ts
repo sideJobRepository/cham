@@ -17,7 +17,7 @@ let refreshing: Promise<string | null> | null = null;
 //토큰 재발급
 export async function refreshToken(): Promise<string | null> {
   try {
-    const { data } = await axios.post('/api/refresh', null, {
+    const { data } = await axios.post('/cham/refresh', null, {
       baseURL: api.defaults.baseURL,
       withCredentials: true,
     });
@@ -41,7 +41,7 @@ export async function refreshToken(): Promise<string | null> {
 }
 
 api.interceptors.request.use(async (config: AuthAxiosRequestConfig) => {
-  if (config.url?.includes('/api/refresh')) return config; //api 수정 예정
+  if (config.url?.includes('/cham/refresh')) return config; //api 수정 예정
 
   let token = tokenStore.get();
   if (!token) {
@@ -77,7 +77,7 @@ api.interceptors.response.use(
     const status = error.response.status;
 
     // refresh 자체 실패면 중단
-    if (original?.url?.includes('/api/refresh')) {
+    if (original?.url?.includes('/cham/refresh')) {
       //api 수정 예정
       return Promise.reject(error);
     }
@@ -105,7 +105,7 @@ api.interceptors.response.use(
     if (!isRefreshing) {
       isRefreshing = true;
       axios
-        .post('/api/refresh', null, {
+        .post('/cham/refresh', null, {
           //api 구조 변경 필요
           baseURL: api.defaults.baseURL,
           withCredentials: true,

@@ -21,45 +21,17 @@ export default function TopHeader() {
     setMounted(true);
   }, []);
 
-  // useFetchMainMenu();
-  // const menuData = useMenuStore((state) => state.menu);
+  useFetchMainMenu();
+  const menuData = useMenuStore((state) => state.menu);
+  console.log('menuData', menuData);
+
+  const [activeLegislation, setActiveLegislation] = useState<number>(0);
+  const [openPart, setOpenPart] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const currentLaw = menuData?.legislations[activeLegislation];
+
   const user = useUserStore((state) => state.user);
-  const menuData = [
-    {
-      name: '특별법',
-      subMenu: [
-        {
-          name: '1-1 특별법',
-          link: '/law/special/1-1',
-        },
-        {
-          name: '2-2 특별법',
-          link: '/law/special/2-2',
-        },
-        {
-          name: '3-3 특별법',
-          link: '/law/special/3-3',
-        },
-      ],
-    },
-    {
-      name: '조례',
-      subMenu: [
-        {
-          name: '1-1 조례',
-          link: '/law/ordinance/1-1',
-        },
-        {
-          name: '2-2 조례',
-          link: '/law/ordinance/2-2',
-        },
-        {
-          name: '3-3 조례',
-          link: '/law/ordinance/3-3',
-        },
-      ],
-    },
-  ];
 
   const router = useRouter();
   const pathname = usePathname();
@@ -143,43 +115,108 @@ export default function TopHeader() {
         </LogoBox>
       </Link>
       <Login>
-        <SignIn />
         <Link href="/login">로그인</Link>
       </Login>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
         <MenuTopBox>
-          <h5>목차</h5>
+          {menuData?.legislations.map((law, idx) => (
+            <TopTab
+              key={law.id}
+              $active={activeLegislation === idx}
+              onClick={() => {
+                setActiveLegislation(idx);
+                setOpenPart(null);
+                setOpenSection(null);
+              }}
+            >
+              {law.title}
+            </TopTab>
+          ))}
         </MenuTopBox>
         <ul>
-          {menuData?.map((menu, i) => (
-            <React.Fragment key={i}>
-              <li
-                onClick={() => {
-                  if (isMobileSubOpen === menu.name) {
-                    setIsMobileSubOpen(null);
-                  } else {
-                    setIsMobileSubOpen(menu.name);
-                  }
-                }}
-              >
-                <a>{menu.name}</a>
-                {isMobileSubOpen === menu.name ? <CaretUp /> : <CaretDown />}
-              </li>
-              {menu.subMenu.map((sub, j) => (
-                <AnimatedSubLiWrapper key={j} $visible={isMobileSubOpen === menu.name}>
-                  <SubLi
-                    $active={pathname === sub.link}
-                    onClick={() => {
-                      toggleMenu();
-                      router.push(sub.link);
-                    }}
-                  >
-                    <a>{sub.name}</a>
-                  </SubLi>
-                </AnimatedSubLiWrapper>
-              ))}
-            </React.Fragment>
-          ))}
+          {currentLaw?.parts.map((part) => {
+            const sectionGroups = (part.sections ?? []).filter(
+              (s) => typeof s.section === 'string' && s.section.trim().length > 0
+            );
+
+            const articleOnlyGroups = (part.sections ?? []).filter(
+              (s) => !s.section || (typeof s.section === 'string' && s.section.trim().length === 0)
+            );
+
+            return (
+              <React.Fragment key={part.part}>
+                {/* PART */}
+                <li
+                  className="part-item"
+                  data-open={openPart === part.part}
+                  onClick={() => {
+                    setOpenPart(openPart === part.part ? null : part.part);
+                    setOpenSection(null);
+                  }}
+                >
+                  <a>{part.part}</a>
+                  {/* 파트에 펼칠 내용이 있을 때만 화살표 */}
+                  {(sectionGroups.length > 0 ||
+                    articleOnlyGroups.some((g) => g.articles?.length)) &&
+                    (openPart === part.part ? (
+                      <CaretUp weight="bold" />
+                    ) : (
+                      <CaretDown weight="bold" />
+                    ))}
+                </li>
+
+                {openPart === part.part && (
+                  <PartBlock>
+                    {/* 1) section 있는 그룹 → 트리 */}
+                    {sectionGroups.map((section) => (
+                      <React.Fragment key={section.section}>
+                        <SubLi
+                          $open={openSection === section.section}
+                          onClick={() =>
+                            setOpenSection(openSection === section.section ? null : section.section)
+                          }
+                        >
+                          <a>{section.section}</a>
+                          {openSection === section.section ? <CaretUp /> : <CaretDown />}
+                        </SubLi>
+
+                        {openSection === section.section &&
+                          section.articles.map((article) => (
+                            <ArticleLi
+                              key={article.articleId}
+                              onClick={() => {
+                                console.log('article click', article);
+                                toggleMenu();
+                              }}
+                            >
+                              <span>
+                                {article.articleNo} {article.articleTitle}
+                              </span>
+                            </ArticleLi>
+                          ))}
+                      </React.Fragment>
+                    ))}
+
+                    {articleOnlyGroups
+                      .flatMap((s) => s.articles ?? [])
+                      .map((article) => (
+                        <ArticleLi
+                          key={article.articleId}
+                          onClick={() => {
+                            console.log('article click', article);
+                            toggleMenu();
+                          }}
+                        >
+                          <span>
+                            {article.articleNo} {article.articleTitle}
+                          </span>
+                        </ArticleLi>
+                      ))}
+                  </PartBlock>
+                )}
+              </React.Fragment>
+            );
+          })}
         </ul>
       </Menu>
     </Wrapper>
@@ -224,7 +261,7 @@ const LogoBox = styled.div`
     cursor: pointer;
 
     @media ${({ theme }) => theme.device.tablet} {
-      width: 184px;
+      width: 200px;
     }
   }
 `;
@@ -259,7 +296,7 @@ const BgSubWrapper = styled.div<{ $height: number }>`
   left: 0;
   width: 100%;
   height: ${({ $height }) => `${$height}px`};
-  background-color: ${({ theme }) => theme.colors.softColor2};
+  background-color: ${({ theme }) => theme.colors.softColor};
 
   opacity: 0;
   transform: translateY(-10px);
@@ -321,7 +358,7 @@ const Menu = styled.div<{ $open: boolean }>`
   max-width: 300px;
   height: calc(100vh - 80px);
   // border-top: 1px solid ${({ theme }) => theme.colors.lineColor};
-  background-color: ${({ theme }) => theme.colors.softColor2};
+  background-color: ${({ theme }) => theme.colors.softColor};
   transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(-100%)')};
   opacity: ${({ $open }) => ($open ? 0.96 : 0)};
   pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
@@ -329,77 +366,110 @@ const Menu = styled.div<{ $open: boolean }>`
     transform 0.3s ease,
     opacity 0.3s ease;
 
+  //첫 계층
+  ul li[data-open='true'] {
+    background-color: #e8eeff;
+    color: #1e3a8a;
+  }
+
+  .part-item {
+    //padding: 4px 20px;
+  }
+
   ul {
     display: flex;
     flex-direction: column;
     width: 100%;
     margin-top: 20px;
-    gap: 6px;
     color: ${({ theme }) => theme.colors.blackColor};
-    font-size: ${({ theme }) => theme.desktop.sizes.md};
-    font-weight: ${({ theme }) => theme.weight.bold};
-    padding: 0 20px;
+    font-size: ${({ theme }) => theme.desktop.sizes.tree};
+    font-weight: 600;
+    padding: 0 12px;
+    overflow: auto;
+    gap: 8px;
+
+    @media ${({ theme }) => theme.device.tablet} {
+      font-size: ${({ theme }) => theme.mobile.sizes.tree};
+    }
 
     li {
       width: 100%;
-      height: 50px;
+      //min-height: 50px;
+      padding: 12px 8px;
       align-items: center;
       display: flex;
-      justify-content: left;
-      padding: 0 20px;
+      gap: 8px;
+      justify-content: space-between;
 
-      img {
-        height: 26px;
-        margin-right: 8px;
+      a {
+        min-width: 80%;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        white-space: normal;
       }
 
       svg {
-        margin-left: auto;
+        min-width: 20%;
       }
     }
   }
 `;
 
 const MenuTopBox = styled.div`
-  background-color: ${({ theme }) => theme.colors.blueColor};
-  padding: 24px 8px;
+  display: flex;
+  background-color: ${({ theme }) => theme.colors.whiteColor};
   text-align: center;
-
-  h5 {
-    font-size: ${({ theme }) => theme.desktop.sizes.h5Size} !important;
-    font-weight: 600;
-    color: ${({ theme }) => theme.colors.whiteColor};
-
-    @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
-    }
-  }
 `;
 
-const SubLi = styled.li<{ $active: boolean }>`
-  font-size: ${({ theme }) => theme.desktop.sizes.sm};
-  font-weight: ${({ theme }) => theme.weight.semiBold};
+const TopTab = styled.div<{ $active: boolean }>`
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  cursor: pointer;
+  font-weight: 700;
   background-color: ${({ $active, theme }) =>
-    $active ? theme.colors.blackColor : theme.colors.softColor2};
-  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.blackColor)};
-`;
-
-const AnimatedSubLiWrapper = styled.div<{ $visible: boolean }>`
-  width: 100%;
-  overflow: hidden;
-  max-height: ${({ $visible }) => ($visible ? '60px' : '0')};
-  opacity: ${({ $visible }) => ($visible ? 0.96 : 0)};
-  transform: translateY(${({ $visible }) => ($visible ? '0' : '-10px')});
-  transition:
-    max-height 0.3s ease,
-    opacity 0.3s ease,
-    transform 0.3s ease;
-`;
-
-const SubMainLi = styled.li`
-  justify-content: center !important;
-  svg {
-    margin-left: 0 !important;
-    margin-right: 8px;
+    $active ? theme.colors.blueColor : theme.colors.softColor2};
+  color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.blackColor)};
+  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.xl};
   }
+`;
+
+const SubLi = styled.li<{ $open?: boolean }>`
+  color: ${({ $open, theme }) => ($open ? '#1E40AF' : '000000')};
+  font-size: ${({ theme }) => theme.desktop.sizes.tree2};
+  font-weight: 600;
+  @media ${({ theme }) => theme.device.tablet} {
+    font-size: ${({ theme }) => theme.mobile.sizes.tree2};
+  }
+
+  a {
+    padding-left: 8px;
+  }
+`;
+
+const ArticleLi = styled.li`
+  font-weight: 400;
+  cursor: pointer;
+  font-size: ${({ theme }) => theme.desktop.sizes.tree3};
+
+  @media ${({ theme }) => theme.device.tablet} {
+    font-size: ${({ theme }) => theme.mobile.sizes.tree3};
+  }
+
+  span {
+    padding-left: 16px;
+  }
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.border};
+  }
+`;
+
+const PartBlock = styled.div`
+  background-color: #f3f6ff; // PART 전체 영역 배경
+  width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
 `;

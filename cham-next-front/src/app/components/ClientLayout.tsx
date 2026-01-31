@@ -48,7 +48,7 @@ const LeftArea = styled.header`
   width: 100%;
   height: 80px;
   background-color: ${({ theme }) => theme.colors.whiteColor};
-  // border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
   z-index: 3;
 `;
 

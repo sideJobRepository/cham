@@ -8,7 +8,7 @@ export function useFetchMainMenu() {
   const { request } = useRequest();
 
   useEffect(() => {
-    request(() => api.get('/api/menu').then((res) => res.data), setMainMenu, {
+    request(() => api.get('/cham/legislation').then((res) => res.data), setMainMenu, {
       ignoreErrorRedirect: true,
     });
   }, []);

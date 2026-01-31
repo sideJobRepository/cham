@@ -54,6 +54,9 @@ export const theme = {
       md: '14px',
       sm: '12px',
       xs: '10px',
+      tree: '14px',
+      tree2: '13px',
+      tree3: '12px',
     },
   },
   mobile: {
@@ -68,6 +71,9 @@ export const theme = {
       md: '10px',
       sm: '8px',
       xs: '6px',
+      tree: '10px',
+      tree2: '9px',
+      tree3: '8px',
     },
   },
   weight: {

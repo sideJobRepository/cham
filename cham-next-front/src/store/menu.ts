@@ -1,22 +1,38 @@
 import { create } from 'zustand';
 
-interface SubItem {
-  menuId: string;
-  subMenuId: number;
-  name: string;
-  link: string;
+export interface Article {
+  articleId: number;
+  articleNo: string;
+  articleTitle: string;
+  content: string;
+  categoryMain: string;
+  categorySub: string;
 }
 
-interface MenuItem {
-  menuId: number;
-  name: string;
-  link: string;
-  subMenu: SubItem[];
+export interface Section {
+  section: string | null;
+  articles: Article[];
+}
+
+export interface Part {
+  part: string;
+  sections: Section[];
+}
+
+export interface Legislation {
+  id: number;
+  title: string;
+  billVersion: string;
+  parts: Part[];
+}
+
+export interface MenuData {
+  legislations: Legislation[];
 }
 
 interface MenuStore {
-  menu: MenuItem[] | null;
-  setMenu: (menu: MenuItem[]) => void;
+  menu: MenuData | null;
+  setMenu: (menu: MenuData) => void;
   clearMenu: () => void;
 }
 
