@@ -14,9 +14,13 @@ import { withBasePath } from '@/lib/path';
 import { useMediaQuery } from 'react-responsive';
 import { SignIn } from 'phosphor-react';
 import { useArticleStore } from '@/store/aricle';
+import { tokenStore } from '@/services/tokenStore';
+import api from '@/lib/axiosInstance';
+import { useDialogUtil } from '@/utils/dialog';
 
 export default function TopHeader() {
   const [mounted, setMounted] = useState(false);
+  const { alert, confirm } = useDialogUtil();
 
   useEffect(() => {
     setMounted(true);
@@ -28,12 +32,14 @@ export default function TopHeader() {
   const setArticleData = useArticleStore((state) => state.setArticle);
 
   const [activeLegislation, setActiveLegislation] = useState<number>(0);
+  const [openChapter, setOpenChapter] = useState<string | null>(null);
   const [openPart, setOpenPart] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   const currentLaw = menuData?.legislations[activeLegislation];
 
   const user = useUserStore((state) => state.user);
+  const resetUser = useUserStore((state) => state.clearUser);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -57,6 +63,26 @@ export default function TopHeader() {
   const [isMobileSubOpen, setIsMobileSubOpen] = useState<string | null>(null);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
+
+  const logout = async () => {
+    const ok = await confirm('정말 로그아웃하시겠습니까?');
+
+    if (!ok) return;
+    const channel = new BroadcastChannel('auth');
+    channel.postMessage('logout');
+    channel.close();
+
+    try {
+      await api.delete('/cham/refresh', { withCredentials: true });
+    } catch (err) {
+      console.error('서버 리프레시 토큰 삭제 실패:', err);
+    }
+
+    alert('로그아웃 되었습니다.');
+
+    tokenStore.clear();
+    resetUser();
+  };
 
   const articleClick = (data: Article) => {
     if (data) setArticleData(data);
@@ -121,7 +147,9 @@ export default function TopHeader() {
           />
         </LogoBox>
       </Link>
-      <Login>{user ? '로그아웃' : <Link href="/login">로그인</Link>}</Login>
+      <Login>
+        {user ? <a onClick={() => logout()}>로그아웃</a> : <Link href="/login">로그인</Link>}
+      </Login>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
         <MenuTopBox>
           {menuData?.legislations.map((law, idx) => (
@@ -139,89 +167,101 @@ export default function TopHeader() {
           ))}
         </MenuTopBox>
         <ul>
-          {currentLaw?.parts.map((part) => {
-            const sectionGroups = (part.sections ?? []).filter(
-              (s) => typeof s.section === 'string' && s.section.trim().length > 0
-            );
+          {currentLaw?.parts.map((part) => (
+            <React.Fragment key={part.part}>
+              {/* PART */}
+              <li
+                className="part-item"
+                data-open={openPart === part.part}
+                onClick={() => {
+                  setOpenPart(openPart === part.part ? null : part.part);
+                  setOpenChapter(null);
+                  setOpenSection(null);
+                }}
+              >
+                <a>{part.part}</a>
+                {openPart === part.part ? <CaretUp weight="bold" /> : <CaretDown weight="bold" />}
+              </li>
 
-            const articleOnlyGroups = (part.sections ?? []).filter(
-              (s) => !s.section || (typeof s.section === 'string' && s.section.trim().length === 0)
-            );
+              {openPart === part.part &&
+                part.chapters?.map((chapterObj, cIdx) => {
+                  const chapterKey = chapterObj.chapter ?? `chapter-${cIdx}`;
 
-            return (
-              <React.Fragment key={part.part}>
-                {/* PART */}
-                <li
-                  className="part-item"
-                  data-open={openPart === part.part}
-                  onClick={() => {
-                    setOpenPart(openPart === part.part ? null : part.part);
-                    setOpenSection(null);
-                  }}
-                >
-                  <a>{part.part}</a>
-                  {/* 파트에 펼칠 내용이 있을 때만 화살표 */}
-                  {(sectionGroups.length > 0 ||
-                    articleOnlyGroups.some((g) => g.articles?.length)) &&
-                    (openPart === part.part ? (
-                      <CaretUp weight="bold" />
-                    ) : (
-                      <CaretDown weight="bold" />
-                    ))}
-                </li>
+                  const sectionGroups = (chapterObj.sections ?? []).filter(
+                    (s) => s.section && s.section.trim()
+                  );
 
-                {openPart === part.part && (
-                  <PartBlock>
-                    {/* 1) section 있는 그룹 → 트리 */}
-                    {sectionGroups.map((section) => (
-                      <React.Fragment key={section.section}>
-                        <SubLi
-                          $open={openSection === section.section}
-                          onClick={() =>
-                            setOpenSection(openSection === section.section ? null : section.section)
-                          }
-                        >
-                          <a>{section.section}</a>
-                          {openSection === section.section ? <CaretUp /> : <CaretDown />}
-                        </SubLi>
+                  const articleOnlyGroups = (chapterObj.sections ?? []).filter(
+                    (s) => !s.section || !s.section.trim()
+                  );
 
-                        {openSection === section.section &&
-                          section.articles.map((article) => (
-                            <ArticleLi
-                              key={article.articleId}
-                              onClick={() => {
-                                articleClick(article);
-                                console.log('article click', article);
-                              }}
-                            >
-                              <span>
-                                {article.articleNo} {article.articleTitle}
-                              </span>
-                            </ArticleLi>
-                          ))}
-                      </React.Fragment>
-                    ))}
-
-                    {articleOnlyGroups
-                      .flatMap((s) => s.articles ?? [])
-                      .map((article) => (
-                        <ArticleLi
-                          key={article.articleId}
+                  return (
+                    <PartBlock key={chapterKey}>
+                      {/* CHAPTER (null 이면 제목 생략) */}
+                      {chapterObj.chapter && (
+                        <ChapterLi
+                          data-open={openChapter === chapterKey}
                           onClick={() => {
-                            articleClick(article);
-                            console.log('article click', article);
+                            setOpenChapter(openChapter === chapterKey ? null : chapterKey);
+                            setOpenSection(null);
                           }}
                         >
-                          <span>
-                            {article.articleNo} {article.articleTitle}
-                          </span>
-                        </ArticleLi>
-                      ))}
-                  </PartBlock>
-                )}
-              </React.Fragment>
-            );
-          })}
+                          <a>{chapterObj.chapter}</a>
+                          {openChapter === chapterKey ? <CaretUp /> : <CaretDown />}
+                        </ChapterLi>
+                      )}
+
+                      {(openChapter === chapterKey || !chapterObj.chapter) && (
+                        <>
+                          {/* SECTION */}
+                          {sectionGroups.map((section) => (
+                            <React.Fragment key={section.section}>
+                              <SubLi
+                                $open={openSection === section.section}
+                                onClick={() =>
+                                  setOpenSection(
+                                    openSection === section.section ? null : section.section
+                                  )
+                                }
+                              >
+                                <a>{section.section}</a>
+                                {openSection === section.section ? <CaretUp /> : <CaretDown />}
+                              </SubLi>
+
+                              {openSection === section.section &&
+                                section.articles.map((article) => (
+                                  <ArticleLi
+                                    key={article.articleId}
+                                    onClick={() => articleClick(article)}
+                                  >
+                                    <span>
+                                      {article.articleNo} {article.articleTitle}
+                                    </span>
+                                  </ArticleLi>
+                                ))}
+                            </React.Fragment>
+                          ))}
+
+                          {/* SECTION 없는 article */}
+                          {articleOnlyGroups
+                            .flatMap((s) => s.articles ?? [])
+                            .map((article) => (
+                              <ArticleLi
+                                key={article.articleId}
+                                onClick={() => articleClick(article)}
+                              >
+                                <span>
+                                  {article.articleNo} {article.articleTitle}
+                                </span>
+                              </ArticleLi>
+                            ))}
+                        </>
+                      )}
+                    </PartBlock>
+                  );
+                })}
+            </React.Fragment>
+          ))}
         </ul>
       </Menu>
     </Wrapper>
@@ -279,6 +319,10 @@ const Login = styled.div`
   color: ${({ theme }) => theme.colors.blackColor};
   font-weight: 600;
   padding: 4px 0;
+
+  a {
+    cursor: pointer;
+  }
 
   @media ${({ theme }) => theme.device.tablet} {
     font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
@@ -356,6 +400,8 @@ const HamburgerButton = styled.button<{ $open: boolean }>`
 `;
 
 const Menu = styled.div<{ $open: boolean }>`
+  display: flex;
+  flex-direction: column;
   position: absolute;
   overflow: auto;
   top: 100%;
@@ -378,8 +424,10 @@ const Menu = styled.div<{ $open: boolean }>`
     color: #1e3a8a;
   }
 
-  .part-item {
-    //padding: 4px 20px;
+  .part-item[data-open='true'] {
+    color: #1e3a8a;
+    background-color: transparent;
+    font-weight: 800;
   }
 
   ul {
@@ -441,6 +489,13 @@ const TopTab = styled.div<{ $active: boolean }>`
   }
 `;
 
+const ChapterLi = styled.li`
+  font-weight: 600;
+  a {
+    padding-left: 8px;
+  }
+`;
+
 const SubLi = styled.li<{ $open?: boolean }>`
   color: ${({ $open, theme }) => ($open ? '#1E40AF' : '000000')};
   font-size: ${({ theme }) => theme.desktop.sizes.tree2};
@@ -450,7 +505,7 @@ const SubLi = styled.li<{ $open?: boolean }>`
   }
 
   a {
-    padding-left: 8px;
+    padding-left: 12px;
   }
 `;
 
