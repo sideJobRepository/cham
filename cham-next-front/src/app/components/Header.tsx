@@ -7,12 +7,13 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import React from 'react';
 import { useFetchMainMenu } from '@/services/menu.service';
-import { useMenuStore } from '@/store/menu';
+import { Article, useMenuStore } from '@/store/menu';
 import Link from 'next/link';
 import { useUserStore } from '@/store/user';
 import { withBasePath } from '@/lib/path';
 import { useMediaQuery } from 'react-responsive';
 import { SignIn } from 'phosphor-react';
+import { useArticleStore } from '@/store/aricle';
 
 export default function TopHeader() {
   const [mounted, setMounted] = useState(false);
@@ -24,6 +25,7 @@ export default function TopHeader() {
   useFetchMainMenu();
   const menuData = useMenuStore((state) => state.menu);
   console.log('menuData', menuData);
+  const setArticleData = useArticleStore((state) => state.setArticle);
 
   const [activeLegislation, setActiveLegislation] = useState<number>(0);
   const [openPart, setOpenPart] = useState<string | null>(null);
@@ -55,6 +57,11 @@ export default function TopHeader() {
   const [isMobileSubOpen, setIsMobileSubOpen] = useState<string | null>(null);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
+
+  const articleClick = (data: Article) => {
+    if (data) setArticleData(data);
+    if (!isDesktop) toggleMenu();
+  };
 
   //최초 진입시 데스크탑은 메뉴바 열기
   useEffect(() => {
@@ -114,9 +121,7 @@ export default function TopHeader() {
           />
         </LogoBox>
       </Link>
-      <Login>
-        <Link href="/login">로그인</Link>
-      </Login>
+      <Login>{user ? '로그아웃' : <Link href="/login">로그인</Link>}</Login>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
         <MenuTopBox>
           {menuData?.legislations.map((law, idx) => (
@@ -185,6 +190,7 @@ export default function TopHeader() {
                             <ArticleLi
                               key={article.articleId}
                               onClick={() => {
+                                articleClick(article);
                                 console.log('article click', article);
                               }}
                             >
@@ -202,6 +208,7 @@ export default function TopHeader() {
                         <ArticleLi
                           key={article.articleId}
                           onClick={() => {
+                            articleClick(article);
                             console.log('article click', article);
                           }}
                         >
