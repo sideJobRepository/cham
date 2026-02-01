@@ -439,7 +439,6 @@ const Menu = styled.div<{ $open: boolean }>`
     font-size: ${({ theme }) => theme.desktop.sizes.tree};
     font-weight: 600;
     padding: 0 12px;
-    gap: 8px;
 
     @media ${({ theme }) => theme.device.tablet} {
       font-size: ${({ theme }) => theme.mobile.sizes.tree};
@@ -498,7 +497,7 @@ const ChapterLi = styled.li`
   font-size: ${({ theme }) => theme.desktop.sizes.tree2};
 
   @media ${({ theme }) => theme.device.tablet} {
-    font-size: ${({ theme }) => theme.mobile.sizes.tree2};
+    font-size: ${({ theme }) => theme.mobile.sizes.tree4};
   }
 `;
 

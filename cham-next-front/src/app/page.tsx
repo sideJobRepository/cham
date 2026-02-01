@@ -61,11 +61,12 @@ export default function Home() {
                 </FieldsWrapper>
                 <SearchButton type="submit">
                   <MagnifyingGlass weight="bold" />
-                  검색
+                  <span>검색</span>
                 </SearchButton>
               </SearchGroup>
               <Button $bg="#093A6E" $color="#fff">
-                의견 보기 <ArrowRight weight="bold" />
+                <span>의견 보기</span>
+                <ArrowRight weight="bold" />
               </Button>
             </ButtonBox>
           </HeroContent>
@@ -155,6 +156,12 @@ const Button = styled.button<{ $bg: string; $color: string }>`
   font-size: ${({ theme }) => theme.desktop.sizes.xl};
   box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
 
+  span {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.xl};
   }
@@ -233,6 +240,12 @@ const SearchButton = styled.button`
   white-space: nowrap;
   &:hover {
     opacity: 0.8;
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    line-height: 1;
   }
 
   @media ${({ theme }) => theme.device.mobile} {
