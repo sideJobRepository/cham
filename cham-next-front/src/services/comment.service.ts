@@ -1,21 +1,19 @@
 import { useRequest } from '@/hooks/useRequest';
 import { NoticeFiles, useNoticeDetailStore, useNoticeListStore } from '@/store/notice';
 import api from '@/lib/axiosInstance';
+import { useCommentDataStore } from '@/store/comment';
 
-export type params = {
-  page?: number;
-  titleAndCont?: string;
-};
-
-export function useFetchNoticeList() {
+export function useFetchCommentList() {
   const { request } = useRequest();
-  const setNotice = useNoticeListStore((state) => state.setNotice);
+  const setCommentData = useCommentDataStore((state) => state.setComment);
 
-  const fetchNotice = (params: params) => {
-    request(() => api.get(`/bgm-agit/kml-notice?size=5`, { params }).then(res => res.data), setNotice,  {ignoreErrorRedirect: true});
+  const fetchCommentData = (id: number) => {
+    request(() => api.get(`/cham/article-reply/${id}`).then((res) => res.data), setCommentData, {
+      ignoreErrorRedirect: true,
+    });
   };
 
-  return fetchNotice;
+  return fetchCommentData;
 }
 
 export function useFetchNoticeDetailL() {
@@ -23,7 +21,9 @@ export function useFetchNoticeDetailL() {
   const setDetailNotice = useNoticeDetailStore((state) => state.setDetailNotice);
 
   const fetchDetailNotice = (id: string) => {
-    request(() => api.get(`/bgm-agit/kml-notice/${id}`).then(res => res.data), setDetailNotice, {ignoreErrorRedirect: true});
+    request(() => api.get(`/bgm-agit/kml-notice/${id}`).then((res) => res.data), setDetailNotice, {
+      ignoreErrorRedirect: true,
+    });
   };
 
   return fetchDetailNotice;
@@ -35,8 +35,7 @@ export function useNoticeDownloadFetch() {
   const fetchNoticeDownload = (file: NoticeFiles) => {
     const sliceId = file.fileUrl.split('/').pop()!;
     const downloadUrl =
-      `${process.env.NEXT_PUBLIC_API_URL}` +
-      `/bgm-agit/download/${file.fileFolder}/${sliceId}`;
+      `${process.env.NEXT_PUBLIC_API_URL}` + `/bgm-agit/download/${file.fileFolder}/${sliceId}`;
 
     const isIOS =
       /iP(hone|od|ad)/.test(navigator.userAgent) ||
@@ -51,7 +50,7 @@ export function useNoticeDownloadFetch() {
     // PC / Android만 Blob 다운로드
     request(
       () =>
-        api.get(downloadUrl, { responseType: 'blob' }).then(res => {
+        api.get(downloadUrl, { responseType: 'blob' }).then((res) => {
           const blob = new Blob([res.data], {
             type: res.headers['content-type'],
           });
@@ -71,7 +70,7 @@ export function useNoticeDownloadFetch() {
           URL.revokeObjectURL(url);
         }),
       undefined,
-      { disableLoading: true },
+      { disableLoading: true }
     );
   };
 

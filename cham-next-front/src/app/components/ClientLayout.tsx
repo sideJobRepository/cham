@@ -5,12 +5,14 @@ import styled from 'styled-components';
 import ClientProviders from '../providers';
 import Header from './Header';
 import AuthListener from '@/app/components/AuthListener';
+import Loading from '@/app/components/Loading';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   console.log('ClientLayout styled ===', styled);
   return (
     <ClientProviders>
       <AuthListener />
+      <Loading />
       <Wrapper>
         <Inner>
           <LeftArea>

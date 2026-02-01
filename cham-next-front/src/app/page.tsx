@@ -8,11 +8,22 @@ import styled from 'styled-components';
 import { ArrowRight, HandPointing, MagnifyingGlass } from 'phosphor-react';
 import { useEffect, useState } from 'react';
 import { useArticleStore } from '@/store/aricle';
+import { useCommentStore } from '@/store/comment';
+import { useFetchCommentList } from '@/services/comment.service';
 
 export default function Home() {
   const [searchKeyword, setSearchKeyword] = useState('');
 
   const mainData = useArticleStore((state) => state.articles);
+  const setCommentOpen = useCommentStore((state) => state.setOpen);
+
+  const fetchCommentList = useFetchCommentList();
+
+  const openComment = (id: number) => {
+    console.log('id-dd---', id);
+    fetchCommentList(id);
+    setCommentOpen(true);
+  };
 
   useEffect(() => {
     if (mainData.length === 0) return;
@@ -87,7 +98,7 @@ export default function Home() {
             <ArticleItem key={article.articleId}>
               <ArticleTop>
                 <ArticleNo>{article.articleNo}</ArticleNo>
-                <Button $bg="#093A6E" $color="#fff">
+                <Button $bg="#093A6E" $color="#fff" onClick={() => openComment(article.articleId)}>
                   <span>의견 보기</span>
                   <ArrowRight weight="bold" />
                 </Button>
