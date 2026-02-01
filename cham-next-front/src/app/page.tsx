@@ -6,14 +6,22 @@ import { Wrapper } from '@/styles/Wrapper.styles';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { ArrowRight, HandPointing, MagnifyingGlass } from 'phosphor-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useArticleStore } from '@/store/aricle';
 
 export default function Home() {
   const [searchKeyword, setSearchKeyword] = useState('');
 
   const mainData = useArticleStore((state) => state.articles);
-  console.log('클릭한데이터', mainData);
+
+  useEffect(() => {
+    if (mainData.length === 0) return;
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, [mainData]);
 
   return (
     <Wrapper>
@@ -215,13 +223,13 @@ const Field = styled.div`
   flex-shrink: 0;
 
   label {
-    font-size: ${({ theme }) => theme.desktop.sizes.md};
+    font-size: ${({ theme }) => theme.desktop.sizes.sm};
     color: ${({ theme }) => theme.colors.blackColor};
     font-weight: 600;
     text-align: left;
 
     @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.md};
+      font-size: ${({ theme }) => theme.mobile.sizes.sm};
     }
   }
 
@@ -232,9 +240,9 @@ const Field = styled.div`
     outline: none;
     color: ${({ theme }) => theme.colors.inputColor};
     background: transparent;
-    font-size: ${({ theme }) => theme.desktop.sizes.xl};
+    font-size: ${({ theme }) => theme.desktop.sizes.md};
     @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.xl};
+      font-size: ${({ theme }) => theme.mobile.sizes.md};
     }
   }
 `;
@@ -242,14 +250,14 @@ const Field = styled.div`
 const SearchButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: #093a6e;
-  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  font-size: ${({ theme }) => theme.desktop.sizes.md};
   box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
   border: none;
   color: white;
   font-weight: 500;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
@@ -264,13 +272,13 @@ const SearchButton = styled.button`
   }
 
   @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.xl};
+    font-size: ${({ theme }) => theme.mobile.sizes.md};
   }
 `;
 
 const ArticleSection = styled.section`
   width: 100%;
-  margin: 64px auto 0;
+  margin: 32px auto 32px;
   padding: 0 32px;
   display: flex;
   flex-direction: column;

@@ -28,7 +28,8 @@ export default function TopHeader() {
 
   useFetchMainMenu();
   const menuData = useMenuStore((state) => state.menu);
-  console.log('menuData', menuData);
+  const [initialized, setInitialized] = useState(false);
+
   const setArticlesData = useArticleStore((state) => state.setArticles);
 
   const [activeLegislation, setActiveLegislation] = useState<number>(0);
@@ -144,6 +145,28 @@ export default function TopHeader() {
       setSubMenuHeight(subMenuRef.current.offsetHeight + 40);
     }
   }, [isSubOpen]);
+
+  useEffect(() => {
+    if (!menuData || initialized) return;
+
+    const firstLaw = menuData.legislations?.[0];
+    if (!firstLaw) return;
+
+    const firstPart = firstLaw.parts?.[0];
+    if (!firstPart) return;
+
+    // PART 열기
+    setActiveLegislation(0);
+    setOpenPart(firstPart.part);
+    setOpenChapter(null);
+    setOpenSection(null);
+
+    // 해당 PART 하위 article들 자동 세팅
+    const articles = collectPartArticles(firstPart);
+    setArticlesData(articles);
+
+    setInitialized(true);
+  }, [menuData, initialized]);
 
   return (
     <Wrapper onMouseLeave={() => setIsSubOpen(false)}>
@@ -523,9 +546,9 @@ const TopTab = styled.div<{ $active: boolean }>`
   background-color: ${({ $active, theme }) =>
     $active ? theme.colors.blueColor : theme.colors.softColor2};
   color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.blackColor)};
-  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  font-size: ${({ theme }) => theme.desktop.sizes.md};
   @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.xl};
+    font-size: ${({ theme }) => theme.mobile.sizes.md};
   }
 `;
 
