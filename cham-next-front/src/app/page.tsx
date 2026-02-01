@@ -77,10 +77,6 @@ export default function Home() {
                   <span>검색</span>
                 </SearchButton>
               </SearchGroup>
-              {/*<Button $bg="#093A6E" $color="#fff">*/}
-              {/*  <span>의견 보기</span>*/}
-              {/*  <ArrowRight weight="bold" />*/}
-              {/*</Button>*/}
             </ButtonBox>
           </HeroContent>
         </motion.div>
@@ -89,7 +85,13 @@ export default function Home() {
         <ArticleSection>
           {mainData.map((article) => (
             <ArticleItem key={article.articleId}>
-              <ArticleNo>{article.articleNo}</ArticleNo>
+              <ArticleTop>
+                <ArticleNo>{article.articleNo}</ArticleNo>
+                <Button $bg="#093A6E" $color="#fff">
+                  <span>의견 보기</span>
+                  <ArrowRight weight="bold" />
+                </Button>
+              </ArticleTop>
               <ArticleTitle>{article.articleTitle}</ArticleTitle>
               <ArticleContent>{article.content}</ArticleContent>
             </ArticleItem>
@@ -170,14 +172,14 @@ const Button = styled.button<{ $bg: string; $color: string }>`
   background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};
   border: none;
-  padding: 12px 16px;
+  padding: 10px 12px;
   border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   cursor: pointer;
   font-weight: 500;
-  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  font-size: ${({ theme }) => theme.desktop.sizes.sm};
   box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
 
   span {
@@ -187,7 +189,7 @@ const Button = styled.button<{ $bg: string; $color: string }>`
   }
 
   @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.xl};
+    font-size: ${({ theme }) => theme.mobile.sizes.sm};
   }
 `;
 const SearchGroup = styled.form`
@@ -289,7 +291,7 @@ const ArticleSection = styled.section`
   }
 `;
 
-const ArticleItem = styled.article`
+const ArticleItem = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -297,9 +299,17 @@ const ArticleItem = styled.article`
   border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
 `;
 
+const ArticleTop = styled.article`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+`;
+
 const ArticleNo = styled.div`
   font-size: ${({ theme }) => theme.desktop.sizes.xl};
-  font-weight: 700;
+  font-weight: 800;
   color: #1e3a8a;
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.xl};
