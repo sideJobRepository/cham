@@ -278,7 +278,7 @@ const SearchButton = styled.button`
 
 const ArticleSection = styled.section`
   width: 100%;
-  margin: 32px auto 32px;
+  margin: 64px auto 32px;
   padding: 0 32px;
   display: flex;
   flex-direction: column;

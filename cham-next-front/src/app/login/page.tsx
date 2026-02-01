@@ -1,9 +1,10 @@
 'use client';
-
+import { Wrapper } from '@/styles/Wrapper.styles';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { withBasePath } from '@/lib/path';
+import { MagnifyingGlass } from 'phosphor-react';
 
 export default function Login() {
   const [mounted, setMounted] = useState(false);
@@ -33,6 +34,38 @@ export default function Login() {
   if (!mounted) return null;
   return (
     <Wrapper>
+      <Hero>
+        <HeroFillOverlay
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{
+            duration: 1.1,
+            ease: [0.4, 0, 0.2, 1],
+          }}
+        />
+        <motion.div
+          style={{ position: 'relative', zIndex: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            duration: 1.2,
+            ease: [0.4, 0, 0.2, 1],
+            delay: 1.1,
+          }}
+        >
+          <HeroContent>
+            <h2>
+              대전을 사람의 만남이 아름다운 도시로,
+              <br />
+              열린시대 새 지방자치를 만들어갑니다.
+            </h2>
+            <h4>
+              시민의 자발적인 참여와 연대에 기초해 참된 주민자치를 실현하는
+              대전참여자치시민연대입니다.
+            </h4>
+          </HeroContent>
+        </motion.div>
+      </Hero>
       <Title
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -64,33 +97,76 @@ export default function Login() {
   );
 }
 
-const Wrapper = styled.div`
+const Hero = styled.section`
+  width: 100%;
+  padding: 48px 12px;
+  background: #ffffff;
+  position: relative;
   display: flex;
-  max-width: 1500px;
-  min-width: 1280px;
-  min-height: 600px;
-  height: 100%;
-  margin: auto;
-  flex-direction: column;
-  gap: 36px;
+  justify-content: center;
 
-  @media ${({ theme }) => theme.device.tablet} {
-    width: 100vw;
-    max-width: 100%;
-    min-width: 100%;
-    min-height: unset;
+  @media ${({ theme }) => theme.device.mobile} {
+    padding: 36px 12px;
+  }
+`;
+
+const HeroFillOverlay = styled(motion.div)`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1f3a5f 0%, #2f4f6f 40%, #4b6b7a 100%);
+  transform-origin: left center;
+  pointer-events: none;
+`;
+
+const HeroContent = styled.div`
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+
+  h2 {
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: ${({ theme }) => theme.desktop.sizes.h2Size};
+    font-weight: 800;
+    letter-spacing: 0.1rem;
+    color: ${({ theme }) => theme.colors.whiteColor};
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.h3Size};
+      img {
+        width: 240px;
+      }
+    }
+  }
+
+  h4 {
+    font-size: ${({ theme }) => theme.desktop.sizes.h4Size};
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.softColor};
+    letter-spacing: 0.06rem;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.h4Size};
+    }
   }
 `;
 
 const Title = styled(motion.div)`
   display: flex;
   flex-direction: column;
+  margin-top: 64px;
   width: 90%;
   max-width: 800px;
   align-self: center;
   text-align: center;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 36px;
 
   h1 {
     font-size: ${({ theme }) => theme.desktop.sizes.h1Size};
@@ -118,9 +194,9 @@ const LoginBox = styled(motion.div)`
   width: 80%;
   height: 420px;
   gap: 36px;
-  max-width: 600px;
+  max-width: 480px;
   padding: 24px 0;
-  margin: auto;
+  margin: 0 auto 64px;
   border: 8px solid #f3f3f3;
   background-color: #f3f3f3;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
@@ -156,7 +232,7 @@ const Bottom = styled.section`
 const Button = styled.button<{ $color: string; $bgColor: string }>`
   display: flex;
   align-items: center;
-  max-width: 310px;
+  max-width: 340px;
   height: 52px;
   justify-content: center;
   width: 100%;
