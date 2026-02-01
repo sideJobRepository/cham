@@ -28,6 +28,8 @@ export default function Home() {
   useEffect(() => {
     if (mainData.length === 0) return;
 
+    setCommentOpen(false);
+
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
