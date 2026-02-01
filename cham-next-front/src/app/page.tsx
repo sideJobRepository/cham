@@ -7,9 +7,14 @@ import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { ArrowRight, HandPointing, MagnifyingGlass } from 'phosphor-react';
 import { useState } from 'react';
+import { useArticleStore } from '@/store/aricle';
 
 export default function Home() {
   const [searchKeyword, setSearchKeyword] = useState('');
+
+  const mainData = useArticleStore((state) => state.articles);
+  console.log('클릭한데이터', mainData);
+
   return (
     <Wrapper>
       <Hero>
@@ -64,14 +69,25 @@ export default function Home() {
                   <span>검색</span>
                 </SearchButton>
               </SearchGroup>
-              <Button $bg="#093A6E" $color="#fff">
-                <span>의견 보기</span>
-                <ArrowRight weight="bold" />
-              </Button>
+              {/*<Button $bg="#093A6E" $color="#fff">*/}
+              {/*  <span>의견 보기</span>*/}
+              {/*  <ArrowRight weight="bold" />*/}
+              {/*</Button>*/}
             </ButtonBox>
           </HeroContent>
         </motion.div>
       </Hero>
+      {mainData.length > 0 && (
+        <ArticleSection>
+          {mainData.map((article) => (
+            <ArticleItem key={article.articleId}>
+              <ArticleNo>{article.articleNo}</ArticleNo>
+              <ArticleTitle>{article.articleTitle}</ArticleTitle>
+              <ArticleContent>{article.content}</ArticleContent>
+            </ArticleItem>
+          ))}
+        </ArticleSection>
+      )}
     </Wrapper>
   );
 }
@@ -176,7 +192,6 @@ const SearchGroup = styled.form`
   border: 1px solid ${({ theme }) => theme.colors.lineColor};
   border-radius: 4px;
   flex-wrap: nowrap;
-  max-width: 260px;
 
   @media ${({ theme }) => theme.device.mobile} {
     width: 100%;
@@ -250,5 +265,58 @@ const SearchButton = styled.button`
 
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.xl};
+  }
+`;
+
+const ArticleSection = styled.section`
+  width: 100%;
+  margin: 64px auto 0;
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    padding: 0 16px;
+  }
+`;
+
+const ArticleItem = styled.article`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
+`;
+
+const ArticleNo = styled.div`
+  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  font-weight: 700;
+  color: #1e3a8a;
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.xl};
+  }
+`;
+
+const ArticleTitle = styled.h3`
+  font-size: ${({ theme }) => theme.desktop.sizes.h5Size};
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.blackColor};
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
+  }
+`;
+
+const ArticleContent = styled.div`
+  font-size: ${({ theme }) => theme.desktop.sizes.md};
+  line-height: 1.7;
+  color: ${({ theme }) => theme.colors.inputColor};
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  white-space: normal;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.md};
   }
 `;

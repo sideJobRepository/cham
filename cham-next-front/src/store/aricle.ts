@@ -1,14 +1,15 @@
-import { create } from 'zustand/index';
-import { Article, MenuData } from '@/store/menu';
+// @/store/aricle
+import { create } from 'zustand';
+import type { Article } from '@/store/menu';
 
-interface ArticleStore {
-  article: Article | null;
-  setArticle: (article: Article) => void;
-  clearMenu: () => void;
+interface ArticleState {
+  articles: Article[]; // ✅ 배열 하나만
+  setArticles: (list: Article[]) => void;
+  clearArticles: () => void;
 }
 
-export const useArticleStore = create<ArticleStore>((set) => ({
-  article: null,
-  setArticle: (article) => set({ article }),
-  clearMenu: () => set({ article: null }),
+export const useArticleStore = create<ArticleState>((set) => ({
+  articles: [],
+  setArticles: (list) => set({ articles: list }),
+  clearArticles: () => set({ articles: [] }),
 }));

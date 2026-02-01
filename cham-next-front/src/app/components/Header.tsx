@@ -29,12 +29,13 @@ export default function TopHeader() {
   useFetchMainMenu();
   const menuData = useMenuStore((state) => state.menu);
   console.log('menuData', menuData);
-  const setArticleData = useArticleStore((state) => state.setArticle);
+  const setArticlesData = useArticleStore((state) => state.setArticles);
 
   const [activeLegislation, setActiveLegislation] = useState<number>(0);
   const [openChapter, setOpenChapter] = useState<string | null>(null);
   const [openPart, setOpenPart] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [activeArticleId, setActiveArticleId] = useState<number | null>(null);
 
   const currentLaw = menuData?.legislations[activeLegislation];
 
@@ -84,11 +85,33 @@ export default function TopHeader() {
     resetUser();
   };
 
-  const articleClick = (data: Article) => {
-    if (data) setArticleData(data);
-    if (!isDesktop) toggleMenu();
+  const uniqById = (list: Article[]) => {
+    const map = new Map<number, Article>();
+    for (const a of list) map.set(a.articleId, a);
+    return [...map.values()];
   };
 
+  const collectPartArticles = (part: any) => {
+    const list =
+      part.chapters?.flatMap((ch: any) =>
+        (ch.sections ?? []).flatMap((sec: any) => sec.articles ?? [])
+      ) ?? [];
+    return uniqById(list);
+  };
+
+  const collectChapterArticles = (chapterObj: any) => {
+    const list = (chapterObj.sections ?? []).flatMap((sec: any) => sec.articles ?? []);
+    return uniqById(list);
+  };
+
+  const articleClick = (data: Article) => {
+    if (!data) return;
+
+    setActiveArticleId(data.articleId);
+    setArticlesData([data]);
+
+    if (!isDesktop) toggleMenu();
+  };
   //최초 진입시 데스크탑은 메뉴바 열기
   useEffect(() => {
     setIsOpen(isDesktop);
@@ -174,9 +197,15 @@ export default function TopHeader() {
                 className="part-item"
                 data-open={openPart === part.part}
                 onClick={() => {
-                  setOpenPart(openPart === part.part ? null : part.part);
+                  const nextOpen = openPart === part.part ? null : part.part;
+
+                  setOpenPart(nextOpen);
                   setOpenChapter(null);
                   setOpenSection(null);
+
+                  if (nextOpen) {
+                    setArticlesData(collectPartArticles(part)); // PART 하위 전부 배열 저장
+                  }
                 }}
               >
                 <a>{part.part}</a>
@@ -202,8 +231,14 @@ export default function TopHeader() {
                         <ChapterLi
                           data-open={openChapter === chapterKey}
                           onClick={() => {
-                            setOpenChapter(openChapter === chapterKey ? null : chapterKey);
+                            const nextOpen = openChapter === chapterKey ? null : chapterKey;
+
+                            setOpenChapter(nextOpen);
                             setOpenSection(null);
+
+                            if (nextOpen) {
+                              setArticlesData(collectChapterArticles(chapterObj)); // chapter 하위 배열 저장
+                            }
                           }}
                         >
                           <a>{chapterObj.chapter}</a>
@@ -218,11 +253,15 @@ export default function TopHeader() {
                             <React.Fragment key={section.section}>
                               <SubLi
                                 $open={openSection === section.section}
-                                onClick={() =>
-                                  setOpenSection(
-                                    openSection === section.section ? null : section.section
-                                  )
-                                }
+                                onClick={() => {
+                                  const nextOpen =
+                                    openSection === section.section ? null : section.section;
+                                  setOpenSection(nextOpen);
+
+                                  if (nextOpen) {
+                                    setArticlesData(section.articles ?? []); // section articles 배열 저장
+                                  }
+                                }}
                               >
                                 <a>{section.section}</a>
                                 {openSection === section.section ? <CaretUp /> : <CaretDown />}
@@ -232,6 +271,7 @@ export default function TopHeader() {
                                 section.articles.map((article) => (
                                   <ArticleLi
                                     key={article.articleId}
+                                    $active={activeArticleId === article.articleId}
                                     onClick={() => articleClick(article)}
                                   >
                                     <span>
@@ -248,6 +288,7 @@ export default function TopHeader() {
                             .map((article) => (
                               <ArticleLi
                                 key={article.articleId}
+                                $active={activeArticleId === article.articleId}
                                 onClick={() => articleClick(article)}
                               >
                                 <span>
@@ -497,7 +538,7 @@ const ChapterLi = styled.li`
   font-size: ${({ theme }) => theme.desktop.sizes.tree2};
 
   @media ${({ theme }) => theme.device.tablet} {
-    font-size: ${({ theme }) => theme.mobile.sizes.tree4};
+    font-size: ${({ theme }) => theme.mobile.sizes.tree2};
   }
 `;
 
@@ -514,10 +555,12 @@ const SubLi = styled.li<{ $open?: boolean }>`
   }
 `;
 
-const ArticleLi = styled.li`
-  font-weight: 400;
+const ArticleLi = styled.li<{ $active?: boolean }>`
+  font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
   font-size: ${({ theme }) => theme.desktop.sizes.tree4};
+  // background-color: ${({ $active, theme }) => ($active ? '#eef7fb' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#344b87' : 'inherit')};
 
   @media ${({ theme }) => theme.device.tablet} {
     font-size: ${({ theme }) => theme.mobile.sizes.tree4};
