@@ -23,8 +23,8 @@ class LegislationArticleReplyServiceImplTest extends RepositoryAndServiceTestSup
         LegislationArticleReplyPostRequest result = LegislationArticleReplyPostRequest
                 .builder()
                 .articleId(1L)
-                .parentReplyId(1L)
-                .content("대댓글 내용1")
+                .parentReplyId(null)
+                .content("댓글 내용1")
                 .build();
         
         ApiResponse reply = legislationArticleReplyService.createReply(result, 2L);

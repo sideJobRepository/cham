@@ -27,7 +27,7 @@ public class LegislationServiceImpl implements LegislationService {
     private static final String NO_SECTION = "NO_SECTION";
     private static final String NO_CHAPTER = "NO_CHAPTER";
     
-   
+    
     @Override
     public LegislationFullResponse getAllFullLegislations() {
 
