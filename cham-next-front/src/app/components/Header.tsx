@@ -222,7 +222,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
       setMenuData(initialMenuData);
       setKeyword('');
     }
-  }, [searchMode, rawMenuData, searchMenuData, searchKeyword, initialMenuData]);
+  }, [searchMode, rawMenuData, searchMenuData, initialMenuData]);
 
   useEffect(() => {
     if (!rawMenuData && initialMenuData) {
@@ -307,7 +307,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
           )}
         </HeaderTopToggle>
         {searchMode && !currentLaw && <NoSearch>검색된 결과가 없습니다.</NoSearch>}
-        {menuData && (
+        {(menuData?.legislations ?? []).length > 0 && (
           <MenuTopBox>
             {menuData?.legislations.map((law, idx) => (
               <TopTab
