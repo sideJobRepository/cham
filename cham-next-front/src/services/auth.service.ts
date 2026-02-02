@@ -25,6 +25,9 @@ export function useLoginPost() {
 
         onSuccess?.();
         alert('로그인에 성공하였습니다.');
+        const channel = new BroadcastChannel('auth');
+        channel.postMessage({ type: 'LOGIN' });
+        channel.close();
       }
     );
   };

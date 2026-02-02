@@ -152,6 +152,13 @@ export default function CommentSide() {
       setContent('');
     }
   }, [commentOpen]);
+
+  useEffect(() => {
+    if (!user) {
+      setEditingReplyId(null);
+      setEditContent('');
+    }
+  }, [user]);
   return (
     <CommentMenu $open={commentOpen}>
       <CommentTopBox>
@@ -181,7 +188,8 @@ export default function CommentSide() {
               <CommentContent>{reply.content}</CommentContent>
             )}
 
-            {reply.isOwner &&
+            {user &&
+              reply.isOwner &&
               (editingReplyId === reply.replyId.toString() ? (
                 <EditBox>
                   <EditButton color="#4A90E2">

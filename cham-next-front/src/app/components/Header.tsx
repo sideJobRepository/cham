@@ -90,7 +90,7 @@ export default function TopHeader() {
 
     if (!ok) return;
     const channel = new BroadcastChannel('auth');
-    channel.postMessage('logout');
+    channel.postMessage({ type: 'LOGOUT' });
     channel.close();
 
     try {

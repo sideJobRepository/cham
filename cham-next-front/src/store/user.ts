@@ -9,7 +9,7 @@ interface User {
 
 interface UserStore {
   user: User | null;
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   clearUser: () => void;
 }
 
@@ -31,5 +31,5 @@ interface RecordUserStore {
 
 export const useRecordUserStore = create<RecordUserStore>((set) => ({
   recordUser: [],
-  setRecordUser: (recordUser) => set({recordUser})
-}))
+  setRecordUser: (recordUser) => set({ recordUser }),
+}));
