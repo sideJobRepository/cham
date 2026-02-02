@@ -34,8 +34,8 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
     @Transactional(readOnly = true)
     public LegislationArticleReplyGetRequest getReplies(Long articleId, Long loginMemberId) {
         List<LegislationArticleReply> replies = replyRepository.findRepliesByArticleId(articleId);
+        LegislationArticle article = articleRepository.findById(articleId).orElseThrow(() -> new RuntimeException("Article not found"));
         
-        String title = null;
         // 1. 부모 댓글 Map
         Map<Long, LegislationArticleReplyGetRequest.Reply> parentMap = new LinkedHashMap<>();
         
@@ -61,7 +61,6 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                 
                 parentMap.put(reply.getId(), parent);
                 result.add(parent);
-                title = reply.getArticle().getArticleNo() +  " " + reply.getArticle().getArticleTitle();
             }
             // 대댓글
             else {
@@ -86,7 +85,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
         
         return LegislationArticleReplyGetRequest.builder()
                 .articleId(articleId)
-                .title(title)
+                .title(article.getArticleNo() + " " + article.getArticleTitle())
                 .replies(result)
                 .build();
         

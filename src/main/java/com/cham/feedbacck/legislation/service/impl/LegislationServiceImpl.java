@@ -62,11 +62,7 @@ public class LegislationServiceImpl implements LegislationService {
      // 3. legislation 단위로 트리 조립
      List<LegislationFullResponse.Legislation> result =
              grouped.entrySet().stream()
-                     .map(entry ->
-                             buildLegislationWithFilteredArticles(
-                                     entry.getKey(),
-                                     entry.getValue()
-                             )
+                     .map(entry -> buildLegislationWithFilteredArticles(entry.getKey(), entry.getValue())
                      )
                      .toList();
  
