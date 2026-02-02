@@ -375,8 +375,7 @@ const CommentHeader = styled.div`
 `;
 
 const CommentContent = styled.p`
-  word-break: keep-all;
-
+  white-space: pre-line;
   font-size: ${({ theme }) => theme.desktop.sizes.xl};
   color: ${({ theme }) => theme.colors.inputColor};
 
