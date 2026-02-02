@@ -41,4 +41,7 @@ public class Great extends BaseData {
     @Enumerated(EnumType.STRING)
     private GreatType greatType;
     
+    public void modify(GreatType greatType) {
+        this.greatType = greatType;
+    }
 }

@@ -78,6 +78,9 @@ public class GreatServiceImpl implements GreatService {
     
     @Override
     public ApiResponse updateGreat(GreatPutRequest request) {
-        return null;
+        Long id = request.getId();
+        Great great = greatRepository.findById(id).orElseThrow(() -> new RuntimeException("존재하지 않은 좋아요 입니다."));
+        great.modify(request.getGreatType());
+        return new ApiResponse(200,true,"수정되었습니다.");
     }
 }
