@@ -631,7 +631,6 @@ const HeaderTopToggle = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 const ToggleBtnBox = styled.div`
@@ -742,6 +741,7 @@ const PartBlock = styled.div`
 
 const SearchGroup = styled.form`
   display: flex;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   background-color: ${({ theme }) => theme.colors.whiteColor};
   flex: 1;
   align-items: center;
