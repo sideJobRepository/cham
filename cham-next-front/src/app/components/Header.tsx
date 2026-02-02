@@ -103,6 +103,7 @@ export default function TopHeader() {
 
     tokenStore.clear();
     resetUser();
+    setCommentOpen(false);
   };
 
   const uniqById = (list: Article[]) => {

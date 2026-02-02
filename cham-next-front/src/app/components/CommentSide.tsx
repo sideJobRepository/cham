@@ -143,9 +143,15 @@ export default function CommentSide() {
   //로그인시 이동 처리
   useEffect(() => {
     if (pathname === '/login') setCommentOpen(false);
-    console.log('pathname', pathname);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!commentOpen) {
+      setEditingReplyId(null);
+      setEditContent('');
+      setContent('');
+    }
+  }, [commentOpen]);
   return (
     <CommentMenu $open={commentOpen}>
       <CommentTopBox>
