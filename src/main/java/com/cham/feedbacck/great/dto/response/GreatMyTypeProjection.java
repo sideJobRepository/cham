@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class GreatMyTypeProjection {
+    private Long greatId;
     private Long articleId;
      private GreatType greatType;
  

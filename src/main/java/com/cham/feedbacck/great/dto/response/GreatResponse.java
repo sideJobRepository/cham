@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class GreatResponse {
     
+    private Long greatId;
+    
     /** 조문 ID */
     private Long articleId;
     

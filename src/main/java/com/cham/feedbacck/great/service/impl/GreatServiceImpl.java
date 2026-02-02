@@ -37,7 +37,7 @@ public class GreatServiceImpl implements GreatService {
     public List<GreatResponse> getGreats(GreatGetPostRequest request, Long memberId) {
         
         List<Long> articleIds = request.getArticleIds();
-    
+        
         // 1. articleId별 기본 countMap 초기화
         Map<Long, Map<GreatType, Long>> countMapByArticle =
                 articleIds.stream()
@@ -46,7 +46,7 @@ public class GreatServiceImpl implements GreatService {
                                 id -> Arrays.stream(GreatType.values())
                                         .collect(Collectors.toMap(t -> t, t -> 0L))
                         ));
-    
+        
         // 2. 집계 반영
         greatRepository.findGreatCounts(articleIds)
                 .forEach(c -> {
@@ -55,29 +55,39 @@ public class GreatServiceImpl implements GreatService {
                         map.put(c.getGreatType(), c.getCount());
                     }
                 });
-    
-        // 3. 내가 선택한 타입 (로그인한 경우)
-        Map<Long, GreatType> mySelectedMap =
+        
+        // 3. 내가 누른 Great (로그인한 경우) — 여기만 구조 변경
+        List<GreatMyTypeProjection> myGreats =
                 (memberId == null)
-                        ? Map.of()
-                        : greatRepository.findMyGreatType(articleIds, memberId)
-                                .stream()
-                                .collect(Collectors.toMap(
-                                        GreatMyTypeProjection::getArticleId,
-                                        GreatMyTypeProjection::getGreatType
-                                ));
-    
+                        ? List.of()
+                        : greatRepository.findMyGreatType(articleIds, memberId);
+        
+        Map<Long, Long> myGreatIdMap =
+                myGreats.stream()
+                        .collect(Collectors.toMap(
+                                GreatMyTypeProjection::getArticleId,
+                                GreatMyTypeProjection::getGreatId
+                        ));
+        
+        Map<Long, GreatType> mySelectedTypeMap =
+                myGreats.stream()
+                        .collect(Collectors.toMap(
+                                GreatMyTypeProjection::getArticleId,
+                                GreatMyTypeProjection::getGreatType
+                        ));
+        
         // 4. articleId별 응답 생성
         return articleIds.stream()
                 .map(articleId -> {
                     Map<GreatType, Long> countMap = countMapByArticle.get(articleId);
-    
+        
                     return GreatResponse.builder()
+                            .greatId(myGreatIdMap.get(articleId))
                             .articleId(articleId)
                             .supportCount(countMap.get(GreatType.SUPPORT))
                             .oppositionCount(countMap.get(GreatType.OPPOSITION))
                             .concernCount(countMap.get(GreatType.CONCERN))
-                            .selectedType(mySelectedMap.get(articleId))
+                            .selectedType(mySelectedTypeMap.get(articleId))
                             .build();
                 })
                 .toList();
@@ -102,7 +112,7 @@ public class GreatServiceImpl implements GreatService {
     
     @Override
     public ApiResponse updateGreat(GreatPutRequest request) {
-        Long id = request.getId();
+        Long id = request.getGreatId();
         Great great = greatRepository.findById(id).orElseThrow(() -> new RuntimeException("존재하지 않은 좋아요 입니다."));
         great.modify(request.getGreatType());
         return new ApiResponse(200,true,"수정되었습니다.");

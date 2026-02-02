@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class GreatPutRequest {
     
-    private Long id;
+    private Long greatId;
     
     private GreatType greatType;
 }
