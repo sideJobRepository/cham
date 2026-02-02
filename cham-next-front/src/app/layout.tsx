@@ -10,17 +10,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: '대전참여자치시민연대',
     description: '법령',
-    url: '',
+    url: 'https://cham-monimap.com/feedback',
     images: [
       {
-        url: '',
+        url: '/og.png',
         width: 1200,
         height: 630,
-        alt: '',
+        alt: '대전참여자치시민연대',
       },
     ],
   },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
