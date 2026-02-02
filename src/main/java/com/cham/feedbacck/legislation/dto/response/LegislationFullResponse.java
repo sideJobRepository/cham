@@ -63,5 +63,6 @@ public class LegislationFullResponse {
          private String content;
          private String categoryMain;
          private String categorySub;
+         private Long replyCount;
      }
 }

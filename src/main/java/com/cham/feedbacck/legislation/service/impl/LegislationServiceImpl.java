@@ -6,6 +6,7 @@ import com.cham.feedbacck.legislation.repository.LegislationRepository;
 import com.cham.feedbacck.legislation.service.LegislationService;
 import com.cham.feedbacck.legislationarticle.entity.LegislationArticle;
 import com.cham.feedbacck.legislationarticle.repository.LegislationArticleRepository;
+import com.cham.feedbacck.reply.repository.LegislationArticleReplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class LegislationServiceImpl implements LegislationService {
     
     private final LegislationRepository legislationRepository;
     private final LegislationArticleRepository legislationArticleRepository;
+    private final LegislationArticleReplyRepository legislationArticleReplyRepository;
     
     private static final String NO_SECTION = "NO_SECTION";
     private static final String NO_CHAPTER = "NO_CHAPTER";
@@ -70,30 +72,39 @@ public class LegislationServiceImpl implements LegislationService {
      return new LegislationFullResponse(result);
     }
     
-    private LegislationFullResponse.Legislation buildLegislation(Legislation legislation) {
-        
+    private LegislationFullResponse.Legislation buildLegislation(
+            Legislation legislation) {
+    
         // 1. 법안마다 조문 조회 (정렬 보장)
         List<LegislationArticle> articles =
-                legislationArticleRepository.findByLegislationOrderByOrdersNo(legislation);
-        
-        // 2. part → chapter → section → articles
+                legislationArticleRepository
+                        .findByLegislationOrderByOrdersNo(legislation);
+    
+        // 2. 댓글 개수 Map
+        Map<Long, Long> replyCountMap = getReplyCountMap(articles);
+    
+        // 3. part → chapter → section → articles
         Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
                 articles.stream()
                         .collect(Collectors.groupingBy(
                                 LegislationArticle::getPart,
                                 LinkedHashMap::new,
                                 Collectors.groupingBy(
-                                        a -> a.getChapter() == null ? NO_CHAPTER : a.getChapter(),
+                                        a -> a.getChapter() == null
+                                                ? NO_CHAPTER
+                                                : a.getChapter(),
                                         LinkedHashMap::new,
                                         Collectors.groupingBy(
-                                                a -> a.getSection() == null ? NO_SECTION : a.getSection(),
+                                                a -> a.getSection() == null
+                                                        ? NO_SECTION
+                                                        : a.getSection(),
                                                 LinkedHashMap::new,
                                                 Collectors.toList()
                                         )
                                 )
                         ));
-        
-        // 3. Map → DTO 트리 변환
+    
+        // 4. Map → DTO 트리 변환
         List<LegislationFullResponse.Part> parts =
                 grouped.entrySet().stream()
                         .map(partEntry -> new LegislationFullResponse.Part(
@@ -115,7 +126,10 @@ public class LegislationServiceImpl implements LegislationService {
                                                                                 a.getArticleTitle(),
                                                                                 a.getCont(),
                                                                                 a.getCategoryMain(),
-                                                                                a.getCategorySub()
+                                                                                a.getCategorySub(),
+                                                                                replyCountMap.getOrDefault(
+                                                                                        a.getId(), 0L
+                                                                                )
                                                                         ))
                                                                         .toList()
                                                         ))
@@ -124,8 +138,77 @@ public class LegislationServiceImpl implements LegislationService {
                                         .toList()
                         ))
                         .toList();
-        
-        // 4. 최종 응답
+    
+        return new LegislationFullResponse.Legislation(
+                legislation.getId(),
+                legislation.getTitle(),
+                legislation.getBillVersion(),
+                parts
+        );
+    }
+  
+    private LegislationFullResponse.Legislation buildLegislationWithFilteredArticles(
+            Legislation legislation,
+            List<LegislationArticle> articles
+    ) {
+    
+        // 댓글 개수 Map
+        Map<Long, Long> replyCountMap = getReplyCountMap(articles);
+    
+        Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
+                articles.stream()
+                        .collect(Collectors.groupingBy(
+                                LegislationArticle::getPart,
+                                LinkedHashMap::new,
+                                Collectors.groupingBy(
+                                        a -> a.getChapter() == null
+                                                ? NO_CHAPTER
+                                                : a.getChapter(),
+                                        LinkedHashMap::new,
+                                        Collectors.groupingBy(
+                                                a -> a.getSection() == null
+                                                        ? NO_SECTION
+                                                        : a.getSection(),
+                                                LinkedHashMap::new,
+                                                Collectors.toList()
+                                        )
+                                )
+                        ));
+    
+        List<LegislationFullResponse.Part> parts =
+                grouped.entrySet().stream()
+                        .map(partEntry -> new LegislationFullResponse.Part(
+                                partEntry.getKey(),
+                                partEntry.getValue().entrySet().stream()
+                                        .map(chapterEntry -> new LegislationFullResponse.Chapter(
+                                                NO_CHAPTER.equals(chapterEntry.getKey())
+                                                        ? null
+                                                        : chapterEntry.getKey(),
+                                                chapterEntry.getValue().entrySet().stream()
+                                                        .map(sectionEntry -> new LegislationFullResponse.Section(
+                                                                NO_SECTION.equals(sectionEntry.getKey())
+                                                                        ? null
+                                                                        : sectionEntry.getKey(),
+                                                                sectionEntry.getValue().stream()
+                                                                        .map(a -> new LegislationFullResponse.Article(
+                                                                                a.getId(),
+                                                                                a.getArticleNo(),
+                                                                                a.getArticleTitle(),
+                                                                                a.getCont(),
+                                                                                a.getCategoryMain(),
+                                                                                a.getCategorySub(),
+                                                                                replyCountMap.getOrDefault(
+                                                                                        a.getId(), 0L
+                                                                                )
+                                                                        ))
+                                                                        .toList()
+                                                        ))
+                                                        .toList()
+                                        ))
+                                        .toList()
+                        ))
+                        .toList();
+    
         return new LegislationFullResponse.Legislation(
                 legislation.getId(),
                 legislation.getTitle(),
@@ -134,65 +217,15 @@ public class LegislationServiceImpl implements LegislationService {
         );
     }
     
-    private LegislationFullResponse.Legislation buildLegislationWithFilteredArticles(
-            Legislation legislation,
-            List<LegislationArticle> articles
-    ) {
+    private Map<Long, Long> getReplyCountMap(List<LegislationArticle> articles) {
     
-        // part → chapter → section → articles
-        Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
-                articles.stream()
-                        .collect(Collectors.groupingBy(
-                                LegislationArticle::getPart,
-                                LinkedHashMap::new,
-                                Collectors.groupingBy(
-                                        a -> a.getChapter() == null ? NO_CHAPTER : a.getChapter(),
-                                        LinkedHashMap::new,
-                                        Collectors.groupingBy(
-                                                a -> a.getSection() == null ? NO_SECTION : a.getSection(),
-                                                LinkedHashMap::new,
-                                                Collectors.toList()
-                                        )
-                                )
-                        ));
+        List<Object[]> rows = legislationArticleReplyRepository.countByArticles(articles);
     
-        List<LegislationFullResponse.Part> parts =
-                grouped.entrySet().stream()
-                        .map(partEntry -> new LegislationFullResponse.Part(
-                                partEntry.getKey(),
-                                partEntry.getValue().entrySet().stream()
-                                        .map(chapterEntry -> new LegislationFullResponse.Chapter(
-                                                NO_CHAPTER.equals(chapterEntry.getKey())
-                                                        ? null
-                                                        : chapterEntry.getKey(),
-                                                chapterEntry.getValue().entrySet().stream()
-                                                        .map(sectionEntry -> new LegislationFullResponse.Section(
-                                                                NO_SECTION.equals(sectionEntry.getKey())
-                                                                        ? null
-                                                                        : sectionEntry.getKey(),
-                                                                sectionEntry.getValue().stream()
-                                                                        .map(a -> new LegislationFullResponse.Article(
-                                                                                a.getId(),
-                                                                                a.getArticleNo(),
-                                                                                a.getArticleTitle(),
-                                                                                a.getCont(),
-                                                                                a.getCategoryMain(),
-                                                                                a.getCategorySub()
-                                                                        ))
-                                                                        .toList()
-                                                        ))
-                                                        .toList()
-                                        ))
-                                        .toList()
-                        ))
-                        .toList();
-    
-        return new LegislationFullResponse.Legislation(
-                legislation.getId(),
-                legislation.getTitle(),
-                legislation.getBillVersion(),
-                parts
-        );
+        return rows.stream()
+                .collect(Collectors.toMap(
+                        r -> (Long) r[0],   // articleId
+                        r -> (Long) r[1]    // count
+                ));
     }
     
 }

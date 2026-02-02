@@ -37,7 +37,6 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
         LegislationArticle article = articleRepository.findById(articleId).orElseThrow(() -> new RuntimeException("Article not found"));
         // 1. 부모 댓글 Map
         Map<Long, LegislationArticleReplyGetRequest.Reply> parentMap = new LinkedHashMap<>();
-        int replyCount = replies.size();
         // 2. 결과 List
         List<LegislationArticleReplyGetRequest.Reply> result = new ArrayList<>();
         
@@ -86,7 +85,6 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                 .articleId(articleId)
                 .title(article.getArticleNo() + " " + article.getArticleTitle())
                 .replies(result)
-                .count(replyCount)
                 .build();
         
     }
