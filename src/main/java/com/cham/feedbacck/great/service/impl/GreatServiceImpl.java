@@ -114,8 +114,18 @@ public class GreatServiceImpl implements GreatService {
     @Override
     public ApiResponse updateGreat(GreatPutRequest request) {
         Long id = request.getGreatId();
-        Great great = greatRepository.findById(id).orElseThrow(() -> new RuntimeException("존재하지 않은 좋아요 입니다."));
+    
+        Great great = greatRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("존재하지 않은 좋아요 입니다."));
+    
+        // 같은 타입 다시 누른 경우 → 취소
+        if (great.getGreatType() == request.getGreatType()) {
+            greatRepository.delete(great);
+            return new ApiResponse(200, true, "좋아요가 취소되었습니다.");
+        }
+    
+        // 다른 타입 누른 경우 → 수정
         great.modify(request.getGreatType());
-        return new ApiResponse(200,true,"수정되었습니다.");
+        return new ApiResponse(200, true, "좋아요가 수정되었습니다.");
     }
 }
