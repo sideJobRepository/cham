@@ -82,6 +82,13 @@ export default function Home() {
   };
 
   const handleUpdate = async (greatId: number, greatType: string) => {
+    if (!user) {
+      const ok = await confirm('로그인 후 가능합니다.', '로그인 페이지로 이동하시겠습니까?');
+      if (!ok) return;
+      router.push('/login');
+      return;
+    }
+
     update({
       url: '/cham/great',
       body: {
@@ -180,7 +187,7 @@ export default function Home() {
                 <ArticleContent> {highlightKeyword(article.content, keyword)}</ArticleContent>
                 <EditBox>
                   <EditButton
-                    $active={selected === 'SUPPORT'}
+                    $active={selected === 'SUPPORT' && user !== null}
                     onClick={() => {
                       if (opinion?.greatId) {
                         handleUpdate(opinion.greatId, 'SUPPORT');
@@ -198,7 +205,7 @@ export default function Home() {
                   </EditButton>
 
                   <EditButton
-                    $active={selected === 'CONCERN'}
+                    $active={selected === 'CONCERN' && user !== null}
                     onClick={() => {
                       if (opinion?.greatId) {
                         handleUpdate(opinion.greatId, 'CONCERN');
@@ -214,7 +221,7 @@ export default function Home() {
                     </span>
                   </EditButton>
                   <EditButton
-                    $active={selected === 'OPPOSITION'}
+                    $active={selected === 'OPPOSITION' && user !== null}
                     onClick={() => {
                       if (opinion?.greatId) {
                         handleUpdate(opinion.greatId, 'OPPOSITION');
