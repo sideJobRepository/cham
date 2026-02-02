@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Service
 @Transactional
 @RequiredArgsConstructor
+@Service
 public class GreatServiceImpl implements GreatService {
     
     private final GreatRepository greatRepository;

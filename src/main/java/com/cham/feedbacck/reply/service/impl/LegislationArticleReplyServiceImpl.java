@@ -52,7 +52,8 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .replyId(reply.getId())
                                 .memberId(reply.getMember().getChamMonimapMemberId())
                                 .memberName(reply.getMember().getChamMonimapMemberName())
-                                .content(reply.getDelStatus() == true ? "삭제된 댓글입니다." : reply.getContent())
+                                .content(reply.getDelStatus() ? "삭제된 댓글입니다." : reply.getContent())
+                                .title(reply.getArticle().getArticleNo() + " " + reply.getArticle().getArticleTitle())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
                                 .children(new ArrayList<>())
@@ -73,7 +74,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .replyId(reply.getId())
                                 .memberId(reply.getMember().getChamMonimapMemberId())
                                 .memberName(reply.getMember().getChamMonimapMemberName())
-                                .content(reply.getDelStatus() == true ? "삭제된 댓글입니다." : reply.getContent())
+                                .content(reply.getDelStatus() ? "삭제된 댓글입니다." : reply.getContent())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
                                 .children(List.of()) // 대댓글의 대댓글은 없음
@@ -112,12 +113,12 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
         }
         
         LegislationArticleReply reply = LegislationArticleReply.builder()
-                        .member(member)
-                        .article(article)
-                        .parent(parent)
-                        .content(request.getContent())
-                        .delStatus(false)
-                        .build();
+                .member(member)
+                .article(article)
+                .parent(parent)
+                .content(request.getContent())
+                .delStatus(false)
+                .build();
         
         replyRepository.save(reply);
         return new ApiResponse(200, true, "댓글이 작성되었습니다.");
@@ -128,7 +129,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
         Long replyId = request.getReplyId();
         LegislationArticleReply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재 하지 않는 댓글입니다."));
         reply.modify(request);
-        return new ApiResponse(200,true,"댓글이 수정되었습니다.");
+        return new ApiResponse(200, true, "댓글이 수정되었습니다.");
     }
     
     
@@ -136,6 +137,6 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
     public ApiResponse deleteReply(Long replyId) {
         LegislationArticleReply reply = replyRepository.findById(replyId).orElseThrow(() -> new RuntimeException("존재 하지 않는 댓글입니다."));
         reply.modifyStatus();
-        return new ApiResponse(200,true,"댓글이 삭제되었습니다");
+        return new ApiResponse(200, true, "댓글이 삭제되었습니다");
     }
 }
