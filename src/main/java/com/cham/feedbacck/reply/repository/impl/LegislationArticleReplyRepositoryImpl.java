@@ -30,4 +30,12 @@ public class LegislationArticleReplyRepositoryImpl implements LegislationArticle
                 )
                 .fetch();
     }
+    
+    @Override
+    public Long findReplyCount(Long articleId) {
+        return queryFactory
+                .select(legislationArticleReply.count())
+                .where(legislationArticleReply.article.id.eq(articleId))
+                .fetchFirst();
+    }
 }

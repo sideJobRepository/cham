@@ -7,4 +7,6 @@ import java.util.List;
 public interface LegislationArticleReplyQueryRepository {
     
      List<LegislationArticleReply> findRepliesByArticleId(Long articleId);
+     
+     Long findReplyCount(Long articleId);
 }

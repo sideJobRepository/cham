@@ -24,7 +24,7 @@ public class LegislationRepositoryImpl implements LegislationQueryRepository {
                         legislationArticle.cont.containsIgnoreCase(keyword)
                                 .or(legislationArticle.articleTitle.containsIgnoreCase(keyword))
                 )
-                .orderBy(legislationArticle.ordersNo.asc())
+                .orderBy(legislationArticle.legislation.id.asc(), legislationArticle.ordersNo.asc())
                 .fetch();
     }
 }

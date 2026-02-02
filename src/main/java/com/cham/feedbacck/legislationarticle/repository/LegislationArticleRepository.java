@@ -9,4 +9,6 @@ import java.util.List;
 public interface LegislationArticleRepository extends JpaRepository<LegislationArticle,Long> {
 
     List<LegislationArticle> findByLegislationOrderByOrdersNo(Legislation legislation);
+    
+    
 }

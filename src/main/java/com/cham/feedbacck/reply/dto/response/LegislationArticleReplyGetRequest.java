@@ -18,6 +18,7 @@ public class LegislationArticleReplyGetRequest {
     private Long articleId;
     private String title;
     private List<Reply> replies;
+    private Integer count;
 
     /* =========================
        중첩 DTO
@@ -32,6 +33,7 @@ public class LegislationArticleReplyGetRequest {
         private Long replyId;        // 댓글 ID
         private Long memberId;       // 작성자 ID
         private String memberName;   // 작성자 이름
+       
         
         private String content;      // 댓글 내용
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
