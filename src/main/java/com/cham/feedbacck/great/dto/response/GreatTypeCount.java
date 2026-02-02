@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GreatTypeCount {
-    
+    private Long articleId;
     private GreatType greatType;
     private Long count;
 }

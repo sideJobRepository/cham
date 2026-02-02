@@ -16,6 +16,7 @@ import java.util.List;
 public class LegislationArticleReplyGetRequest {
     
     private Long articleId;
+    private String title;
     private List<Reply> replies;
 
     /* =========================
@@ -29,7 +30,6 @@ public class LegislationArticleReplyGetRequest {
     public static class Reply {
         
         private Long replyId;        // 댓글 ID
-        private String title;
         private Long memberId;       // 작성자 ID
         private String memberName;   // 작성자 이름
         

@@ -53,7 +53,6 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .memberId(reply.getMember().getChamMonimapMemberId())
                                 .memberName(reply.getMember().getChamMonimapMemberName())
                                 .content(reply.getDelStatus() ? "삭제된 댓글입니다." : reply.getContent())
-                                .title(reply.getArticle().getArticleNo() + " " + reply.getArticle().getArticleTitle())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
                                 .children(new ArrayList<>())
@@ -85,6 +84,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
         
         return LegislationArticleReplyGetRequest.builder()
                 .articleId(articleId)
+                .title(replies.get(0).getArticle().getArticleNo() + " " + replies.get(0).getArticle().getArticleTitle())
                 .replies(result)
                 .build();
     }

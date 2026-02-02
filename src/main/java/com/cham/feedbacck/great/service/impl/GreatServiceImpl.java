@@ -1,8 +1,10 @@
 package com.cham.feedbacck.great.service.impl;
 
 import com.cham.dto.response.ApiResponse;
+import com.cham.feedbacck.great.dto.request.GreatGetPostRequest;
 import com.cham.feedbacck.great.dto.request.GreatPostRequest;
 import com.cham.feedbacck.great.dto.request.GreatPutRequest;
+import com.cham.feedbacck.great.dto.response.GreatMyTypeProjection;
 import com.cham.feedbacck.great.dto.response.GreatResponse;
 import com.cham.feedbacck.great.entity.Great;
 import com.cham.feedbacck.great.enums.GreatType;
@@ -32,31 +34,53 @@ public class GreatServiceImpl implements GreatService {
     
     
     @Override
-    public GreatResponse getGreats(Long articleId, Long memberId) {
+    public List<GreatResponse> getGreats(GreatGetPostRequest request, Long memberId) {
         
-        
-        // 기본값 0
-        Map<GreatType, Long> countMap = Arrays.stream(GreatType.values())
-                                        .collect(Collectors.toMap(t -> t, t -> 0L));
-        
-        //  집계 반영
-        greatRepository.findGreatCounts(articleId)
-                .forEach(c -> countMap.put(c.getGreatType(), c.getCount()));
-        
-        // 3) 내 선택 (로그인한 경우만)
-        GreatType selectedType = null;
-        if (memberId != null) {
-            selectedType = greatRepository.findMyGreatType(articleId, memberId);
-        }
-        
-        // 최종 응답
-        return GreatResponse.builder()
-                .articleId(articleId)
-                .supportCount(countMap.get(GreatType.SUPPORT))
-                .oppositionCount(countMap.get(GreatType.OPPOSITION))
-                .concernCount(countMap.get(GreatType.CONCERN))
-                .selectedType(selectedType)
-                .build();
+        List<Long> articleIds = request.getArticleIds();
+    
+        // 1. articleId별 기본 countMap 초기화
+        Map<Long, Map<GreatType, Long>> countMapByArticle =
+                articleIds.stream()
+                        .collect(Collectors.toMap(
+                                id -> id,
+                                id -> Arrays.stream(GreatType.values())
+                                        .collect(Collectors.toMap(t -> t, t -> 0L))
+                        ));
+    
+        // 2. 집계 반영
+        greatRepository.findGreatCounts(articleIds)
+                .forEach(c -> {
+                    Map<GreatType, Long> map = countMapByArticle.get(c.getArticleId());
+                    if (map != null) {
+                        map.put(c.getGreatType(), c.getCount());
+                    }
+                });
+    
+        // 3. 내가 선택한 타입 (로그인한 경우)
+        Map<Long, GreatType> mySelectedMap =
+                (memberId == null)
+                        ? Map.of()
+                        : greatRepository.findMyGreatType(articleIds, memberId)
+                                .stream()
+                                .collect(Collectors.toMap(
+                                        GreatMyTypeProjection::getArticleId,
+                                        GreatMyTypeProjection::getGreatType
+                                ));
+    
+        // 4. articleId별 응답 생성
+        return articleIds.stream()
+                .map(articleId -> {
+                    Map<GreatType, Long> countMap = countMapByArticle.get(articleId);
+    
+                    return GreatResponse.builder()
+                            .articleId(articleId)
+                            .supportCount(countMap.get(GreatType.SUPPORT))
+                            .oppositionCount(countMap.get(GreatType.OPPOSITION))
+                            .concernCount(countMap.get(GreatType.CONCERN))
+                            .selectedType(mySelectedMap.get(articleId))
+                            .build();
+                })
+                .toList();
         
     }
     

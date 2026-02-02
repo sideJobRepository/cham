@@ -1,6 +1,7 @@
 package com.cham.feedbacck.great.controller;
 
 import com.cham.dto.response.ApiResponse;
+import com.cham.feedbacck.great.dto.request.GreatGetPostRequest;
 import com.cham.feedbacck.great.dto.request.GreatPostRequest;
 import com.cham.feedbacck.great.dto.request.GreatPutRequest;
 import com.cham.feedbacck.great.dto.response.GreatResponse;
@@ -10,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -19,14 +21,14 @@ public class GreatController {
     
     private final GreatService greatService;
     
-    @GetMapping("/great/{articleId}")
-    public GreatResponse getGreat(@PathVariable Long articleId, @AuthenticationPrincipal Jwt jwt) {
+    @PostMapping("/great/greats")
+    public List<GreatResponse> getGreat(@RequestBody GreatGetPostRequest request, @AuthenticationPrincipal Jwt jwt) {
         Long memberId = Optional.ofNullable(jwt)
                 .map(token -> token.getClaim("id"))
                 .map(Object::toString)
                 .map(Long::valueOf)
                 .orElse(null);
-        return greatService.getGreats(articleId, memberId);
+        return greatService.getGreats(request, memberId);
     }
     
     @PostMapping("/great")

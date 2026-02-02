@@ -1,5 +1,6 @@
 package com.cham.feedbacck.great.repository.impl;
 
+import com.cham.feedbacck.great.dto.response.GreatMyTypeProjection;
 import com.cham.feedbacck.great.dto.response.GreatTypeCount;
 import com.cham.feedbacck.great.enums.GreatType;
 import com.cham.feedbacck.great.repository.query.GreatQueryRepository;
@@ -18,28 +19,36 @@ public class GreatRepositoryImpl implements GreatQueryRepository {
     
     
     @Override
-    public List<GreatTypeCount> findGreatCounts(Long articleId) {
+    public List<GreatTypeCount> findGreatCounts(List<Long> articleIds) {
         return queryFactory
                 .select(Projections.constructor(
                         GreatTypeCount.class,
-                        great.greatType,
-                        great.count()
+                        great.legislationArticle.id, // articleId
+                        great.greatType,              // greatType
+                        great.count()                 // count
                 ))
                 .from(great)
-                .where(great.legislationArticle.id.eq(articleId))
-                .groupBy(great.greatType)
+                .where(great.legislationArticle.id.in(articleIds))
+                .groupBy(
+                        great.legislationArticle.id,
+                        great.greatType
+                )
                 .fetch();
     }
     
     @Override
-    public GreatType findMyGreatType(Long articleId, Long memberId) {
+    public List<GreatMyTypeProjection> findMyGreatType(List<Long> articleIds, Long memberId) {
         return queryFactory
-                .select(great.greatType)
+                .select(Projections.constructor(
+                        GreatMyTypeProjection.class,
+                        great.legislationArticle.id,
+                        great.greatType
+                ))
                 .from(great)
                 .where(
-                        great.legislationArticle.id.eq(articleId),
+                        great.legislationArticle.id.in(articleIds),
                         great.member.chamMonimapMemberId.eq(memberId)
                 )
-                .fetchOne();
+                .fetch();
     }
 }
