@@ -290,21 +290,23 @@ export default function TopHeader() {
           )}
         </HeaderTopToggle>
         {searchMode && !currentLaw && <NoSearch>검색된 결과가 없습니다.</NoSearch>}
-        <MenuTopBox>
-          {menuData?.legislations.map((law, idx) => (
-            <TopTab
-              key={law.id}
-              $active={activeLegislation === idx}
-              onClick={() => {
-                setActiveLegislation(idx);
-                setOpenPart(null);
-                setOpenSection(null);
-              }}
-            >
-              {law.title}
-            </TopTab>
-          ))}
-        </MenuTopBox>
+        {menuData && (
+          <MenuTopBox>
+            {menuData?.legislations.map((law, idx) => (
+              <TopTab
+                key={law.id}
+                $active={activeLegislation === idx}
+                onClick={() => {
+                  setActiveLegislation(idx);
+                  setOpenPart(null);
+                  setOpenSection(null);
+                }}
+              >
+                {law.title}
+              </TopTab>
+            ))}
+          </MenuTopBox>
+        )}
         <ul>
           {currentLaw?.parts.map((part) => (
             <React.Fragment key={part.part}>
@@ -667,13 +669,14 @@ const MenuTopBox = styled.div`
   display: flex;
   background-color: ${({ theme }) => theme.colors.whiteColor};
   text-align: center;
-  padding: 12px 12px 0 12px;
+  gap: 4px;
+  padding: 4px;
 `;
 
 const TopTab = styled.div<{ $active: boolean }>`
   flex: 1;
   text-align: center;
-  padding: 12px 0;
+  padding: 12px 4px;
   cursor: pointer;
   font-weight: 700;
   border-radius: 4px;
