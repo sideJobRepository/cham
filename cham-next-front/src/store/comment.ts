@@ -23,6 +23,7 @@ export interface CommentReply {
 
 export interface CommentData {
   articleId: number;
+  title: string;
   replies: CommentReply[];
 }
 

@@ -149,7 +149,7 @@ export default function CommentSide() {
   return (
     <CommentMenu $open={commentOpen}>
       <CommentTopBox>
-        <h4>의견 보기</h4>
+        <h4>{commentData?.title} 의견</h4>
         <X onClick={() => setCommentOpen(false)} />
       </CommentTopBox>
 

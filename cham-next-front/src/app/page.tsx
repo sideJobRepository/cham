@@ -41,17 +41,35 @@ export default function Home() {
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const fetchCommentList = useFetchCommentList();
+  console.log('mainData', mainData);
 
   const keyword = useSearchDataStore((state) => state.keyword);
 
-  //의견 반영
-  const fetchOpinion = useFetchOpinion();
+  //상태값
   const opinionData = useOpinionStore((state) => state.opinion);
+  console.log('opinionData', opinionData);
+  const getOpinion = (articleId: number) => opinionData?.find((o) => o.articleId === articleId);
 
   const openComment = (id: number) => {
     console.log('id-dd---', id);
     fetchCommentList(id);
     setCommentOpen(true);
+  };
+
+  const fetchOpinion = () => {
+    if (!mainData.length) return;
+
+    insert({
+      url: '/cham/great/greats',
+      body: {
+        articleIds: mainData.map((a) => a.articleId),
+      },
+      ignoreErrorRedirect: true,
+      onSuccess: (res) => {
+        // res: List<GreatResponse>
+        useOpinionStore.getState().setOpinion(res);
+      },
+    });
   };
 
   const handleSubmit = async (articleId: number, greatType: string) => {
@@ -62,17 +80,16 @@ export default function Home() {
       return;
     }
 
-    const memberId = user.id;
-
     insert({
       url: '/cham/great',
       body: {
         articleId,
-        memberId,
         greatType,
       },
       ignoreErrorRedirect: true,
-      onSuccess: () => {},
+      onSuccess: () => {
+        // fetchOpinion();
+      },
     });
   };
 
@@ -91,6 +108,8 @@ export default function Home() {
 
   useEffect(() => {
     if (mainData.length === 0) return;
+
+    fetchOpinion();
 
     setCommentOpen(false);
 
@@ -137,42 +156,58 @@ export default function Home() {
       </Hero>
       {mainData.length > 0 && (
         <ArticleSection>
-          {mainData.map((article) => (
-            <ArticleItem key={article.articleId}>
-              <ArticleTop>
-                <ArticleNo>{article.articleNo}</ArticleNo>
-                <Button $bg="#093A6E" $color="#fff" onClick={() => openComment(article.articleId)}>
-                  <span>의견 보기</span>
-                  <ArrowRight weight="bold" />
-                </Button>
-              </ArticleTop>
-              <ArticleTitle>{article.articleTitle}</ArticleTitle>
-              <ArticleContent> {highlightKeyword(article.content, keyword)}</ArticleContent>
-              <EditBox>
-                <EditButton
-                  onClick={() => handleSubmit(article.articleId, 'SUPPORT')}
-                  color="#4A90E2"
-                >
-                  <span>찬성해요</span>
-                  <ThumbsUp weight="bold" />
-                </EditButton>
-                <EditButton
-                  onClick={() => handleSubmit(article.articleId, 'CONCERN')}
-                  color="#757575"
-                >
-                  <span>우려돼요</span>
-                  <WarningCircle weight="bold" />
-                </EditButton>
-                <EditButton
-                  onClick={() => handleSubmit(article.articleId, 'OPPOSITION')}
-                  color="#757575"
-                >
-                  <span>반대해요</span>
-                  <ThumbsDown weight="bold" />
-                </EditButton>
-              </EditBox>
-            </ArticleItem>
-          ))}
+          {mainData.map((article) => {
+            const opinion = getOpinion(article.articleId);
+            const selected = opinion?.selectedType;
+
+            return (
+              <ArticleItem key={article.articleId}>
+                <ArticleTop>
+                  <ArticleNo>{article.articleNo}</ArticleNo>
+                  <Button
+                    $bg="#093A6E"
+                    $color="#fff"
+                    onClick={() => openComment(article.articleId)}
+                  >
+                    <span>의견 보기</span>
+                    <ArrowRight weight="bold" />
+                  </Button>
+                </ArticleTop>
+                <ArticleTitle>{article.articleTitle}</ArticleTitle>
+                <ArticleContent> {highlightKeyword(article.content, keyword)}</ArticleContent>
+                <EditBox>
+                  <EditButton
+                    $active={selected === 'SUPPORT'}
+                    onClick={() => handleSubmit(article.articleId, 'SUPPORT')}
+                  >
+                    <span>찬성해요</span>
+                    <ThumbsUp weight="bold" />
+                    <span>{opinion?.supportCount ?? 0}</span>
+                    {selected === 'SUPPORT' && <Check weight="bold" />}
+                  </EditButton>
+
+                  <EditButton
+                    $active={selected === 'CONCERN'}
+                    onClick={() => handleSubmit(article.articleId, 'CONCERN')}
+                  >
+                    <span>우려돼요</span>
+                    <WarningCircle weight="bold" />
+                    <span>{opinion?.concernCount ?? 0}</span>
+                    {selected === 'CONCERN' && <Check weight="bold" />}
+                  </EditButton>
+                  <EditButton
+                    $active={selected === 'OPPOSITION'}
+                    onClick={() => handleSubmit(article.articleId, 'OPPOSITION')}
+                  >
+                    <span>반대해요</span>
+                    <ThumbsDown weight="bold" />
+                    <span>{opinion?.oppositionCount ?? 0}</span>
+                    {selected === 'OPPOSITION' && <Check weight="bold" />}
+                  </EditButton>
+                </EditBox>
+              </ArticleItem>
+            );
+          })}
         </ArticleSection>
       )}
     </Wrapper>
@@ -345,12 +380,12 @@ const EditBox = styled.div`
   flex: 1;
 `;
 
-const EditButton = styled.button<{ color: string }>`
+const EditButton = styled.button<{ $active?: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background-color: transparent;
+  background-color: ${({ $active }) => ($active ? '#e8f0ff' : 'transparent')};
   color: ${({ theme }) => theme.colors.inputColor};
   font-size: ${({ theme }) => theme.desktop.sizes.sm};
   font-weight: 600;
