@@ -88,7 +88,28 @@ export default function Home() {
       },
       ignoreErrorRedirect: true,
       onSuccess: () => {
-        // fetchOpinion();
+        fetchOpinion();
+      },
+    });
+  };
+
+  const handleUpdate = async (articleId: number, greatType: string) => {
+    if (!user) {
+      const ok = await confirm('로그인 후 가능합니다.', '로그인 페이지로 이동하시겠습니까?');
+      if (!ok) return;
+      router.push('/login');
+      return;
+    }
+
+    update({
+      url: '/cham/great',
+      body: {
+        articleId,
+        greatType,
+      },
+      ignoreErrorRedirect: true,
+      onSuccess: () => {
+        fetchOpinion();
       },
     });
   };
@@ -181,9 +202,11 @@ export default function Home() {
                     onClick={() => handleSubmit(article.articleId, 'SUPPORT')}
                   >
                     <span>찬성해요</span>
-                    <ThumbsUp weight="bold" />
-                    <span>{opinion?.supportCount ?? 0}</span>
-                    {selected === 'SUPPORT' && <Check weight="bold" />}
+
+                    <span>
+                      <ThumbsUp weight="bold" />
+                      {opinion?.supportCount ?? 0}
+                    </span>
                   </EditButton>
 
                   <EditButton
@@ -191,18 +214,20 @@ export default function Home() {
                     onClick={() => handleSubmit(article.articleId, 'CONCERN')}
                   >
                     <span>우려돼요</span>
-                    <WarningCircle weight="bold" />
-                    <span>{opinion?.concernCount ?? 0}</span>
-                    {selected === 'CONCERN' && <Check weight="bold" />}
+                    <span>
+                      <WarningCircle weight="bold" />
+                      {opinion?.concernCount ?? 0}
+                    </span>
                   </EditButton>
                   <EditButton
                     $active={selected === 'OPPOSITION'}
                     onClick={() => handleSubmit(article.articleId, 'OPPOSITION')}
                   >
                     <span>반대해요</span>
-                    <ThumbsDown weight="bold" />
-                    <span>{opinion?.oppositionCount ?? 0}</span>
-                    {selected === 'OPPOSITION' && <Check weight="bold" />}
+                    <span>
+                      <ThumbsDown weight="bold" />
+                      {opinion?.oppositionCount ?? 0}
+                    </span>
                   </EditButton>
                 </EditBox>
               </ArticleItem>
@@ -385,10 +410,10 @@ const EditButton = styled.button<{ $active?: boolean }>`
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background-color: ${({ $active }) => ($active ? '#e8f0ff' : 'transparent')};
-  color: ${({ theme }) => theme.colors.inputColor};
+  background-color: ${({ $active }) => ($active ? '#428bfb' : 'transparent')};
+  color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.inputColor)};
   font-size: ${({ theme }) => theme.desktop.sizes.sm};
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -402,6 +427,14 @@ const EditButton = styled.button<{ $active?: boolean }>`
     display: flex;
     align-items: center;
     line-height: 1;
+    gap: 4px;
+  }
+
+  svg {
+    font-size: ${({ theme }) => theme.desktop.sizes.md};
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.md};
+    }
   }
 
   &:hover {
