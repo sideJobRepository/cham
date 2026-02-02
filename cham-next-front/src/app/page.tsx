@@ -37,17 +37,12 @@ export default function Home() {
   //유저
   const user = useUserStore((state) => state.user);
 
-  //검색
-  const fetchSearch = useFetchSerach();
-  const searchData = useSearchDataStore((state) => state.search);
-  const [searchKeyword, setSearchKeyword] = useState('');
-
-  console.log('searchData', searchData);
-
   const mainData = useArticleStore((state) => state.articles);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const fetchCommentList = useFetchCommentList();
+
+  const keyword = useSearchDataStore((state) => state.keyword);
 
   //의견 반영
   const fetchOpinion = useFetchOpinion();
@@ -79,6 +74,19 @@ export default function Home() {
       ignoreErrorRedirect: true,
       onSuccess: () => {},
     });
+  };
+
+  const highlightKeyword = (text: string, keyword: string) => {
+    if (!keyword) return text;
+
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // 정규식 안전
+    const regex = new RegExp(`(${escaped})`, 'gi');
+
+    return text
+      .split(regex)
+      .map((part, idx) =>
+        part.toLowerCase() === keyword.toLowerCase() ? <mark key={idx}>{part}</mark> : part
+      );
   };
 
   useEffect(() => {
@@ -139,7 +147,7 @@ export default function Home() {
                 </Button>
               </ArticleTop>
               <ArticleTitle>{article.articleTitle}</ArticleTitle>
-              <ArticleContent>{article.content}</ArticleContent>
+              <ArticleContent> {highlightKeyword(article.content, keyword)}</ArticleContent>
               <EditBox>
                 <EditButton
                   onClick={() => handleSubmit(article.articleId, 'SUPPORT')}
@@ -317,6 +325,12 @@ const ArticleContent = styled.div`
   word-break: keep-all;
   overflow-wrap: break-word;
   white-space: normal;
+
+  mark {
+    background-color: #fff3a0;
+    padding: 0 8px;
+    font-weight: 600;
+  }
 
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.md};

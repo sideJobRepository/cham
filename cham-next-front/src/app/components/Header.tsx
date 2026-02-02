@@ -78,11 +78,12 @@ export default function TopHeader() {
   //검색 영역
   const [searchMode, setSearchMode] = useState(false);
   const fetchSearch = useFetchSerach();
-  const searchData = useSearchDataStore((state) => state.search);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const setKeyword = useSearchDataStore((state) => state.setKeyword);
 
   const searchClick = () => {
     fetchSearch(searchKeyword);
+    setKeyword(searchKeyword);
   };
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
@@ -206,9 +207,11 @@ export default function TopHeader() {
     if (searchMode) {
       // 검색 모드: searchMenuData를 menuData처럼 씀
       setMenuData(searchMenuData);
+      setKeyword(searchKeyword);
     } else {
       // 메뉴 모드: 원래 메뉴 데이터
       setMenuData(rawMenuData);
+      setKeyword('');
     }
   }, [searchMode, rawMenuData, searchMenuData]);
 
@@ -248,7 +251,6 @@ export default function TopHeader() {
               $active={!searchMode}
               onClick={() => {
                 setSearchMode(false);
-                setSearchKeyword('');
               }}
             >
               전체
@@ -273,7 +275,7 @@ export default function TopHeader() {
             >
               <FieldsWrapper>
                 <Field>
-                  <label>키워드</label>
+                  <label>조 키워드</label>
                   <input
                     type="text"
                     placeholder="검색어를 입력해주세요."
@@ -766,6 +768,7 @@ const Field = styled.div`
   flex-direction: column;
   width: 100%;
   flex-shrink: 0;
+  gap: 4px;
 
   label {
     font-size: ${({ theme }) => theme.desktop.sizes.sm};
