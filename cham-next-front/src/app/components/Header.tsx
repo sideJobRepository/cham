@@ -6,7 +6,6 @@ import { CaretDown, CaretUp, X, PencilSimpleLine, MagnifyingGlass } from 'phosph
 import { usePathname, useRouter } from 'next/navigation';
 
 import React from 'react';
-import { useFetchMainMenu } from '@/services/menu.service';
 import { Article, MenuData, useMenuStore } from '@/store/menu';
 import Link from 'next/link';
 import { useUserStore } from '@/store/user';
@@ -21,7 +20,11 @@ import CommentSide from '@/app/components/CommentSide';
 import { useFetchSerach } from '@/services/search.service';
 import { useSearchDataStore } from '@/store/search';
 
-export default function TopHeader() {
+type HeaderProps = {
+  initialMenuData?: MenuData | null;
+};
+
+export default function TopHeader({ initialMenuData = null }: HeaderProps) {
   const [mounted, setMounted] = useState(false);
   const { alert, confirm } = useDialogUtil();
 
@@ -29,11 +32,10 @@ export default function TopHeader() {
     setMounted(true);
   }, []);
 
-  useFetchMainMenu();
-
   const rawMenuData = useMenuStore((state) => state.menu);
+  const setMenuStore = useMenuStore((state) => state.setMenu);
   const searchMenuData = useSearchDataStore((state) => state.search);
-  const [menuData, setMenuData] = useState<MenuData | null>(null);
+  const [menuData, setMenuData] = useState<MenuData | null>(initialMenuData);
   const [initialized, setInitialized] = useState(false);
 
   const articlesData = useArticleStore((state) => state.articles);
@@ -206,12 +208,27 @@ export default function TopHeader() {
       // 검색 모드: searchMenuData를 menuData처럼 씀
       setMenuData(searchMenuData);
       setKeyword(searchKeyword);
-    } else {
+      return;
+    }
+
+    if (rawMenuData) {
       // 메뉴 모드: 원래 메뉴 데이터
       setMenuData(rawMenuData);
       setKeyword('');
+      return;
     }
-  }, [searchMode, rawMenuData, searchMenuData]);
+
+    if (initialMenuData) {
+      setMenuData(initialMenuData);
+      setKeyword('');
+    }
+  }, [searchMode, rawMenuData, searchMenuData, searchKeyword, initialMenuData]);
+
+  useEffect(() => {
+    if (!rawMenuData && initialMenuData) {
+      setMenuStore(initialMenuData);
+    }
+  }, [rawMenuData, initialMenuData, setMenuStore]);
 
   return (
     <Wrapper onMouseLeave={() => setIsSubOpen(false)}>

@@ -4,10 +4,16 @@ import React from 'react';
 import styled from 'styled-components';
 import ClientProviders from '../providers';
 import Header from './Header';
+import type { MenuData } from '@/store/menu';
 import AuthListener from '@/app/components/AuthListener';
 import Loading from '@/app/components/Loading';
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+type ClientLayoutProps = {
+  children: React.ReactNode;
+  initialMenuData?: MenuData | null;
+};
+
+export default function ClientLayout({ children, initialMenuData }: ClientLayoutProps) {
   console.log('ClientLayout styled ===', styled);
   return (
     <ClientProviders>
@@ -16,7 +22,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <Wrapper>
         <Inner>
           <LeftArea>
-            <Header />
+            <Header initialMenuData={initialMenuData ?? null} />
           </LeftArea>
           <MainArea>{children}</MainArea>
         </Inner>
