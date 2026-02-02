@@ -64,6 +64,7 @@ public class GreatServiceImpl implements GreatService {
         
         Map<Long, Long> myGreatIdMap =
                 myGreats.stream()
+                        .filter(p -> p.getGreatId() != null)
                         .collect(Collectors.toMap(
                                 GreatMyTypeProjection::getArticleId,
                                 GreatMyTypeProjection::getGreatId
