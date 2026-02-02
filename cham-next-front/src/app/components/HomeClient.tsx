@@ -35,6 +35,8 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
   const storedArticles = useArticleStore((state) => state.articles);
   const setArticles = useArticleStore((state) => state.setArticles);
   const mainData = storedArticles.length ? storedArticles : initialArticles;
+
+  console.log('mainData--- 확인', mainData);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const fetchCommentList = useFetchCommentList();
@@ -197,13 +199,13 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
           }}
         >
           <HeroContent>
-            <h2>
-              2025년 1월 30일 발의된 더불어 민주당의 광역행정통합 법안에
+            <h2>충남대전통합 특별법(안) 공개 시민의 의견을 말해주세요.</h2>
+            <h4>
+              공개된 여당의 광역행정통합 법안을 직접 확인하고,
+              <br />각 조항별로 의견을 더해주세요.
               <br />
-              대한 시민의견 수렴을 위해 만들었습니다.
-              <br />
-              많은 참여 부탁드립니다.
-            </h2>
+              여러분이 남긴 의견을 모아 전달하겠습니다.
+            </h4>
           </HeroContent>
         </motion.div>
       </Hero>
