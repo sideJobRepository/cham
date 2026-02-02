@@ -14,14 +14,14 @@ public class GreatResponse {
     
     private Long greatId;
     
-    /** 조문 ID */
     private Long articleId;
+    
+    private GreatType selectedType;
     
     /** 집계 */
     private Long supportCount;
     private Long oppositionCount;
     private Long concernCount;
     
-    /** 로그인 사용자가 선택한 타입 (없으면 null) */
-    private GreatType selectedType;
+
 }
