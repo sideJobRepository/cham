@@ -159,6 +159,8 @@ export default function CommentSide() {
         <X onClick={() => setCommentOpen(false)} />
       </CommentTopBox>
 
+      {commentData?.replies.length === 0 && <NoSearch>등록된 의견이 없습니다.</NoSearch>}
+
       <ul>
         {commentData?.replies.map((reply) => (
           <CommentItem key={reply.replyId}>
@@ -414,5 +416,20 @@ const EditButton = styled.button<{ color: string }>`
 
   &:hover {
     opacity: 0.8;
+  }
+`;
+
+const NoSearch = styled.h5`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: ${({ theme }) => theme.desktop.sizes.h5Size};
+  color: ${({ theme }) => theme.colors.blackColor};
+  font-weight: 600;
+  padding: 24px 4px;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
   }
 `;
