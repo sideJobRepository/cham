@@ -3,7 +3,7 @@
 import { Wrapper } from '@/styles/Wrapper.styles';
 import { motion } from 'framer-motion';
 import styled, { keyframes } from 'styled-components';
-import { ArrowRight, ThumbsUp, WarningCircle, ThumbsDown } from 'phosphor-react';
+import { ArrowRight, ThumbsUp, WarningCircle, ThumbsDown, ChatCircleText } from 'phosphor-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useArticleStore } from '@/store/aricle';
 import { useCommentStore } from '@/store/comment';
@@ -199,7 +199,11 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
           }}
         >
           <HeroContent>
-            <h2>충남대전통합 특별법(안) 공개 시민의 의견을 말해주세요.</h2>
+            <h2>
+              충남대전통합 특별법(안) 공개
+              <br />
+              시민의 의견을 말해주세요.
+            </h2>
             <h4>
               공개된 여당의 광역행정통합 법안을 직접 확인하고,
               <br />각 조항별로 의견을 더해주세요.
@@ -225,6 +229,9 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
                     onClick={() => openComment(article.articleId)}
                   >
                     <span>의견 쓰기</span>
+                    <label>
+                      <ChatCircleText weight="bold" /> {article.replyCount}
+                    </label>
                     <ArrowRight weight="bold" />
                   </Button>
                 </ArticleTop>
@@ -363,7 +370,7 @@ const Button = styled.button<{ $bg: string; $color: string }>`
   border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   cursor: pointer;
   font-weight: 500;
   font-size: ${({ theme }) => theme.desktop.sizes.sm};
@@ -373,6 +380,18 @@ const Button = styled.button<{ $bg: string; $color: string }>`
     display: flex;
     align-items: center;
     line-height: 1;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    font-size: ${({ theme }) => theme.desktop.sizes.sm};
+    gap: 2px;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.sm};
+    }
   }
 
   @media ${({ theme }) => theme.device.mobile} {

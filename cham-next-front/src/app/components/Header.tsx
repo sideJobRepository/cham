@@ -34,6 +34,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
 
   const rawMenuData = useMenuStore((state) => state.menu);
   const setMenuStore = useMenuStore((state) => state.setMenu);
+
   const searchMenuData = useSearchDataStore((state) => state.search);
   const [menuData, setMenuData] = useState<MenuData | null>(initialMenuData);
   const [initialized, setInitialized] = useState(false);
@@ -317,7 +318,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
         {(menuData?.legislations ?? []).length > 0 && (
           <MenuTopBox>
             {menuData?.legislations.map((law, idx) => (
-                <TopTab
+              <TopTab
                 key={law.id}
                 $active={activeLegislation === idx}
                 onClick={() => {

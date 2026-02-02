@@ -8,6 +8,7 @@ export interface Article {
   content: string;
   categoryMain: string;
   categorySub: string;
+  replyCount: number;
 }
 
 /* ===== Section ===== */
