@@ -289,6 +289,7 @@ export default function TopHeader() {
             </SearchGroup>
           )}
         </HeaderTopToggle>
+        {searchMode && !currentLaw && <NoSearch>검색된 결과가 없습니다.</NoSearch>}
         <MenuTopBox>
           {menuData?.legislations.map((law, idx) => (
             <TopTab
@@ -742,16 +743,12 @@ const PartBlock = styled.div`
 const SearchGroup = styled.form`
   display: flex;
   background-color: ${({ theme }) => theme.colors.whiteColor};
-  // border-top: 1px solid ${({ theme }) => theme.colors.border};
   flex: 1;
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
   flex-wrap: nowrap;
-
-  @media ${({ theme }) => theme.device.mobile} {
-    width: 100%;
-  }
+  width: 100%;
 `;
 
 const FieldsWrapper = styled.div`
@@ -821,5 +818,20 @@ const SearchButton = styled.button`
 
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.md};
+  }
+`;
+
+const NoSearch = styled.h5`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: ${({ theme }) => theme.desktop.sizes.h5Size};
+  color: ${({ theme }) => theme.colors.blackColor};
+  font-weight: 600;
+  padding: 24px 4px;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
   }
 `;
