@@ -2,7 +2,7 @@
 
 import styled from 'styled-components';
 import { useEffect, useRef, useState } from 'react';
-import { CaretDown, CaretUp, X, List } from 'phosphor-react';
+import { CaretDown, CaretUp, X, PencilSimpleLine } from 'phosphor-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import React from 'react';
@@ -20,6 +20,7 @@ import { useDialogUtil } from '@/utils/dialog';
 import { useCommentDataStore, useCommentStore } from '@/store/comment';
 import flag from 'phosphor-react/src/icons/Flag';
 import desktop from 'phosphor-react/src/icons/Desktop';
+import CommentSide from '@/app/components/CommentSide';
 
 export default function TopHeader() {
   const [mounted, setMounted] = useState(false);
@@ -33,12 +34,7 @@ export default function TopHeader() {
   const menuData = useMenuStore((state) => state.menu);
   const [initialized, setInitialized] = useState(false);
 
-  //comment
-  const commentOpen = useCommentStore((state) => state.open);
-  const setCommentOpen = useCommentStore((state) => state.setOpen);
-  const commentData = useCommentDataStore((state) => state.comment);
-  console.log('commentData', commentData);
-
+  const articlesData = useArticleStore((state) => state.articles);
   const setArticlesData = useArticleStore((state) => state.setArticles);
 
   const [activeLegislation, setActiveLegislation] = useState<number>(0);
@@ -70,8 +66,9 @@ export default function TopHeader() {
   const hamburgerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  //모바일 서브 메뉴
-  const [isMobileSubOpen, setIsMobileSubOpen] = useState<string | null>(null);
+  //커멘트
+  const commentOpen = useCommentStore((state) => state.open);
+  const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
@@ -126,24 +123,6 @@ export default function TopHeader() {
   useEffect(() => {
     setIsOpen(isDesktop);
   }, [isDesktop]);
-
-  //이름 *
-  const maskNameMiddle = (name?: string | null) => {
-    const n = (name ?? '').trim();
-    if (!n) return '';
-
-    // 1글자면 그대로
-    if (n.length === 1) return n;
-
-    // 2글자면 뒤만 마스킹: 박지 -> 박*
-    if (n.length === 2) return `${n[0]}*`;
-
-    // 3글자 이상: 가운데(들) 마스킹: 박지수 -> 박*수 / 홍길동 -> 홍*동 / 김철수민 -> 김**민
-    const first = n[0];
-    const last = n[n.length - 1];
-    const stars = '*'.repeat(n.length - 2);
-    return `${first}${stars}${last}`;
-  };
 
   //메뉴바 닫기
   useEffect(() => {
@@ -201,6 +180,12 @@ export default function TopHeader() {
       setIsOpen(false);
     }
   }, [commentOpen]);
+
+  useEffect(() => {
+    if (pathname === '/login' && articlesData) {
+      router.push('/');
+    }
+  }, [articlesData]);
 
   return (
     <Wrapper onMouseLeave={() => setIsSubOpen(false)}>
@@ -362,32 +347,7 @@ export default function TopHeader() {
           ))}
         </ul>
       </Menu>
-      <CommentMenu $open={commentOpen} className={isSubOpen ? 'show' : ''}>
-        <CommentTopBox>
-          <h5>의견 보기</h5>
-          <X onClick={() => setCommentOpen(false)} />
-        </CommentTopBox>
-
-        <ul>
-          {commentData?.replies.map((reply) => (
-            <CommentItem key={reply.replyId}>
-              <CommentHeader>
-                <strong>{maskNameMiddle(reply.memberName)}</strong>
-                <span>{reply.registDate}</span>
-              </CommentHeader>
-
-              <CommentContent>{reply.content}</CommentContent>
-            </CommentItem>
-          ))}
-        </ul>
-        <TextBox>
-          <ButtonBox>
-            <span>∙ 의견 남기기</span>
-            <Button>저장</Button>
-          </ButtonBox>
-          <textarea />
-        </TextBox>
-      </CommentMenu>
+      <CommentSide />
     </Wrapper>
   );
 }
@@ -663,162 +623,4 @@ const PartBlock = styled.div`
   width: 100%;
   border-radius: 8px;
   margin: 8px 0;
-`;
-
-const CommentMenu = styled.div<{ $open: boolean }>`
-  position: fixed;
-  top: 80px;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  width: 50%;
-  max-width: 300px;
-  height: calc(100vh - 80px);
-  // border-top: 1px solid ${({ theme }) => theme.colors.lineColor};
-  background-color: ${({ theme }) => theme.colors.softColor};
-  transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(100%)')};
-  opacity: ${({ $open }) => ($open ? 0.96 : 0)};
-  pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
-  align-items: center;
-
-  ul {
-    background-color: ${({ theme }) => theme.colors.whiteColor};
-    border-radius: 4px;
-    flex: 1;
-    width: 90%;
-    overflow-y: auto;
-    padding: 16px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-`;
-
-const CommentTopBox = styled.div`
-  display: flex;
-  width: 100%;
-  background-color: ${({ theme }) => theme.colors.blueColor};
-  text-align: center;
-  padding: 12px 24px;
-  justify-content: space-between;
-  color: ${({ theme }) => theme.colors.whiteColor};
-  align-items: center;
-  font-size: ${({ theme }) => theme.desktop.sizes.h5Size};
-  font-weight: 600;
-  margin-bottom: 12px;
-
-  svg {
-    cursor: pointer;
-  }
-
-  @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
-  }
-
-  h5 {
-    text-align: right;
-  }
-`;
-
-const TextBox = styled.div`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  padding: 24px 16px;
-  background-color: ${({ theme }) => theme.colors.softColor2};
-  margin-top: 12px;
-  > textarea {
-    resize: none;
-    height: 100px;
-    padding: 8px 12px;
-  }
-`;
-const ButtonBox = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  justify-content: space-between;
-  align-items: center;
-
-  > span {
-    color: ${({ theme }) => theme.colors.blueColor};
-    font-size: ${({ theme }) => theme.desktop.sizes.md};
-    font-weight: 800;
-
-    @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.md};
-    }
-  }
-`;
-
-const Button = styled.button`
-  background: ${({ theme }) => theme.colors.blueColor};
-  color: ${({ theme }) => theme.colors.whiteColor};
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: ${({ theme }) => theme.desktop.sizes.sm};
-  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
-
-  span {
-    display: flex;
-    align-items: center;
-    line-height: 1;
-  }
-
-  @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.sm};
-  }
-`;
-
-const CommentItem = styled.li`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.lineColor};
-`;
-
-const CommentHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: ${({ theme }) => theme.desktop.sizes.xs};
-  color: ${({ theme }) => theme.colors.inputColor};
-
-  @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.xs};
-  }
-
-  strong {
-    color: ${({ theme }) => theme.colors.blackColor};
-    font-weight: 700;
-
-    font-size: ${({ theme }) => theme.desktop.sizes.sm};
-    color: ${({ theme }) => theme.colors.inputColor};
-
-    @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.sm};
-    }
-  }
-`;
-
-const CommentContent = styled.p`
-  word-break: keep-all;
-
-  font-size: ${({ theme }) => theme.desktop.sizes.md};
-  color: ${({ theme }) => theme.colors.inputColor};
-
-  @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.md};
-  }
 `;
