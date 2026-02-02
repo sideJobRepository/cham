@@ -46,4 +46,11 @@ class LegislationArticleServiceImplTest extends RepositoryAndServiceTestSupport 
         }
     }
    
+    @DisplayName("")
+    @Test
+    void test3(){
+        LegislationFullResponse test = legislationService.searchLegislations("이 법은 제8조에 따른 통합특별시의 관할구역에만 적용한다.");
+        System.out.println("test = " + test);
+        
+    }
 }
