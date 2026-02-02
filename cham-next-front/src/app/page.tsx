@@ -41,17 +41,15 @@ export default function Home() {
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const fetchCommentList = useFetchCommentList();
-  console.log('mainData', mainData);
 
   const keyword = useSearchDataStore((state) => state.keyword);
 
   //상태값
   const opinionData = useOpinionStore((state) => state.opinion);
-  console.log('opinionData', opinionData);
+
   const getOpinion = (articleId: number) => opinionData?.find((o) => o.articleId === articleId);
 
   const openComment = (id: number) => {
-    console.log('id-dd---', id);
     fetchCommentList(id);
     setCommentOpen(true);
   };
@@ -65,8 +63,8 @@ export default function Home() {
         articleIds: mainData.map((a) => a.articleId),
       },
       ignoreErrorRedirect: true,
+      disableLoading: true,
       onSuccess: (res) => {
-        // res: List<GreatResponse>
         useOpinionStore.getState().setOpinion(res);
       },
     });
@@ -87,27 +85,22 @@ export default function Home() {
         greatType,
       },
       ignoreErrorRedirect: true,
+      disableLoading: true,
       onSuccess: () => {
         fetchOpinion();
       },
     });
   };
 
-  const handleUpdate = async (articleId: number, greatType: string) => {
-    if (!user) {
-      const ok = await confirm('로그인 후 가능합니다.', '로그인 페이지로 이동하시겠습니까?');
-      if (!ok) return;
-      router.push('/login');
-      return;
-    }
-
+  const handleUpdate = async (greatId: number, greatType: string) => {
     update({
       url: '/cham/great',
       body: {
-        articleId,
+        greatId,
         greatType,
       },
       ignoreErrorRedirect: true,
+      disableLoading: true,
       onSuccess: () => {
         fetchOpinion();
       },
@@ -199,7 +192,13 @@ export default function Home() {
                 <EditBox>
                   <EditButton
                     $active={selected === 'SUPPORT'}
-                    onClick={() => handleSubmit(article.articleId, 'SUPPORT')}
+                    onClick={() => {
+                      if (opinion?.greatId) {
+                        handleUpdate(opinion.greatId, 'SUPPORT');
+                      } else {
+                        handleSubmit(article.articleId, 'SUPPORT');
+                      }
+                    }}
                   >
                     <span>찬성해요</span>
 
@@ -211,7 +210,13 @@ export default function Home() {
 
                   <EditButton
                     $active={selected === 'CONCERN'}
-                    onClick={() => handleSubmit(article.articleId, 'CONCERN')}
+                    onClick={() => {
+                      if (opinion?.greatId) {
+                        handleUpdate(opinion.greatId, 'CONCERN');
+                      } else {
+                        handleSubmit(article.articleId, 'CONCERN');
+                      }
+                    }}
                   >
                     <span>우려돼요</span>
                     <span>
@@ -221,7 +226,13 @@ export default function Home() {
                   </EditButton>
                   <EditButton
                     $active={selected === 'OPPOSITION'}
-                    onClick={() => handleSubmit(article.articleId, 'OPPOSITION')}
+                    onClick={() => {
+                      if (opinion?.greatId) {
+                        handleUpdate(opinion.greatId, 'OPPOSITION');
+                      } else {
+                        handleSubmit(article.articleId, 'OPPOSITION');
+                      }
+                    }}
                   >
                     <span>반대해요</span>
                     <span>

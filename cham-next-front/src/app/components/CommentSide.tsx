@@ -149,7 +149,7 @@ export default function CommentSide() {
   return (
     <CommentMenu $open={commentOpen}>
       <CommentTopBox>
-        <h4>{commentData?.title} 의견</h4>
+        <h4>{commentData?.title}</h4>
         <X onClick={() => setCommentOpen(false)} />
       </CommentTopBox>
 
@@ -212,7 +212,7 @@ export default function CommentSide() {
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="의견을 입력하세요"
+          placeholder="의견을 입력하세요."
         />
       </TextBox>
     </CommentMenu>
@@ -272,6 +272,7 @@ const CommentTopBox = styled.div`
   margin-bottom: 12px;
 
   svg {
+    text-align: right;
     cursor: pointer;
   }
 
@@ -280,7 +281,8 @@ const CommentTopBox = styled.div`
   }
 
   h4 {
-    text-align: right;
+    width: 80%;
+    text-align: left;
   }
 `;
 

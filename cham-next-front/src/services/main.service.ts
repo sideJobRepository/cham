@@ -8,17 +8,24 @@ interface InsertOptions<T> {
   body: T;
   onSuccess?: (data: T) => void;
   ignoreErrorRedirect?: boolean;
+  disableLoading?: boolean;
 }
-
 
 export function useInsertPost() {
   const { request } = useRequest();
 
-  const insert = <T>({ url, body, onSuccess, ignoreErrorRedirect, headers }: InsertOptions<T>) => {
+  const insert = <T>({
+    url,
+    body,
+    onSuccess,
+    ignoreErrorRedirect,
+    disableLoading,
+    headers,
+  }: InsertOptions<T>) => {
     request(
-      () => api.post<T>(url, body, { headers }).then(res => res.data),
-      data => onSuccess?.(data),
-      { ignoreErrorRedirect }
+      () => api.post<T>(url, body, { headers }).then((res) => res.data),
+      (data) => onSuccess?.(data),
+      { ignoreErrorRedirect, disableLoading }
     );
   };
 
@@ -28,11 +35,18 @@ export function useInsertPost() {
 export function useUpdatePost() {
   const { request } = useRequest();
 
-  const update = <T>({ url, body, onSuccess, ignoreErrorRedirect, headers }: InsertOptions<T>) => {
+  const update = <T>({
+    url,
+    body,
+    onSuccess,
+    ignoreErrorRedirect,
+    disableLoading,
+    headers,
+  }: InsertOptions<T>) => {
     request(
-      () => api.put<T>(url, body, { headers }).then(res => res.data),
-      data => onSuccess?.(data),
-      { ignoreErrorRedirect }
+      () => api.put<T>(url, body, { headers }).then((res) => res.data),
+      (data) => onSuccess?.(data),
+      { ignoreErrorRedirect, disableLoading }
     );
   };
 
@@ -43,14 +57,14 @@ export function useDeletePost() {
   const { request } = useRequest();
 
   const remove = <T>({
-                       url,
-                       onSuccess,
-                       ignoreErrorRedirect,
-                       headers,
-                     }: Omit<InsertOptions<T>, 'body'>) => {
+    url,
+    onSuccess,
+    ignoreErrorRedirect,
+    headers,
+  }: Omit<InsertOptions<T>, 'body'>) => {
     request(
-      () => api.delete<T>(url, { headers }).then(res => res.data),
-      data => onSuccess?.(data),
+      () => api.delete<T>(url, { headers }).then((res) => res.data),
+      (data) => onSuccess?.(data),
       { ignoreErrorRedirect }
     );
   };
