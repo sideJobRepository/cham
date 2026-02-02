@@ -1,7 +1,5 @@
 import { useRequest } from '@/hooks/useRequest';
-import { useCommentDataStore } from '@/store/comment';
 import api from '@/lib/axiosInstance';
-import { useOpinionStore } from '@/store/opinion';
 import { useSearchDataStore } from '@/store/search';
 
 export function useFetchSerach() {

@@ -3,16 +3,7 @@
 import { Wrapper } from '@/styles/Wrapper.styles';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import {
-  ArrowRight,
-  HandPointing,
-  MagnifyingGlass,
-  ThumbsUp,
-  WarningCircle,
-  ThumbsDown,
-  Check,
-  X,
-} from 'phosphor-react';
+import { ArrowRight, ThumbsUp, WarningCircle, ThumbsDown } from 'phosphor-react';
 import React, { useEffect, useState } from 'react';
 import { useArticleStore } from '@/store/aricle';
 import { useCommentStore } from '@/store/comment';
@@ -21,9 +12,7 @@ import { useInsertPost, useUpdatePost } from '@/services/main.service';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'next/navigation';
 import { useDialogUtil } from '@/utils/dialog';
-import { useFetchOpinion } from '@/services/opinion.service';
-import { useOpinionStore } from '@/store/opinion';
-import { useFetchSerach } from '@/services/search.service';
+import { OpinionData, useOpinionStore } from '@/store/opinion';
 import { useSearchDataStore } from '@/store/search';
 
 export default function Home() {
@@ -65,7 +54,7 @@ export default function Home() {
       ignoreErrorRedirect: true,
       disableLoading: true,
       onSuccess: (res) => {
-        useOpinionStore.getState().setOpinion(res);
+        useOpinionStore.getState().setOpinion(res as unknown as OpinionData[]);
       },
     });
   };

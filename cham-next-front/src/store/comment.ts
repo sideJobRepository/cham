@@ -1,5 +1,4 @@
 import { create } from 'zustand/index';
-import { MenuData } from '@/store/menu';
 
 interface CommentOpenSotre {
   open: boolean;

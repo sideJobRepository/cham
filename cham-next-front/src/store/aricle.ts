@@ -1,9 +1,8 @@
-// @/store/aricle
 import { create } from 'zustand';
 import type { Article } from '@/store/menu';
 
 interface ArticleState {
-  articles: Article[]; // ✅ 배열 하나만
+  articles: Article[];
   setArticles: (list: Article[]) => void;
   clearArticles: () => void;
 }

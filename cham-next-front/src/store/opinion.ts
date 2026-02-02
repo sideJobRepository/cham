@@ -1,5 +1,4 @@
 import { create } from 'zustand/index';
-import { Legislation } from '@/store/menu';
 
 export interface OpinionData {
   articleId: number;
