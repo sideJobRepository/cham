@@ -41,6 +41,7 @@ public class GreatRepositoryImpl implements GreatQueryRepository {
         return queryFactory
                 .select(Projections.constructor(
                         GreatMyTypeProjection.class,
+                        great.id,
                         great.legislationArticle.id,
                         great.greatType
                 ))
