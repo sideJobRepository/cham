@@ -1,28 +1,84 @@
 'use client';
 
-import Image from 'next/image';
-import styles from './page.module.css';
 import { Wrapper } from '@/styles/Wrapper.styles';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { ArrowRight, HandPointing, MagnifyingGlass } from 'phosphor-react';
-import { useEffect, useState } from 'react';
+import {
+  ArrowRight,
+  HandPointing,
+  MagnifyingGlass,
+  ThumbsUp,
+  WarningCircle,
+  ThumbsDown,
+  Check,
+  X,
+} from 'phosphor-react';
+import React, { useEffect, useState } from 'react';
 import { useArticleStore } from '@/store/aricle';
 import { useCommentStore } from '@/store/comment';
 import { useFetchCommentList } from '@/services/comment.service';
+import { useInsertPost, useUpdatePost } from '@/services/main.service';
+import { useUserStore } from '@/store/user';
+import { useRouter } from 'next/navigation';
+import { useDialogUtil } from '@/utils/dialog';
+import { useFetchOpinion } from '@/services/opinion.service';
+import { useOpinionStore } from '@/store/opinion';
+import { useFetchSerach } from '@/services/search.service';
+import { useSearchDataStore } from '@/store/search';
 
 export default function Home() {
+  const { insert } = useInsertPost();
+  const { update } = useUpdatePost();
+
+  const router = useRouter();
+
+  const { alert, confirm } = useDialogUtil();
+
+  //유저
+  const user = useUserStore((state) => state.user);
+
+  //검색
+  const fetchSearch = useFetchSerach();
+  const searchData = useSearchDataStore((state) => state.search);
   const [searchKeyword, setSearchKeyword] = useState('');
+
+  console.log('searchData', searchData);
 
   const mainData = useArticleStore((state) => state.articles);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const fetchCommentList = useFetchCommentList();
 
+  //의견 반영
+  const fetchOpinion = useFetchOpinion();
+  const opinionData = useOpinionStore((state) => state.opinion);
+
   const openComment = (id: number) => {
     console.log('id-dd---', id);
     fetchCommentList(id);
     setCommentOpen(true);
+  };
+
+  const handleSubmit = async (articleId: number, greatType: string) => {
+    if (!user) {
+      const ok = await confirm('로그인 후 가능합니다.', '로그인 페이지로 이동하시겠습니까?');
+      if (!ok) return;
+      router.push('/login');
+      return;
+    }
+
+    const memberId = user.id;
+
+    insert({
+      url: '/cham/great',
+      body: {
+        articleId,
+        memberId,
+        greatType,
+      },
+      ignoreErrorRedirect: true,
+      onSuccess: () => {},
+    });
   };
 
   useEffect(() => {
@@ -67,30 +123,7 @@ export default function Home() {
               시민의 자발적인 참여와 연대에 기초해 참된 주민자치를 실현하는
               대전참여자치시민연대입니다.
             </h4>
-            <ButtonBox>
-              <SearchGroup
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  // onSearch?.();
-                }}
-              >
-                <FieldsWrapper>
-                  <Field>
-                    <label>키워드</label>
-                    <input
-                      type="text"
-                      placeholder="검색어를 입력해주세요."
-                      value={searchKeyword ?? ''}
-                      onChange={(e) => setSearchKeyword(e.target.value)}
-                    />
-                  </Field>
-                </FieldsWrapper>
-                <SearchButton type="submit">
-                  <MagnifyingGlass weight="bold" />
-                  <span>검색</span>
-                </SearchButton>
-              </SearchGroup>
-            </ButtonBox>
+            <ButtonBox></ButtonBox>
           </HeroContent>
         </motion.div>
       </Hero>
@@ -107,6 +140,29 @@ export default function Home() {
               </ArticleTop>
               <ArticleTitle>{article.articleTitle}</ArticleTitle>
               <ArticleContent>{article.content}</ArticleContent>
+              <EditBox>
+                <EditButton
+                  onClick={() => handleSubmit(article.articleId, 'SUPPORT')}
+                  color="#4A90E2"
+                >
+                  <span>찬성해요</span>
+                  <ThumbsUp weight="bold" />
+                </EditButton>
+                <EditButton
+                  onClick={() => handleSubmit(article.articleId, 'CONCERN')}
+                  color="#757575"
+                >
+                  <span>우려돼요</span>
+                  <WarningCircle weight="bold" />
+                </EditButton>
+                <EditButton
+                  onClick={() => handleSubmit(article.articleId, 'OPPOSITION')}
+                  color="#757575"
+                >
+                  <span>반대해요</span>
+                  <ThumbsDown weight="bold" />
+                </EditButton>
+              </EditBox>
             </ArticleItem>
           ))}
         </ArticleSection>
@@ -205,91 +261,6 @@ const Button = styled.button<{ $bg: string; $color: string }>`
     font-size: ${({ theme }) => theme.mobile.sizes.sm};
   }
 `;
-const SearchGroup = styled.form`
-  display: flex;
-  background-color: ${({ theme }) => theme.colors.white};
-  flex: 1;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 4px 2px 12px;
-  border: 1px solid ${({ theme }) => theme.colors.lineColor};
-  border-radius: 4px;
-  flex-wrap: nowrap;
-
-  @media ${({ theme }) => theme.device.mobile} {
-    width: 100%;
-  }
-`;
-
-const FieldsWrapper = styled.div`
-  display: flex;
-  width: 100%;
-  align-items: center;
-  flex: 1;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  overflow-y: hidden;
-`;
-
-const Field = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  flex-shrink: 0;
-
-  label {
-    font-size: ${({ theme }) => theme.desktop.sizes.sm};
-    color: ${({ theme }) => theme.colors.blackColor};
-    font-weight: 600;
-    text-align: left;
-
-    @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.sm};
-    }
-  }
-
-  input {
-    border: none;
-    width: 100%;
-    padding-right: 8px;
-    outline: none;
-    color: ${({ theme }) => theme.colors.inputColor};
-    background: transparent;
-    font-size: ${({ theme }) => theme.desktop.sizes.md};
-    @media ${({ theme }) => theme.device.mobile} {
-      font-size: ${({ theme }) => theme.mobile.sizes.md};
-    }
-  }
-`;
-
-const SearchButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #093a6e;
-  font-size: ${({ theme }) => theme.desktop.sizes.md};
-  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
-  border: none;
-  color: white;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  &:hover {
-    opacity: 0.8;
-  }
-
-  span {
-    display: flex;
-    align-items: center;
-    line-height: 1;
-  }
-
-  @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.md};
-  }
-`;
 
 const ArticleSection = styled.section`
   width: 100%;
@@ -349,5 +320,42 @@ const ArticleContent = styled.div`
 
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.md};
+  }
+`;
+
+const EditBox = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 1;
+`;
+
+const EditButton = styled.button<{ color: string }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: transparent;
+  color: ${({ theme }) => theme.colors.inputColor};
+  font-size: ${({ theme }) => theme.desktop.sizes.sm};
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 1px 2px 2px 2px rgba(0, 0, 0, 0.2);
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.sm};
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  &:hover {
+    opacity: 0.8;
   }
 `;

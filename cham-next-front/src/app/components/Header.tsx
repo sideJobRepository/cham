@@ -2,12 +2,12 @@
 
 import styled from 'styled-components';
 import { useEffect, useRef, useState } from 'react';
-import { CaretDown, CaretUp, X, PencilSimpleLine } from 'phosphor-react';
+import { CaretDown, CaretUp, X, PencilSimpleLine, MagnifyingGlass } from 'phosphor-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import React from 'react';
 import { useFetchMainMenu } from '@/services/menu.service';
-import { Article, useMenuStore } from '@/store/menu';
+import { Article, MenuData, useMenuStore } from '@/store/menu';
 import Link from 'next/link';
 import { useUserStore } from '@/store/user';
 import { withBasePath } from '@/lib/path';
@@ -21,6 +21,8 @@ import { useCommentDataStore, useCommentStore } from '@/store/comment';
 import flag from 'phosphor-react/src/icons/Flag';
 import desktop from 'phosphor-react/src/icons/Desktop';
 import CommentSide from '@/app/components/CommentSide';
+import { useFetchSerach } from '@/services/search.service';
+import { useSearchDataStore } from '@/store/search';
 
 export default function TopHeader() {
   const [mounted, setMounted] = useState(false);
@@ -31,7 +33,10 @@ export default function TopHeader() {
   }, []);
 
   useFetchMainMenu();
-  const menuData = useMenuStore((state) => state.menu);
+
+  const rawMenuData = useMenuStore((state) => state.menu);
+  const searchMenuData = useSearchDataStore((state) => state.search);
+  const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   const articlesData = useArticleStore((state) => state.articles);
@@ -69,6 +74,16 @@ export default function TopHeader() {
   //커멘트
   const commentOpen = useCommentStore((state) => state.open);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
+
+  //검색 영역
+  const [searchMode, setSearchMode] = useState(false);
+  const fetchSearch = useFetchSerach();
+  const searchData = useSearchDataStore((state) => state.search);
+  const [searchKeyword, setSearchKeyword] = useState('');
+
+  const searchClick = () => {
+    fetchSearch(searchKeyword);
+  };
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
@@ -154,7 +169,7 @@ export default function TopHeader() {
   }, [isSubOpen]);
 
   useEffect(() => {
-    if (!menuData || initialized) return;
+    if (!menuData) return;
 
     const firstLaw = menuData.legislations?.[0];
     if (!firstLaw) return;
@@ -173,7 +188,7 @@ export default function TopHeader() {
     setArticlesData(articles);
 
     setInitialized(true);
-  }, [menuData, initialized]);
+  }, [menuData, initialized, searchMode]);
 
   useEffect(() => {
     if (commentOpen && !isDesktop) {
@@ -186,6 +201,16 @@ export default function TopHeader() {
       router.push('/');
     }
   }, [articlesData]);
+
+  useEffect(() => {
+    if (searchMode) {
+      // 검색 모드: searchMenuData를 menuData처럼 씀
+      setMenuData(searchMenuData);
+    } else {
+      // 메뉴 모드: 원래 메뉴 데이터
+      setMenuData(rawMenuData);
+    }
+  }, [searchMode, rawMenuData, searchMenuData]);
 
   return (
     <Wrapper onMouseLeave={() => setIsSubOpen(false)}>
@@ -216,6 +241,54 @@ export default function TopHeader() {
         {user ? <a onClick={() => logout()}>로그아웃</a> : <Link href="/login">로그인</Link>}
       </Login>
       <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
+        <HeaderTopToggle>
+          <ToggleBtnBox>
+            <ToggleBtn
+              type="button"
+              $active={!searchMode}
+              onClick={() => {
+                setSearchMode(false);
+                setSearchKeyword('');
+              }}
+            >
+              전체
+            </ToggleBtn>
+
+            <ToggleBtn
+              type="button"
+              $active={searchMode}
+              onClick={() => {
+                setSearchMode(true);
+              }}
+            >
+              검색
+            </ToggleBtn>
+          </ToggleBtnBox>
+          {searchMode && (
+            <SearchGroup
+              onSubmit={(e) => {
+                e.preventDefault();
+                searchClick();
+              }}
+            >
+              <FieldsWrapper>
+                <Field>
+                  <label>키워드</label>
+                  <input
+                    type="text"
+                    placeholder="검색어를 입력해주세요."
+                    value={searchKeyword ?? ''}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                  />
+                </Field>
+              </FieldsWrapper>
+              <SearchButton type="submit">
+                <MagnifyingGlass weight="bold" />
+                <span>검색</span>
+              </SearchButton>
+            </SearchGroup>
+          )}
+        </HeaderTopToggle>
         <MenuTopBox>
           {menuData?.legislations.map((law, idx) => (
             <TopTab
@@ -551,10 +624,50 @@ const Menu = styled.div<{ $open: boolean }>`
   }
 `;
 
+const HeaderTopToggle = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const ToggleBtnBox = styled.div`
+  display: flex;
+  width: 100%;
+`;
+
+const ToggleBtn = styled.button<{ $active: boolean }>`
+  flex: 1;
+  padding: 12px 4px;
+  border: none;
+  background-color: ${({ $active, theme }) =>
+    $active ? theme.colors.blueColor : theme.colors.softColor};
+  color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.inputColor)};
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  font-size: ${({ theme }) => theme.desktop.sizes.xl};
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.xl};
+  }
+`;
+
 const MenuTopBox = styled.div`
   display: flex;
   background-color: ${({ theme }) => theme.colors.whiteColor};
   text-align: center;
+  padding: 12px 12px 0 12px;
 `;
 
 const TopTab = styled.div<{ $active: boolean }>`
@@ -563,8 +676,9 @@ const TopTab = styled.div<{ $active: boolean }>`
   padding: 12px 0;
   cursor: pointer;
   font-weight: 700;
+  border-radius: 4px;
   background-color: ${({ $active, theme }) =>
-    $active ? theme.colors.blueColor : theme.colors.softColor2};
+    $active ? theme.colors.fileBorderColor : theme.colors.softColor2};
   color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.blackColor)};
   font-size: ${({ theme }) => theme.desktop.sizes.md};
   @media ${({ theme }) => theme.device.mobile} {
@@ -623,4 +737,89 @@ const PartBlock = styled.div`
   width: 100%;
   border-radius: 8px;
   margin: 8px 0;
+`;
+
+const SearchGroup = styled.form`
+  display: flex;
+  background-color: ${({ theme }) => theme.colors.whiteColor};
+  // border-top: 1px solid ${({ theme }) => theme.colors.border};
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  flex-wrap: nowrap;
+
+  @media ${({ theme }) => theme.device.mobile} {
+    width: 100%;
+  }
+`;
+
+const FieldsWrapper = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex: 1;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  overflow-y: hidden;
+`;
+
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-shrink: 0;
+
+  label {
+    font-size: ${({ theme }) => theme.desktop.sizes.sm};
+    color: ${({ theme }) => theme.colors.blackColor};
+    font-weight: 600;
+    text-align: left;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.sm};
+    }
+  }
+
+  input {
+    border: none;
+    width: 100%;
+    padding-right: 8px;
+    outline: none;
+    color: ${({ theme }) => theme.colors.inputColor};
+    background: transparent;
+    font-size: ${({ theme }) => theme.desktop.sizes.md};
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.md};
+    }
+  }
+`;
+
+const SearchButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #093a6e;
+  font-size: ${({ theme }) => theme.desktop.sizes.md};
+  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    opacity: 0.8;
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.md};
+  }
 `;
