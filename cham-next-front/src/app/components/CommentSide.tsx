@@ -162,7 +162,7 @@ export default function CommentSide() {
   return (
     <CommentMenu $open={commentOpen}>
       <CommentTopBox>
-        <h4>{commentData?.title}</h4>
+        <h5>{commentData?.title}</h5>
         <X onClick={() => setCommentOpen(false)} />
       </CommentTopBox>
 
@@ -283,7 +283,7 @@ const CommentTopBox = styled.div`
   justify-content: space-between;
   color: ${({ theme }) => theme.colors.whiteColor};
   align-items: center;
-  font-size: ${({ theme }) => theme.desktop.sizes.h4Size};
+  font-size: ${({ theme }) => theme.desktop.sizes.h5Size};
   font-weight: 600;
   margin-bottom: 12px;
 
@@ -292,13 +292,16 @@ const CommentTopBox = styled.div`
     cursor: pointer;
   }
 
-  @media ${({ theme }) => theme.device.mobile} {
-    font-size: ${({ theme }) => theme.mobile.sizes.h4Size};
-  }
-
-  h4 {
+  h5 {
     width: 80%;
     text-align: left;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.h5Size};
   }
 `;
 

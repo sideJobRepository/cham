@@ -164,14 +164,12 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
         >
           <HeroContent>
             <h2>
-              대전을 사람의 만남이 아름다운 도시로,
+              2025년 1월 30일 발의된 더불어 민주당의 광역행정통합 법안에
               <br />
-              열린시대 새 지방자치를 만들어갑니다.
+              대한 시민의견 수렴을 위해 만들었습니다.
+              <br />
+              많은 참여 부탁드립니다.
             </h2>
-            <h4>
-              시민의 자발적인 참여와 연대에 기초해 참된 주민자치를 실현하는
-              대전참여자치시민연대입니다.
-            </h4>
           </HeroContent>
         </motion.div>
       </Hero>
@@ -190,7 +188,7 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
                     $color="#fff"
                     onClick={() => openComment(article.articleId)}
                   >
-                    <span>의견 보기</span>
+                    <span>의견 쓰기</span>
                     <ArrowRight weight="bold" />
                   </Button>
                 </ArticleTop>
