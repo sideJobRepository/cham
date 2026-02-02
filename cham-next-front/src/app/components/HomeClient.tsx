@@ -2,9 +2,9 @@
 
 import { Wrapper } from '@/styles/Wrapper.styles';
 import { motion } from 'framer-motion';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { ArrowRight, ThumbsUp, WarningCircle, ThumbsDown } from 'phosphor-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useArticleStore } from '@/store/aricle';
 import { useCommentStore } from '@/store/comment';
 import { useFetchCommentList } from '@/services/comment.service';
@@ -15,6 +15,7 @@ import { useDialogUtil } from '@/utils/dialog';
 import { OpinionData, useOpinionStore } from '@/store/opinion';
 import { useSearchDataStore } from '@/store/search';
 import type { Article } from '@/store/menu';
+import { useLoadingStore } from '@/store/loading';
 
 type HomeClientProps = {
   initialArticles: Article[];
@@ -39,6 +40,11 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
   const fetchCommentList = useFetchCommentList();
 
   const keyword = useSearchDataStore((state) => state.keyword);
+  const loading = useLoadingStore((state) => state.loading);
+  const hasRequestedInitialOpinion = useRef(false);
+  const hasObservedInitialLoading = useRef(false);
+  const [heroReady, setHeroReady] = useState(false);
+  const [showInitialBlockingLoader, setShowInitialBlockingLoader] = useState(true);
 
   const opinionData = useOpinionStore((state) => state.opinion);
 
@@ -58,7 +64,6 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
         articleIds: mainData.map((a) => a.articleId),
       },
       ignoreErrorRedirect: true,
-      disableLoading: true,
       onSuccess: (res) => {
         useOpinionStore.getState().setOpinion(res as unknown as OpinionData[]);
       },
@@ -130,10 +135,15 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
 
   useEffect(() => {
     if (mainData.length === 0) return;
+    setCommentOpen(false);
+
+    if (!hasRequestedInitialOpinion.current) {
+      hasRequestedInitialOpinion.current = true;
+      fetchOpinion();
+      return;
+    }
 
     fetchOpinion();
-
-    setCommentOpen(false);
 
     window.scrollTo({
       top: 0,
@@ -141,12 +151,36 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
     });
   }, [mainData]);
 
+  useEffect(() => {
+    if (mainData.length === 0) {
+      setShowInitialBlockingLoader(false);
+    }
+  }, [mainData.length]);
+
+  useEffect(() => {
+    if (!hasRequestedInitialOpinion.current) return;
+    if (loading) {
+      hasObservedInitialLoading.current = true;
+      return;
+    }
+
+    if (!heroReady && hasObservedInitialLoading.current) {
+      setHeroReady(true);
+      setShowInitialBlockingLoader(false);
+    }
+  }, [loading, heroReady]);
+
   return (
     <Wrapper>
+      {showInitialBlockingLoader && (
+        <InitialLoaderOverlay>
+          <InitialLoaderSpinner />
+        </InitialLoaderOverlay>
+      )}
       <Hero>
         <HeroFillOverlay
           initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
+          animate={{ scaleX: heroReady ? 1 : 0 }}
           transition={{
             duration: 1.1,
             ease: [0.4, 0, 0.2, 1],
@@ -155,11 +189,11 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
         <motion.div
           style={{ position: 'relative', zIndex: 1 }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: heroReady ? 1 : 0 }}
           transition={{
             duration: 1.2,
             ease: [0.4, 0, 0.2, 1],
-            delay: 1.1,
+            delay: 0.1,
           }}
         >
           <HeroContent>
@@ -455,4 +489,29 @@ const EditButton = styled.button<{ $active?: boolean }>`
   &:hover {
     opacity: 0.8;
   }
+`;
+
+const spin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const InitialLoaderOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const InitialLoaderSpinner = styled.div`
+  width: 56px;
+  height: 56px;
+  border: 4px solid rgba(9, 58, 110, 0.2);
+  border-top-color: #093a6e;
+  border-radius: 50%;
+  animation: ${spin} 0.8s linear infinite;
 `;

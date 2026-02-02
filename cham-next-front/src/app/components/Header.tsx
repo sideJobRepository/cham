@@ -127,6 +127,16 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
     return uniqById(list);
   };
 
+  const collectLegislationArticles = (law: MenuData['legislations'][number]) => {
+    const list =
+      law.parts?.flatMap((part: any) =>
+        (part.chapters ?? []).flatMap((ch: any) =>
+          (ch.sections ?? []).flatMap((sec: any) => sec.articles ?? [])
+        )
+      ) ?? [];
+    return uniqById(list);
+  };
+
   const articleClick = (data: Article) => {
     if (!data) return;
 
@@ -175,17 +185,14 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
     const firstLaw = menuData.legislations?.[0];
     if (!firstLaw) return;
 
-    const firstPart = firstLaw.parts?.[0];
-    if (!firstPart) return;
-
-    // PART 열기
+    // 초기 진입 시 첫 상위 탭 기준으로 전체 article을 보여주고 트리는 닫아둔다.
     setActiveLegislation(0);
-    setOpenPart(firstPart.part);
+    setOpenPart(null);
     setOpenChapter(null);
     setOpenSection(null);
+    setActiveArticleId(null);
 
-    // 해당 PART 하위 article들 자동 세팅
-    const articles = collectPartArticles(firstPart);
+    const articles = collectLegislationArticles(firstLaw);
     setArticlesData(articles);
 
     setInitialized(true);
@@ -310,13 +317,16 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
         {(menuData?.legislations ?? []).length > 0 && (
           <MenuTopBox>
             {menuData?.legislations.map((law, idx) => (
-              <TopTab
+                <TopTab
                 key={law.id}
                 $active={activeLegislation === idx}
                 onClick={() => {
                   setActiveLegislation(idx);
                   setOpenPart(null);
+                  setOpenChapter(null);
                   setOpenSection(null);
+                  setActiveArticleId(null);
+                  setArticlesData(collectLegislationArticles(law));
                 }}
               >
                 {law.title}
