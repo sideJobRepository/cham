@@ -41,7 +41,7 @@ public class LegislationArticleServiceImpl implements LegislationArticleService 
                     .findByBillVersion(billVersion)
                     .orElseGet(() -> legislationRepository.save(
                             Legislation.builder()
-                                    .title("대전충남통합특별법")
+                                    .title("충남대전통합특별법_국민의힘")
                                     .billVersion(billVersion)
                                     .build()
                     ));

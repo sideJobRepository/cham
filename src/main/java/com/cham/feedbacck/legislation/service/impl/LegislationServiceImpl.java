@@ -28,6 +28,7 @@ public class LegislationServiceImpl implements LegislationService {
     
     private static final String NO_SECTION = "NO_SECTION";
     private static final String NO_CHAPTER = "NO_CHAPTER";
+    private static final String NO_PART = "NO_PART";
     
     
     @Override
@@ -82,27 +83,28 @@ public class LegislationServiceImpl implements LegislationService {
     
         // 2. 댓글 개수 Map
         Map<Long, Long> replyCountMap = getReplyCountMap(articles);
-    
-        // 3. part → chapter → section → articles
-        Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
-                articles.stream()
-                        .collect(Collectors.groupingBy(
-                                LegislationArticle::getPart,
-                                LinkedHashMap::new,
-                                Collectors.groupingBy(
-                                        a -> a.getChapter() == null
-                                                ? NO_CHAPTER
-                                                : a.getChapter(),
-                                        LinkedHashMap::new,
-                                        Collectors.groupingBy(
-                                                a -> a.getSection() == null
-                                                        ? NO_SECTION
-                                                        : a.getSection(),
-                                                LinkedHashMap::new,
-                                                Collectors.toList()
-                                        )
-                                )
-                        ));
+        
+Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
+           articles.stream()
+                   .collect(Collectors.groupingBy(
+                           a -> a.getPart() == null
+                                   ? NO_PART
+                                   : a.getPart(),
+                           LinkedHashMap::new,
+                           Collectors.groupingBy(
+                                   a -> a.getChapter() == null
+                                           ? NO_CHAPTER
+                                           : a.getChapter(),
+                                   LinkedHashMap::new,
+                                   Collectors.groupingBy(
+                                           a -> a.getSection() == null
+                                                   ? NO_SECTION
+                                                   : a.getSection(),
+                                           LinkedHashMap::new,
+                                           Collectors.toList()
+                                   )
+                           )
+                   ));
     
         // 4. Map → DTO 트리 변환
         List<LegislationFullResponse.Part> parts =
