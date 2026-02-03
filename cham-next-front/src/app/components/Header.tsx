@@ -146,6 +146,14 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
 
     if (!isDesktop) toggleMenu();
   };
+
+  //tobTap
+  const LAW_PREFIX_MAP: Record<string, string> = {
+    충남대전통합특별법: '민주당안',
+    대전충남통합특별법: '국민의힘안',
+    광주전남통합특별법: '민주당안',
+  };
+
   //최초 진입시 데스크탑은 메뉴바 열기
   useEffect(() => {
     setIsOpen(isDesktop);
@@ -330,108 +338,74 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
                   setArticlesData(collectLegislationArticles(law));
                 }}
               >
+                {LAW_PREFIX_MAP[law.title]}
+                <br />
                 {law.title}
               </TopTab>
             ))}
           </MenuTopBox>
         )}
         <ul>
-          {currentLaw?.parts.map((part) => (
-            <React.Fragment key={part.part}>
-              {/* PART */}
-              <li
-                className="part-item"
-                data-open={openPart === part.part}
-                onClick={() => {
-                  const nextOpen = openPart === part.part ? null : part.part;
+          {currentLaw?.parts.map((part, pIdx) => {
+            const partName = part.part?.trim() ?? '';
+            const partKey = partName || `part-${pIdx}`;
+            const isPartOpen = openPart === partKey;
 
-                  setOpenPart(nextOpen);
-                  setOpenChapter(null);
-                  setOpenSection(null);
+            const chapterNodes = part.chapters?.map((chapterObj, cIdx) => {
+              const chapterKey = `${partKey}::${chapterObj.chapter ?? `chapter-${cIdx}`}`;
 
-                  if (nextOpen) {
-                    setArticlesData(collectPartArticles(part)); // PART 하위 전부 배열 저장
-                  }
-                }}
-              >
-                <a>{part.part}</a>
-                {openPart === part.part ? <CaretUp weight="bold" /> : <CaretDown weight="bold" />}
-              </li>
+              const sectionGroups = (chapterObj.sections ?? []).filter(
+                (s) => s.section && s.section.trim()
+              );
 
-              {openPart === part.part &&
-                part.chapters?.map((chapterObj, cIdx) => {
-                  const chapterKey = chapterObj.chapter ?? `chapter-${cIdx}`;
+              const articleOnlyGroups = (chapterObj.sections ?? []).filter(
+                (s) => !s.section || !s.section.trim()
+              );
 
-                  const sectionGroups = (chapterObj.sections ?? []).filter(
-                    (s) => s.section && s.section.trim()
-                  );
+              return (
+                <PartBlock key={chapterKey}>
+                  {/* CHAPTER (null 이면 제목 생략) */}
+                  {chapterObj.chapter && (
+                    <ChapterLi
+                      data-open={openChapter === chapterKey}
+                      onClick={() => {
+                        const nextOpen = openChapter === chapterKey ? null : chapterKey;
 
-                  const articleOnlyGroups = (chapterObj.sections ?? []).filter(
-                    (s) => !s.section || !s.section.trim()
-                  );
+                        setOpenChapter(nextOpen);
+                        setOpenSection(null);
 
-                  return (
-                    <PartBlock key={chapterKey}>
-                      {/* CHAPTER (null 이면 제목 생략) */}
-                      {chapterObj.chapter && (
-                        <ChapterLi
-                          data-open={openChapter === chapterKey}
-                          onClick={() => {
-                            const nextOpen = openChapter === chapterKey ? null : chapterKey;
+                        if (nextOpen) {
+                          setArticlesData(collectChapterArticles(chapterObj)); // chapter 하위 배열 저장
+                        }
+                      }}
+                    >
+                      <a>{chapterObj.chapter}</a>
+                      {openChapter === chapterKey ? <CaretUp /> : <CaretDown />}
+                    </ChapterLi>
+                  )}
 
-                            setOpenChapter(nextOpen);
-                            setOpenSection(null);
+                  {(openChapter === chapterKey || !chapterObj.chapter) && (
+                    <>
+                      {/* SECTION */}
+                      {sectionGroups.map((section) => (
+                        <React.Fragment key={section.section}>
+                          <SubLi
+                            $open={openSection === section.section}
+                            onClick={() => {
+                              const nextOpen = openSection === section.section ? null : section.section;
+                              setOpenSection(nextOpen);
 
-                            if (nextOpen) {
-                              setArticlesData(collectChapterArticles(chapterObj)); // chapter 하위 배열 저장
-                            }
-                          }}
-                        >
-                          <a>{chapterObj.chapter}</a>
-                          {openChapter === chapterKey ? <CaretUp /> : <CaretDown />}
-                        </ChapterLi>
-                      )}
+                              if (nextOpen) {
+                                setArticlesData(section.articles ?? []); // section articles 배열 저장
+                              }
+                            }}
+                          >
+                            <a>{section.section}</a>
+                            {openSection === section.section ? <CaretUp /> : <CaretDown />}
+                          </SubLi>
 
-                      {(openChapter === chapterKey || !chapterObj.chapter) && (
-                        <>
-                          {/* SECTION */}
-                          {sectionGroups.map((section) => (
-                            <React.Fragment key={section.section}>
-                              <SubLi
-                                $open={openSection === section.section}
-                                onClick={() => {
-                                  const nextOpen =
-                                    openSection === section.section ? null : section.section;
-                                  setOpenSection(nextOpen);
-
-                                  if (nextOpen) {
-                                    setArticlesData(section.articles ?? []); // section articles 배열 저장
-                                  }
-                                }}
-                              >
-                                <a>{section.section}</a>
-                                {openSection === section.section ? <CaretUp /> : <CaretDown />}
-                              </SubLi>
-
-                              {openSection === section.section &&
-                                section.articles.map((article) => (
-                                  <ArticleLi
-                                    key={article.articleId}
-                                    $active={activeArticleId === article.articleId}
-                                    onClick={() => articleClick(article)}
-                                  >
-                                    <span>
-                                      {article.articleNo} {article.articleTitle}
-                                    </span>
-                                  </ArticleLi>
-                                ))}
-                            </React.Fragment>
-                          ))}
-
-                          {/* SECTION 없는 article */}
-                          {articleOnlyGroups
-                            .flatMap((s) => s.articles ?? [])
-                            .map((article) => (
+                          {openSection === section.section &&
+                            section.articles.map((article) => (
                               <ArticleLi
                                 key={article.articleId}
                                 $active={activeArticleId === article.articleId}
@@ -442,13 +416,59 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
                                 </span>
                               </ArticleLi>
                             ))}
-                        </>
-                      )}
-                    </PartBlock>
-                  );
-                })}
-            </React.Fragment>
-          ))}
+                        </React.Fragment>
+                      ))}
+
+                      {/* SECTION 없는 article */}
+                      {articleOnlyGroups
+                        .flatMap((s) => s.articles ?? [])
+                        .map((article) => (
+                          <ArticleLi
+                            key={article.articleId}
+                            $active={activeArticleId === article.articleId}
+                            onClick={() => articleClick(article)}
+                          >
+                            <span>
+                              {article.articleNo} {article.articleTitle}
+                            </span>
+                          </ArticleLi>
+                        ))}
+                    </>
+                  )}
+                </PartBlock>
+              );
+            });
+
+            if (!partName) {
+              return <React.Fragment key={partKey}>{chapterNodes}</React.Fragment>;
+            }
+
+            return (
+              <React.Fragment key={partKey}>
+                {/* PART */}
+                <li
+                  className="part-item"
+                  data-open={isPartOpen}
+                  onClick={() => {
+                    const nextOpen = isPartOpen ? null : partKey;
+
+                    setOpenPart(nextOpen);
+                    setOpenChapter(null);
+                    setOpenSection(null);
+
+                    if (nextOpen) {
+                      setArticlesData(collectPartArticles(part)); // PART 하위 전부 배열 저장
+                    }
+                  }}
+                >
+                  <a>{partName}</a>
+                  {isPartOpen ? <CaretUp weight="bold" /> : <CaretDown weight="bold" />}
+                </li>
+
+                {isPartOpen && chapterNodes}
+              </React.Fragment>
+            );
+          })}
         </ul>
       </Menu>
       <CommentSide />
