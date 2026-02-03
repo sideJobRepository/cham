@@ -36,7 +36,6 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
   const setArticles = useArticleStore((state) => state.setArticles);
   const mainData = storedArticles.length ? storedArticles : initialArticles;
 
-  console.log('mainData--- 확인', mainData);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
   const fetchCommentList = useFetchCommentList();

@@ -49,6 +49,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
   const [activeArticleId, setActiveArticleId] = useState<number | null>(null);
 
   const currentLaw = menuData?.legislations[activeLegislation];
+  const isRedLaw = (currentLaw?.title ?? '').replace(/\s+/g, '') === '대전충남통합특별법';
 
   const user = useUserStore((state) => state.user);
   const resetUser = useUserStore((state) => state.clearUser);
@@ -274,7 +275,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
       <Login>
         {user ? <a onClick={() => logout()}>로그아웃</a> : <Link href="/login">로그인</Link>}
       </Login>
-      <Menu ref={menuRef} $open={isOpen} className={isSubOpen ? 'show' : ''}>
+      <Menu ref={menuRef} $open={isOpen} $redScheme={isRedLaw} className={isSubOpen ? 'show' : ''}>
         <HeaderTopToggle>
           <ToggleBtnBox>
             <ToggleBtn
@@ -329,6 +330,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
               <TopTab
                 key={law.id}
                 $active={activeLegislation === idx}
+                $redScheme={(law.title ?? '').replace(/\s+/g, '') === '대전충남통합특별법'}
                 onClick={() => {
                   setActiveLegislation(idx);
                   setOpenPart(null);
@@ -363,7 +365,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
               );
 
               return (
-                <PartBlock key={chapterKey}>
+                <PartBlock key={chapterKey} $redScheme={isRedLaw}>
                   {/* CHAPTER (null 이면 제목 생략) */}
                   {chapterObj.chapter && (
                     <ChapterLi
@@ -390,6 +392,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
                       {sectionGroups.map((section) => (
                         <React.Fragment key={section.section}>
                           <SubLi
+                            $redScheme={isRedLaw}
                             $open={openSection === section.section}
                             onClick={() => {
                               const nextOpen =
@@ -409,6 +412,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
                             section.articles.map((article) => (
                               <ArticleLi
                                 key={article.articleId}
+                                $redScheme={isRedLaw}
                                 $active={activeArticleId === article.articleId}
                                 onClick={() => articleClick(article)}
                               >
@@ -426,6 +430,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
                         .map((article) => (
                           <ArticleLi
                             key={article.articleId}
+                            $redScheme={isRedLaw}
                             $active={activeArticleId === article.articleId}
                             onClick={() => articleClick(article)}
                           >
@@ -608,7 +613,7 @@ const HamburgerButton = styled.button<{ $open: boolean }>`
   }
 `;
 
-const Menu = styled.div<{ $open: boolean }>`
+const Menu = styled.div<{ $open: boolean; $redScheme?: boolean }>`
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -629,12 +634,12 @@ const Menu = styled.div<{ $open: boolean }>`
 
   //첫 계층
   ul li[data-open='true'] {
-    background-color: #e8eeff;
-    color: #1e3a8a;
+    background-color: ${({ $redScheme }) => ($redScheme ? '#fee2e2' : '#e8eeff')};
+    color: ${({ $redScheme }) => ($redScheme ? '#991b1b' : '#1e3a8a')};
   }
 
   .part-item[data-open='true'] {
-    color: #1e3a8a;
+    color: ${({ $redScheme }) => ($redScheme ? '#991b1b' : '#1e3a8a')};
     background-color: transparent;
     font-weight: 800;
   }
@@ -722,15 +727,15 @@ const MenuTopBox = styled.div`
   padding: 4px;
 `;
 
-const TopTab = styled.div<{ $active: boolean }>`
+const TopTab = styled.div<{ $active: boolean; $redScheme?: boolean }>`
   flex: 1;
   text-align: center;
   padding: 12px 4px;
   cursor: pointer;
   font-weight: 700;
   border-radius: 4px;
-  background-color: ${({ $active, theme }) =>
-    $active ? theme.colors.fileBorderColor : theme.colors.softColor2};
+  background-color: ${({ $active, $redScheme, theme }) =>
+    $active ? ($redScheme ? '#b91c1c' : theme.colors.fileBorderColor) : theme.colors.softColor2};
   color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.blackColor)};
   font-size: ${({ theme }) => theme.desktop.sizes.md};
   word-break: keep-all;
@@ -754,8 +759,8 @@ const ChapterLi = styled.li`
   }
 `;
 
-const SubLi = styled.li<{ $open?: boolean }>`
-  color: ${({ $open, theme }) => ($open ? '#1E40AF' : '000000')};
+const SubLi = styled.li<{ $open?: boolean; $redScheme?: boolean }>`
+  color: ${({ $open, $redScheme }) => ($open ? ($redScheme ? '#b91c1c' : '#1E40AF') : '#000000')};
   font-size: ${({ theme }) => theme.desktop.sizes.tree3};
   font-weight: 600;
   @media ${({ theme }) => theme.device.mobile} {
@@ -767,12 +772,13 @@ const SubLi = styled.li<{ $open?: boolean }>`
   }
 `;
 
-const ArticleLi = styled.li<{ $active?: boolean }>`
+const ArticleLi = styled.li<{ $active?: boolean; $redScheme?: boolean }>`
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
   font-size: ${({ theme }) => theme.desktop.sizes.tree4};
   // background-color: ${({ $active, theme }) => ($active ? '#eef7fb' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#344b87' : 'inherit')};
+  color: ${({ $active, $redScheme }) =>
+    $active ? ($redScheme ? '#7f1d1d' : '#344b87') : 'inherit'};
 
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.tree4};
@@ -787,8 +793,8 @@ const ArticleLi = styled.li<{ $active?: boolean }>`
   }
 `;
 
-const PartBlock = styled.div`
-  background-color: #f3f6ff; // PART 전체 영역 배경
+const PartBlock = styled.div<{ $redScheme?: boolean }>`
+  background-color: ${({ $redScheme }) => ($redScheme ? '#fef2f2' : '#f3f6ff')}; // PART 전체 영역 배경
   width: 100%;
   border-radius: 8px;
   margin: 8px 0;
