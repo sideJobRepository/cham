@@ -88,7 +88,7 @@ Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
            articles.stream()
                    .collect(Collectors.groupingBy(
                            a -> a.getPart() == null
-                                   ? NO_PART
+                                   ? ""
                                    : a.getPart(),
                            LinkedHashMap::new,
                            Collectors.groupingBy(
