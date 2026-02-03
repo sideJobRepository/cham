@@ -5,7 +5,9 @@ import com.cham.security.service.impl.response.SocialProfile;
 import com.enumtype.SocialType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.apache.poi.util.StringUtil;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
@@ -56,6 +58,9 @@ public class ChamMonimapMember extends BaseData {
         this.chamMonimapMemberPhoneNo = profile.phone();
         this.chamMonimapMemberImageUrl = profile.profileImageUrl();
         this.chamMonimapMemberNickname = profile.nickname();
+        if (!StringUtils.hasText(this.chamMonimapMemberName)) {
+            this.chamMonimapMemberName = profile.nickname();
+        }
     }
     
     public ChamMonimapMember(Long chamMonimapMemberId) {
