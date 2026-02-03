@@ -10,7 +10,7 @@ public interface LegislationArticleReplyQueryRepository {
     
      List<LegislationArticleReply> findRepliesByArticleId(Long articleId);
      
-     Map<Long, Long> findReplyCountMapByArticleIds(List<Long> articleIds);
+     
      
      List<Object[]> countByArticles(List<LegislationArticle> articles);
 }

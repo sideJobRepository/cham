@@ -35,29 +35,6 @@ public class LegislationArticleReplyRepositoryImpl implements LegislationArticle
     }
     
     @Override
-    public Map<Long, Long> findReplyCountMapByArticleIds(List<Long> articleIds) {
-        
-        if (articleIds == null || articleIds.isEmpty()) {
-            return Map.of();
-        }
-    
-        return queryFactory
-                .select(
-                        legislationArticleReply.article.id,
-                        legislationArticleReply.count()
-                )
-                .from(legislationArticleReply)
-                .where(legislationArticleReply.article.id.in(articleIds))
-                .groupBy(legislationArticleReply.article.id)
-                .fetch()
-                .stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(legislationArticleReply.article.id),
-                        tuple -> tuple.get(legislationArticleReply.count())
-                ));
-    }
-    
-    @Override
     public List<Object[]> countByArticles(List<LegislationArticle> articles) {
       
         if (articles == null || articles.isEmpty()) {
