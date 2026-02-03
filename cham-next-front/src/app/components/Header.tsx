@@ -149,9 +149,9 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
 
   //tobTap
   const LAW_PREFIX_MAP: Record<string, string> = {
-    충남대전통합특별법: '민주당안',
-    대전충남통합특별법: '국민의힘안',
-    광주전남통합특별법: '민주당안',
+    '충남대전통합 특별법': '민주당안',
+    '대전충남통합 특별법': '국민의힘안',
+    '광주전남통합 특별법': '민주당안',
   };
 
   //최초 진입시 데스크탑은 메뉴바 열기
@@ -392,7 +392,8 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
                           <SubLi
                             $open={openSection === section.section}
                             onClick={() => {
-                              const nextOpen = openSection === section.section ? null : section.section;
+                              const nextOpen =
+                                openSection === section.section ? null : section.section;
                               setOpenSection(nextOpen);
 
                               if (nextOpen) {
@@ -732,6 +733,9 @@ const TopTab = styled.div<{ $active: boolean }>`
     $active ? theme.colors.fileBorderColor : theme.colors.softColor2};
   color: ${({ $active, theme }) => ($active ? theme.colors.whiteColor : theme.colors.blackColor)};
   font-size: ${({ theme }) => theme.desktop.sizes.md};
+  word-break: keep-all;
+  overflow-wrap: break-word;
+
   @media ${({ theme }) => theme.device.mobile} {
     font-size: ${({ theme }) => theme.mobile.sizes.md};
   }
