@@ -158,24 +158,26 @@ Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
         Map<Long, Long> replyCountMap = getReplyCountMap(articles);
     
         Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
-                articles.stream()
-                        .collect(Collectors.groupingBy(
-                                LegislationArticle::getPart,
-                                LinkedHashMap::new,
-                                Collectors.groupingBy(
-                                        a -> a.getChapter() == null
-                                                ? NO_CHAPTER
-                                                : a.getChapter(),
-                                        LinkedHashMap::new,
-                                        Collectors.groupingBy(
-                                                a -> a.getSection() == null
-                                                        ? NO_SECTION
-                                                        : a.getSection(),
-                                                LinkedHashMap::new,
-                                                Collectors.toList()
-                                        )
-                                )
-                        ));
+                   articles.stream()
+                           .collect(Collectors.groupingBy(
+                                   a -> a.getPart() == null
+                                           ? ""
+                                           : a.getPart(),
+                                   LinkedHashMap::new,
+                                   Collectors.groupingBy(
+                                           a -> a.getChapter() == null
+                                                   ? NO_CHAPTER
+                                                   : a.getChapter(),
+                                           LinkedHashMap::new,
+                                           Collectors.groupingBy(
+                                                   a -> a.getSection() == null
+                                                           ? NO_SECTION
+                                                           : a.getSection(),
+                                                   LinkedHashMap::new,
+                                                   Collectors.toList()
+                                           )
+                                   )
+                           ));
     
         List<LegislationFullResponse.Part> parts =
                 grouped.entrySet().stream()
