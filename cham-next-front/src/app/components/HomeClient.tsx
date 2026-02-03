@@ -209,6 +209,8 @@ export default function HomeClient({ initialArticles }: HomeClientProps) {
               <br />각 조항별로 의견을 더해주세요.
               <br />
               여러분이 남긴 의견을 모아 전달하겠습니다.
+              <br />
+              <span>* 의견수렴 페이지는 대전시민사회연구소와 함께 제작했습니다.</span>
             </h4>
           </HeroContent>
         </motion.div>
@@ -351,13 +353,26 @@ const HeroContent = styled.div`
   h4 {
     font-size: ${({ theme }) => theme.desktop.sizes.h4Size};
     font-weight: 600;
-    color: ${({ theme }) => theme.colors.softColor};
+    color: ${({ theme }) => theme.colors.softColor2};
     letter-spacing: 0.06rem;
     word-break: keep-all;
     overflow-wrap: break-word;
 
     @media ${({ theme }) => theme.device.mobile} {
       font-size: ${({ theme }) => theme.mobile.sizes.h4Size};
+    }
+  }
+
+  span {
+    font-size: ${({ theme }) => theme.desktop.sizes.xl};
+    font-weight: 400;
+    color: ${({ theme }) => theme.colors.softColor};
+    letter-spacing: 0.06rem;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.xl};
     }
   }
 `;
