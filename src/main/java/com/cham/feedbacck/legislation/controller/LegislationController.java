@@ -26,7 +26,7 @@ public class LegislationController {
     
     @GetMapping("/legislation/count/{id}")
     public Long getCount(@PathVariable Long id) {
-        Long l = legislationService.getAllReplyCount(id);
+        return legislationService.getAllReplyCount(id);
     }
     
     
