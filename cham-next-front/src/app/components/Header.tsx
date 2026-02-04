@@ -375,15 +375,17 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
             ))}
           </MenuTopBox>
         )}
-        <CommentBox>
-          <Button $bg="#093A6E" $color="#fff" onClick={() => openComment(activeLegislation)}>
-            <span>전체 의견 쓰기</span>
-            <label>
-              <ChatCircleText weight="bold" /> {allCommentCount}
-            </label>
-            <ArrowRight weight="bold" />
-          </Button>
-        </CommentBox>
+        {currentLaw && (
+          <CommentBox>
+            <Button $bg="#093A6E" $color="#fff" onClick={() => openComment(activeLegislation)}>
+              <span>전체 의견 쓰기</span>
+              <label>
+                <ChatCircleText weight="bold" /> {allCommentCount}
+              </label>
+              <ArrowRight weight="bold" />
+            </Button>
+          </CommentBox>
+        )}
         <ul>
           {currentLaw?.parts.map((part, pIdx) => {
             const partName = part.part?.trim() ?? '';
