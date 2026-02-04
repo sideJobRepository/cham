@@ -6,11 +6,12 @@ import { useCommentDataStore, useCommentStore } from '@/store/comment';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDeletePost, useInsertPost, useUpdatePost } from '@/services/main.service';
 import { useDialogUtil } from '@/utils/dialog';
-import { useFetchCommentList } from '@/services/comment.service';
+import { useFetchAllCommentList, useFetchCommentList } from '@/services/comment.service';
 import { useUserStore } from '@/store/user';
 
 type InsertBody = {
-  articleId: number;
+  articleId?: number;
+  id?: number;
   parentReplyId: number | null;
   content: string;
 };
@@ -35,12 +36,15 @@ export default function CommentSide() {
 
   //댓글 조회
   const fetchCommentList = useFetchCommentList();
+  //전체 댓글 조회
+  const allFetchCommentList = useFetchAllCommentList();
 
   //comment
   const commentOpen = useCommentStore((state) => state.open);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
   const commentData = useCommentDataStore((state) => state.comment);
-  console.log('commentData', commentData);
+
+  const allCommentGb = useCommentDataStore((state) => state.allComment);
 
   const [content, setContent] = useState('');
 
@@ -55,6 +59,12 @@ export default function CommentSide() {
 
   const buildInsertBody = (): InsertBody => ({
     articleId: commentData?.articleId!,
+    parentReplyId: null,
+    content,
+  });
+
+  const allBuildInsertBody = (): InsertBody => ({
+    id: commentData?.legislationId!,
     parentReplyId: null,
     content,
   });
@@ -86,7 +96,11 @@ export default function CommentSide() {
     if (!ok2) return;
 
     const requestFn = isEdit ? update : insert;
-    const body = isEdit ? buildUpdateBody(replyId!) : buildInsertBody();
+    const body = isEdit
+      ? buildUpdateBody(replyId!)
+      : allCommentGb
+        ? allBuildInsertBody()
+        : buildInsertBody();
 
     requestFn({
       url: '/cham/article-reply',
@@ -102,7 +116,9 @@ export default function CommentSide() {
           setContent('');
         }
 
-        fetchCommentList(commentData?.articleId!);
+        allCommentGb
+          ? allFetchCommentList(commentData?.legislationId!)
+          : fetchCommentList(commentData?.articleId!);
       },
     });
   };
@@ -117,7 +133,9 @@ export default function CommentSide() {
       ignoreErrorRedirect: true,
       onSuccess: async () => {
         alert('의견이 삭제되었습니다.');
-        fetchCommentList(commentData?.articleId!);
+        allCommentGb
+          ? allFetchCommentList(commentData?.legislationId!)
+          : fetchCommentList(commentData?.articleId!);
       },
     });
   };

@@ -14,7 +14,6 @@ type ClientLayoutProps = {
 };
 
 export default function ClientLayout({ children, initialMenuData }: ClientLayoutProps) {
-  console.log('ClientLayout styled ===', styled);
   return (
     <ClientProviders>
       <AuthListener />

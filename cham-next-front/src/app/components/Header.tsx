@@ -2,7 +2,15 @@
 
 import styled from 'styled-components';
 import { useEffect, useRef, useState } from 'react';
-import { CaretDown, CaretUp, X, PencilSimpleLine, MagnifyingGlass } from 'phosphor-react';
+import {
+  CaretDown,
+  CaretUp,
+  X,
+  PencilSimpleLine,
+  MagnifyingGlass,
+  ChatCircleText,
+  ArrowRight,
+} from 'phosphor-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import React from 'react';
@@ -15,10 +23,11 @@ import { useArticleStore } from '@/store/aricle';
 import { tokenStore } from '@/services/tokenStore';
 import api from '@/lib/axiosInstance';
 import { useDialogUtil } from '@/utils/dialog';
-import { useCommentStore } from '@/store/comment';
+import { useAllCommentCount, useCommentDataStore, useCommentStore } from '@/store/comment';
 import CommentSide from '@/app/components/CommentSide';
 import { useFetchSerach } from '@/services/search.service';
 import { useSearchDataStore } from '@/store/search';
+import { useFetchAllCommentList, useFetchAllCountCommentList } from '@/services/comment.service';
 
 type HeaderProps = {
   initialMenuData?: MenuData | null;
@@ -33,6 +42,7 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
   }, []);
 
   const rawMenuData = useMenuStore((state) => state.menu);
+
   const setMenuStore = useMenuStore((state) => state.setMenu);
 
   const searchMenuData = useSearchDataStore((state) => state.search);
@@ -73,6 +83,12 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   //커멘트
+  const fetchAllCommentList = useFetchAllCommentList();
+  const commentData = useCommentDataStore((state) => state.comment);
+
+  const fetchAllCount = useFetchAllCountCommentList();
+  const allCommentCount = useAllCommentCount((state) => state.count);
+
   const commentOpen = useCommentStore((state) => state.open);
   const setCommentOpen = useCommentStore((state) => state.setOpen);
 
@@ -153,6 +169,13 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
     '충남대전통합 특별법': '민주당안',
     '대전충남통합 특별법': '국민의힘안',
     '광주전남통합 특별법': '민주당안',
+  };
+
+  const openComment = (id: number) => {
+    if (currentLaw) {
+      fetchAllCommentList(currentLaw?.id);
+      setCommentOpen(true);
+    }
   };
 
   //최초 진입시 데스크탑은 메뉴바 열기
@@ -246,6 +269,11 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
       setMenuStore(initialMenuData);
     }
   }, [rawMenuData, initialMenuData, setMenuStore]);
+
+  //전체 댓글 카운터
+  useEffect(() => {
+    if (currentLaw) fetchAllCount(currentLaw?.id);
+  }, [activeLegislation, commentData]);
 
   return (
     <Wrapper onMouseLeave={() => setIsSubOpen(false)}>
@@ -347,6 +375,15 @@ export default function TopHeader({ initialMenuData = null }: HeaderProps) {
             ))}
           </MenuTopBox>
         )}
+        <CommentBox>
+          <Button $bg="#093A6E" $color="#fff" onClick={() => openComment(activeLegislation)}>
+            <span>전체 의견 쓰기</span>
+            <label>
+              <ChatCircleText weight="bold" /> {allCommentCount}
+            </label>
+            <ArrowRight weight="bold" />
+          </Button>
+        </CommentBox>
         <ul>
           {currentLaw?.parts.map((part, pIdx) => {
             const partName = part.part?.trim() ?? '';
@@ -746,6 +783,52 @@ const TopTab = styled.div<{ $active: boolean; $redScheme?: boolean }>`
   }
 `;
 
+const CommentBox = styled.div`
+  display: flex;
+  margin-top: 12px;
+  width: 100%;
+`;
+
+const Button = styled.button<{ $bg: string; $color: string }>`
+  margin: 0 auto;
+  background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
+  border: none;
+  padding: 10px 12px;
+  width: 90%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: ${({ theme }) => theme.desktop.sizes.md};
+  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.2);
+
+  @media ${({ theme }) => theme.device.mobile} {
+    font-size: ${({ theme }) => theme.mobile.sizes.md};
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    font-size: ${({ theme }) => theme.desktop.sizes.md};
+    gap: 4px;
+
+    @media ${({ theme }) => theme.device.mobile} {
+      font-size: ${({ theme }) => theme.mobile.sizes.md};
+    }
+  }
+`;
+
 const ChapterLi = styled.li`
   font-weight: 600;
   a {
@@ -794,7 +877,8 @@ const ArticleLi = styled.li<{ $active?: boolean; $redScheme?: boolean }>`
 `;
 
 const PartBlock = styled.div<{ $redScheme?: boolean }>`
-  background-color: ${({ $redScheme }) => ($redScheme ? '#fef2f2' : '#f3f6ff')}; // PART 전체 영역 배경
+  background-color: ${({ $redScheme }) =>
+    $redScheme ? '#fef2f2' : '#f3f6ff'}; // PART 전체 영역 배경
   width: 100%;
   border-radius: 8px;
   margin: 8px 0;
