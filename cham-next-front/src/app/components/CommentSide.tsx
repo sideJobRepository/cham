@@ -207,6 +207,7 @@ export default function CommentSide() {
             )}
 
             {user &&
+              !reply.delStatus &&
               reply.isOwner &&
               (editingReplyId === reply.replyId.toString() ? (
                 <EditBox>

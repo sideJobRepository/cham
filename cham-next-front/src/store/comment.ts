@@ -17,6 +17,7 @@ export interface CommentReply {
   memberName: string;
   isOwner: boolean;
   registDate: string;
+  delStatus: boolean;
   children: CommentReply[]; // 재귀
 }
 
