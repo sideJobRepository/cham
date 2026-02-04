@@ -258,7 +258,7 @@ public class LegislationServiceImpl implements LegislationService {
                                 r.getId(),
                                 r.getMember().getChamMonimapMemberId(),
                                 r.getMember().getChamMonimapMemberName(),
-                                r.getContent(),
+                                r.getDelStatus() ?  "삭제된 댓글입니다." :  r.getContent(),
                                 r.getMember().getChamMonimapMemberId().equals(memberId),
                                 r.getRegistDate()
                         ))
