@@ -54,7 +54,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .replyId(reply.getId())
                                 .memberId(reply.getMember().getChamMonimapMemberId())
                                 .memberName(reply.getMember().getChamMonimapMemberName())
-                                .content(reply.getDelStatus() ? "삭제된 댓글입니다." : reply.getContent())
+                                .content(reply.getDelStatus() ? "삭제된 의견 입니다." : reply.getContent())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
                                 .children(new ArrayList<>())
@@ -75,7 +75,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .replyId(reply.getId())
                                 .memberId(reply.getMember().getChamMonimapMemberId())
                                 .memberName(reply.getMember().getChamMonimapMemberName())
-                                .content(reply.getDelStatus() ? "삭제된 댓글입니다." : reply.getContent())
+                                .content(reply.getDelStatus() ? "삭제된 의견 입니다." : reply.getContent())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
                                 .children(List.of()) // 대댓글의 대댓글은 없음
