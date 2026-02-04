@@ -2,6 +2,7 @@ package com.cham.feedbacck.legislationarticle.service.impl;
 
 import com.cham.RepositoryAndServiceTestSupport;
 import com.cham.feedbacck.legislation.dto.response.LegislationFullResponse;
+import com.cham.feedbacck.legislation.dto.response.LegislationReplyOnlyResponse;
 import com.cham.feedbacck.legislation.service.LegislationService;
 import com.cham.feedbacck.legislationarticle.service.LegislationArticleService;
 import org.junit.jupiter.api.DisplayName;
@@ -25,8 +26,8 @@ class LegislationArticleServiceImplTest extends RepositoryAndServiceTestSupport 
     @DisplayName("")
     @Test
     void test1(){
-        LegislationFullResponse fullLegislation = legislationService.getAllFullLegislations();
-        System.out.println("fullLegislation = " + fullLegislation);
+        LegislationReplyOnlyResponse legislationRepliesOnly = legislationService.getLegislationRepliesOnly(2L);
+        System.out.println("legislationRepliesOnly = " + legislationRepliesOnly);
     }
     
     @DisplayName("")

@@ -1,12 +1,10 @@
 package com.cham.feedbacck.legislation.controller;
 
 import com.cham.feedbacck.legislation.dto.response.LegislationFullResponse;
+import com.cham.feedbacck.legislation.dto.response.LegislationReplyOnlyResponse;
 import com.cham.feedbacck.legislation.service.LegislationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/cham")
@@ -20,6 +18,12 @@ public class LegislationController {
     public LegislationFullResponse getAllFullLegislations() {
         return legislationService.getAllFullLegislations();
     }
+    
+    @GetMapping("/legislation/{id}")
+    public LegislationReplyOnlyResponse getAllFullLegislations(@PathVariable Long id) {
+        return legislationService.getLegislationRepliesOnly(id);
+    }
+    
     
     @GetMapping("/legislation/search")
     public LegislationFullResponse searchLegislations(@RequestParam String keyword) {

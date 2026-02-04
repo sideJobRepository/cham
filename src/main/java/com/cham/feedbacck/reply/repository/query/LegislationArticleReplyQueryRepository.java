@@ -13,4 +13,8 @@ public interface LegislationArticleReplyQueryRepository {
      
      
      List<Object[]> countByArticles(List<LegislationArticle> articles);
+    
+    List<LegislationArticleReply> findLegislationReplies(Long legislationId);
+    
+    Long countLegislationReplies(Long legislationId);
 }

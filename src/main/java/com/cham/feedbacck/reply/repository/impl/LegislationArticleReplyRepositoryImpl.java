@@ -1,5 +1,6 @@
 package com.cham.feedbacck.reply.repository.impl;
 
+import com.cham.feedbacck.legislation.entity.QLegislation;
 import com.cham.feedbacck.legislationarticle.entity.LegislationArticle;
 import com.cham.feedbacck.reply.entity.LegislationArticleReply;
 import com.cham.feedbacck.reply.repository.query.LegislationArticleReplyQueryRepository;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.cham.feedbacck.legislation.entity.QLegislation.*;
 import static com.cham.feedbacck.legislationarticle.entity.QLegislationArticle.legislationArticle;
 import static com.cham.feedbacck.reply.entity.QLegislationArticleReply.legislationArticleReply;
 import static com.cham.member.entity.QChamMonimapMember.chamMonimapMember;
@@ -56,6 +58,35 @@ public class LegislationArticleReplyRepositoryImpl implements LegislationArticle
                         tuple.get(legislationArticleReply.count())
                 })
                 .toList();
+    }
+    
+    @Override
+    public List<LegislationArticleReply> findLegislationReplies(Long legislationId) {
+        return queryFactory
+                .selectFrom(legislationArticleReply)
+                .join(legislationArticleReply.member, chamMonimapMember).fetchJoin()
+                .join(legislationArticleReply.legislation, legislation).fetchJoin()
+                .where(
+                        legislationArticleReply.legislation.id.eq(legislationId),
+                        legislationArticleReply.article.isNull()
+                )
+                .orderBy(
+                        legislationArticleReply.parent.id.asc().nullsFirst(),
+                        legislationArticleReply.registDate.asc()
+                )
+                .fetch();
+    }
+    
+    @Override
+    public Long countLegislationReplies(Long legislationId) {
+        return queryFactory
+             .select(legislationArticleReply.count())
+             .from(legislationArticleReply)
+             .where(
+                 legislationArticleReply.legislation.id.eq(legislationId),
+                 legislationArticleReply.article.isNull()
+             )
+             .fetchOne();
     }
     
 }

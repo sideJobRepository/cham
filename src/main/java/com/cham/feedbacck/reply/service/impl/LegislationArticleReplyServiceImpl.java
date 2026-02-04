@@ -2,6 +2,8 @@ package com.cham.feedbacck.reply.service.impl;
 
 
 import com.cham.dto.response.ApiResponse;
+import com.cham.feedbacck.legislation.entity.Legislation;
+import com.cham.feedbacck.legislation.repository.LegislationRepository;
 import com.cham.feedbacck.legislationarticle.entity.LegislationArticle;
 import com.cham.feedbacck.legislationarticle.repository.LegislationArticleRepository;
 import com.cham.feedbacck.reply.dto.request.LegislationArticleReplyPostRequest;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class LegislationArticleReplyServiceImpl implements LegislationArticleReplyService {
     
     private final LegislationArticleRepository articleRepository;
+    private final LegislationRepository legislationRepository;
     private final LegislationArticleReplyRepository replyRepository;
     private final ChamMonimapMemberRepository memberRepository;
     
@@ -91,9 +94,25 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
     
     @Override
     public ApiResponse createReply(LegislationArticleReplyPostRequest request, Long memberId) {
+        
+        Long id = request.getId();
+        
         // 1. 작성자
         ChamMonimapMember member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 없음"));
+        if (id != null) {
+            Legislation legislation = legislationRepository.findById(id).orElseThrow(() -> new RuntimeException("법률 없음"));
+            LegislationArticleReply reply = LegislationArticleReply.builder()
+                    .member(member)
+                    .legislation(legislation)
+                    .content(request.getContent())
+                    .delStatus(false)
+                    .build();
+            
+            replyRepository.save(reply);
+            return new ApiResponse(200, true, "댓글이 작성되었습니다.");
+        }
+        
         
         // 2. 조문
         LegislationArticle article = articleRepository.findById(

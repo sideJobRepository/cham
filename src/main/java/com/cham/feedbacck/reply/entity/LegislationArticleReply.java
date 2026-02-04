@@ -1,6 +1,7 @@
 package com.cham.feedbacck.reply.entity;
 
 import com.cham.base.BaseData;
+import com.cham.feedbacck.legislation.entity.Legislation;
 import com.cham.feedbacck.legislationarticle.entity.LegislationArticle;
 import com.cham.feedbacck.reply.dto.request.LegislationArticleReplyPutRequest;
 import com.cham.member.entity.ChamMonimapMember;
@@ -32,6 +33,11 @@ public class LegislationArticleReply extends BaseData {
     @JoinColumn(name = "LEGISLATION_ARTICLE_ID")
     private LegislationArticle article;
     
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "LEGISLATION_ID")
+    private Legislation legislation;
+    
     // 부모 댓글 (대댓글용)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_REPLY_ID")
@@ -52,4 +58,6 @@ public class LegislationArticleReply extends BaseData {
     public void modify(LegislationArticleReplyPutRequest request) {
         this.content = request.getContent();
     }
+    
+ 
 }

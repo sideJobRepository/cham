@@ -1,11 +1,13 @@
 package com.cham.feedbacck.legislation.service.impl;
 
 import com.cham.feedbacck.legislation.dto.response.LegislationFullResponse;
+import com.cham.feedbacck.legislation.dto.response.LegislationReplyOnlyResponse;
 import com.cham.feedbacck.legislation.entity.Legislation;
 import com.cham.feedbacck.legislation.repository.LegislationRepository;
 import com.cham.feedbacck.legislation.service.LegislationService;
 import com.cham.feedbacck.legislationarticle.entity.LegislationArticle;
 import com.cham.feedbacck.legislationarticle.repository.LegislationArticleRepository;
+import com.cham.feedbacck.reply.entity.LegislationArticleReply;
 import com.cham.feedbacck.reply.repository.LegislationArticleReplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,8 @@ public class LegislationServiceImpl implements LegislationService {
     
     @Override
     public LegislationFullResponse getAllFullLegislations() {
-
+        
+        
         List<Legislation> legislations = legislationRepository.findAll();
 
         List<LegislationFullResponse.Legislation> result =
@@ -230,6 +233,43 @@ Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
                         r -> (Long) r[0],   // articleId
                         r -> (Long) r[1]    // count
                 ));
+    }
+    @Override
+    public LegislationReplyOnlyResponse getLegislationRepliesOnly(Long legislationId) {
+    
+        // 1. 법률 조회
+        Legislation legislation = legislationRepository.findById(legislationId)
+                .orElseThrow(() -> new RuntimeException("법률이 존재하지 않습니다."));
+    
+        // 2. 전체 댓글만 조회
+        List<LegislationArticleReply> replies = legislationArticleReplyRepository.findLegislationReplies(legislationId);
+        
+        Long replyCount =
+                legislationArticleReplyRepository.countLegislationReplies(legislationId);
+        // 조건:
+        // LEGISLATION_ID = :legislationId
+        // AND LEGISLATION_ARTICLE_ID IS NULL
+    
+        // 3. DTO 변환
+        List<LegislationReplyOnlyResponse.Reply> replyDtos =
+                replies.stream()
+                        .map(r -> new LegislationReplyOnlyResponse.Reply(
+                                r.getId(),
+                                r.getMember().getChamMonimapMemberId(),
+                                r.getMember().getChamMonimapMemberName(),
+                                r.getContent(),
+                                r.getRegistDate()
+                        ))
+                        .toList();
+    
+        // 4. 응답
+        return new LegislationReplyOnlyResponse(
+                legislation.getId(),
+                legislation.getTitle(),
+                legislation.getBillVersion(),
+                replyCount,
+                replyDtos
+        );
     }
     
 }

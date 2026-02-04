@@ -22,7 +22,7 @@ class LegislationArticleReplyServiceImplTest extends RepositoryAndServiceTestSup
         
         LegislationArticleReplyPostRequest result = LegislationArticleReplyPostRequest
                 .builder()
-                .articleId(1L)
+                .id(2L)
                 .parentReplyId(null)
                 .content("댓글 내용1")
                 .build();
