@@ -24,6 +24,11 @@ public class LegislationController {
         return legislationService.getLegislationRepliesOnly(id);
     }
     
+    @GetMapping("/legislation/count/{id}")
+    public Long getCount(@PathVariable Long id) {
+        Long l = legislationService.getAllReplyCount(id);
+    }
+    
     
     @GetMapping("/legislation/search")
     public LegislationFullResponse searchLegislations(@RequestParam String keyword) {

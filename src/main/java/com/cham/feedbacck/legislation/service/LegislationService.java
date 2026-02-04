@@ -12,4 +12,5 @@ public interface LegislationService {
     
     LegislationFullResponse getAllFullLegislations();
     
+    Long getAllReplyCount(Long id);
 }
