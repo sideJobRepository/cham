@@ -30,7 +30,6 @@ public class LegislationServiceImpl implements LegislationService {
     
     private static final String NO_SECTION = "NO_SECTION";
     private static final String NO_CHAPTER = "NO_CHAPTER";
-    private static final String NO_PART = "NO_PART";
     
     
     @Override
@@ -153,10 +152,7 @@ public class LegislationServiceImpl implements LegislationService {
         );
     }
     
-    private LegislationFullResponse.Legislation buildLegislationWithFilteredArticles(
-            Legislation legislation,
-            List<LegislationArticle> articles
-    ) {
+    private LegislationFullResponse.Legislation buildLegislationWithFilteredArticles(Legislation legislation, List<LegislationArticle> articles) {
         
         // 댓글 개수 Map
         Map<Long, Long> replyCountMap = getReplyCountMap(articles);
@@ -260,6 +256,7 @@ public class LegislationServiceImpl implements LegislationService {
                                 r.getMember().getChamMonimapMemberName(),
                                 r.getDelStatus() ?  "삭제된 의견 입니다." :  r.getContent(),
                                 r.getMember().getChamMonimapMemberId().equals(memberId),
+                                r.getDelStatus(),
                                 r.getRegistDate()
                         ))
                         .toList();

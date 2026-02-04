@@ -26,6 +26,7 @@ public class LegislationReplyOnlyResponse {
         private String memberName;
         private String content;
         private Boolean isOwner;
+        private Boolean delStatus;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         private LocalDateTime registDate;
     }

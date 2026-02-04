@@ -39,6 +39,7 @@ public class LegislationArticleReplyGetRequest {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         private LocalDateTime registDate;
         private Boolean isOwner;
+        private Boolean delStatus;
         private List<Reply> children;
     }
 }

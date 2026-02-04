@@ -57,6 +57,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .content(reply.getDelStatus() ? "삭제된 의견 입니다." : reply.getContent())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
+                                .delStatus(reply.getDelStatus())
                                 .children(new ArrayList<>())
                                 .build();
                 
@@ -78,6 +79,7 @@ public class LegislationArticleReplyServiceImpl implements LegislationArticleRep
                                 .content(reply.getDelStatus() ? "삭제된 의견 입니다." : reply.getContent())
                                 .registDate(reply.getRegistDate())
                                 .isOwner(isOwner)
+                                .delStatus(reply.getDelStatus())
                                 .children(List.of()) // 대댓글의 대댓글은 없음
                                 .build()
                 );
