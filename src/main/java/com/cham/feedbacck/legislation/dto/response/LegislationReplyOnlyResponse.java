@@ -1,5 +1,6 @@
 package com.cham.feedbacck.legislation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -23,6 +24,7 @@ public class LegislationReplyOnlyResponse {
         private Long memberId;
         private String memberName;
         private String content;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         private LocalDateTime registDate;
     }
 }

@@ -244,8 +244,7 @@ Map<String, Map<String, Map<String, List<LegislationArticle>>>> grouped =
         // 2. 전체 댓글만 조회
         List<LegislationArticleReply> replies = legislationArticleReplyRepository.findLegislationReplies(legislationId);
         
-        Long replyCount =
-                legislationArticleReplyRepository.countLegislationReplies(legislationId);
+        Long replyCount = legislationArticleReplyRepository.countLegislationReplies(legislationId);
         // 조건:
         // LEGISLATION_ID = :legislationId
         // AND LEGISLATION_ARTICLE_ID IS NULL
