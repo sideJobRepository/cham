@@ -237,7 +237,7 @@ public class LegislationServiceImpl implements LegislationService {
     }
     
     @Override
-    public LegislationReplyOnlyResponse getLegislationRepliesOnly(Long legislationId) {
+    public LegislationReplyOnlyResponse getLegislationRepliesOnly(Long legislationId,Long memberId) {
         
         // 1. 법률 조회
         Legislation legislation = legislationRepository.findById(legislationId)
@@ -259,6 +259,7 @@ public class LegislationServiceImpl implements LegislationService {
                                 r.getMember().getChamMonimapMemberId(),
                                 r.getMember().getChamMonimapMemberName(),
                                 r.getContent(),
+                                r.getMember().getChamMonimapMemberId().equals(memberId),
                                 r.getRegistDate()
                         ))
                         .toList();

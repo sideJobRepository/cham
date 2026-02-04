@@ -15,6 +15,7 @@ public class LegislationReplyOnlyResponse {
     private String title;
     private String billVersion;
     private Long replyCount;
+
     private List<Reply> replies;
     
     @Getter
@@ -24,6 +25,7 @@ public class LegislationReplyOnlyResponse {
         private Long memberId;
         private String memberName;
         private String content;
+        private Boolean isOwner;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         private LocalDateTime registDate;
     }

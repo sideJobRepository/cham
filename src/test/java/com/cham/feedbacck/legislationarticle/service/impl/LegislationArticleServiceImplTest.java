@@ -26,7 +26,7 @@ class LegislationArticleServiceImplTest extends RepositoryAndServiceTestSupport 
     @DisplayName("")
     @Test
     void test1(){
-        LegislationReplyOnlyResponse legislationRepliesOnly = legislationService.getLegislationRepliesOnly(2L);
+        LegislationReplyOnlyResponse legislationRepliesOnly = legislationService.getLegislationRepliesOnly(2L, null);
         System.out.println("legislationRepliesOnly = " + legislationRepliesOnly);
     }
     

@@ -8,7 +8,7 @@ public interface LegislationService {
     
     LegislationFullResponse searchLegislations(String keyword);
     
-    LegislationReplyOnlyResponse getLegislationRepliesOnly(Long legislationId);
+    LegislationReplyOnlyResponse getLegislationRepliesOnly(Long legislationId, Long memberId);
     
     LegislationFullResponse getAllFullLegislations();
     
