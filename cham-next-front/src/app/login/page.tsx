@@ -13,7 +13,7 @@ export default function Login() {
     let CLIENT_ID;
     let REDIRECT_URL;
 
-    let authUrl;
+     let authUrl;
 
     if (name === 'KAKAO') {
       CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID!;
