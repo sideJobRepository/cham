@@ -10,7 +10,7 @@ export const tokenStore = {
     accessToken = token;
   },
   clear() {
-    accessToken = null;
+     accessToken = null;
   },
 };
 

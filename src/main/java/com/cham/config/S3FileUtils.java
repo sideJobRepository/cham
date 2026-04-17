@@ -29,7 +29,7 @@ public class S3FileUtils {
         List<UploadResult> uploadFiles = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
             if (!multipartFile.isEmpty()) {
-                uploadFiles.add(storeFile(multipartFile));
+                 uploadFiles.add(storeFile(multipartFile));
             }
         }
         return uploadFiles;

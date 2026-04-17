@@ -37,7 +37,9 @@ public class PoiUtil {
                 try { yield Double.valueOf(cleaned); } catch (NumberFormatException e) { yield null; }
             }
             case FORMULA -> {
-                if (c.getCachedFormulaResultType() == CellType.NUMERIC) yield c.getNumericCellValue();
+                if (c.getCachedFormulaResultType() == CellType.NUMERIC) {
+                   yield c.getNumericCellValue();
+                }
                 String fmt = new DataFormatter().formatCellValue(c);
                 try { yield Double.valueOf(fmt.replaceAll("[,\\s]", "")); } catch (Exception e) { yield null; }
             }
