@@ -77,8 +77,13 @@ public class ChamMonimapCardUse extends BaseData {
     // 자치연대 예산감시 카드 사용 삭제키
     @Column(name = "CHAM_MONIMAP_CARD_USE_DELKEY")
     private String chamMonimapCardUseDelkey;
-    
-    
+
+    // 지도 공개 여부. 삭제키(엑셀 업로드 한 건) 단위로 관리자가 켜고 끈다.
+    // 행마다 들고 있지만 값을 바꾸는 것은 언제나 삭제키로 묶은 벌크 UPDATE 다.
+    @Column(name = "CHAM_MONIMAP_CARD_USE_PUBLIC")
+    private Boolean chamMonimapCardUsePublic;
+
+
     public ChamMonimapCardUse(ChamMonimapCardOwnerPosition cardOwnerPosition, ChamMonimapCardUseAddr cardUserAddr, String userSellValue, String nameSellValue,
                               LocalDate dateValue, LocalTime timeValue, String purpose, String personnel,
                               double amount, String method, String remark, String delKeyValue, String regionValue) {
@@ -96,6 +101,8 @@ public class ChamMonimapCardUse extends BaseData {
         this.chamMonimapCardUseRemark = remark;
         this.chamMonimapCardUseDelkey = delKeyValue;
         this.chamMonimapCardUseRegion = regionValue;
+        // 컬럼이 NOT NULL 이라 여기서 채워야 한다. 업로드 직후는 공개가 기본이다.
+        this.chamMonimapCardUsePublic = Boolean.TRUE;
     }
     
     public String getAmountPerPerson() {

@@ -73,3 +73,12 @@ export const themeListState = atom({
     themeLoading: true,
   },
 });
+
+//관리자 공개관리 - 엑셀 업로드(삭제키) 목록
+export const cardUseUploadListState = atom({
+  key: 'cardUseUploadListState',
+  default: {
+    uploadData: null,
+    uploadLoading: true,
+  },
+});

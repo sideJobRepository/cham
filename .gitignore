@@ -37,3 +37,5 @@ out/
 .vscode/
 /mysql_data/mysql.sock
 /mysql_data
+# 백엔드 환경변수. .env 을 복사해서 쓴다
+.env

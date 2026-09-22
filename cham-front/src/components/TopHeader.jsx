@@ -130,6 +130,12 @@ export default function TopHeader() {
     if (loginTimer) clearTimeout(loginTimer);
     if (donateTimer) clearTimeout(donateTimer);
 
+    // 관리자는 후원·로그인 안내를 띄우지 않는다. 관리 작업 중에 끼어들 뿐이고
+    // 이미 로그인한 운영진에게 후원을 권할 이유도 없다.
+    if (user?.roles?.includes('ROLE_ADMIN')) {
+      return;
+    }
+
     if (!user) {
       // 비로그인: 3분 후 로그인 > 로그인 팝업 닫히고 3분 뒤 후원 팝업
       loginTimer = setTimeout(
@@ -176,7 +182,10 @@ export default function TopHeader() {
           </MenuItem>
         ))}
         {user?.roles?.includes('ROLE_ADMIN') && (
-          <MenuItem onClick={() => setIsAdminModalOpen(true)}>관리자</MenuItem>
+          <>
+            <MenuItem onClick={() => setIsAdminModalOpen(true)}>관리자</MenuItem>
+            <MenuItem onClick={() => navigate('/admin/uploads')}>공개관리</MenuItem>
+          </>
         )}
       </Center>
       <Right>
@@ -223,7 +232,17 @@ export default function TopHeader() {
           </MenuItemMobile>
         ))}
         {user?.roles?.includes('ROLE_ADMIN') && (
-          <MenuItemMobile onClick={() => setIsAdminModalOpen(true)}>관리자</MenuItemMobile>
+          <>
+            <MenuItemMobile onClick={() => setIsAdminModalOpen(true)}>관리자</MenuItemMobile>
+            <MenuItemMobile
+              onClick={() => {
+                navigate('/admin/uploads');
+                setIsOpen(false);
+              }}
+            >
+              공개관리
+            </MenuItemMobile>
+          </>
         )}
         {user ? (
           <MenuButtonWrapper onClick={logoutKakao}>로그아웃</MenuButtonWrapper>

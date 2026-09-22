@@ -8,6 +8,7 @@ import {
   userListState,
   themeListState,
   loadingState,
+  cardUseUploadListState,
 } from './appState.js';
 import { toast } from 'react-toastify';
 
@@ -158,6 +159,34 @@ export function useFetchThemeList() {
       setState({
         themeData: [],
         themeLoading: false,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+}
+
+//관리자 공개관리 - 업로드(삭제키) 목록
+export function useFetchCardUseUploadList() {
+  const setState = useSetRecoilState(cardUseUploadListState);
+  const setLoading = useSetRecoilState(loadingState);
+
+  return async () => {
+    setLoading(true);
+
+    try {
+      const res = await api.get('/cham/admin/card-use-uploads');
+
+      setState({
+        uploadData: res.data,
+        uploadLoading: false,
+      });
+    } catch (e) {
+      toast.error('업로드 목록 조회에 실패하였습니다.');
+      console.error('검색 실패:', e);
+      setState({
+        uploadData: [],
+        uploadLoading: false,
       });
     } finally {
       setLoading(false);

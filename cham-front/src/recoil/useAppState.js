@@ -5,6 +5,7 @@ import {
   selectSearchState,
   themeListState,
   userListState,
+  cardUseUploadListState,
 } from './appState';
 
 export const useSelectSearchState = () => {
@@ -25,4 +26,8 @@ export const useUserListState = () => {
 
 export const useThemeListState = () => {
   return useRecoilValue(themeListState);
+};
+
+export const useCardUseUploadListState = () => {
+  return useRecoilValue(cardUseUploadListState);
 };

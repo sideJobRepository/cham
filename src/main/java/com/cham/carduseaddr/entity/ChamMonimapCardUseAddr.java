@@ -70,4 +70,22 @@ public class ChamMonimapCardUseAddr extends BaseData {
     public void updateImage(String s3Url) {
         this.chamMonimapCardUseImageUrl = s3Url;
     }
+
+    /**
+     * 자료정리에서 장소를 고칠 때 쓴다.
+     * 좌표와 지역은 새 상세주소로 다시 찾은 값이다. 못 찾았으면 null 이 넘어오는데,
+     * 그때는 기존 값을 그대로 둔다. 엉뚱한 자리보다는 이전 자리가 낫고,
+     * 덮어써서 지워버리면 되돌릴 방법이 없다.
+     */
+    public void modifyAddr(String addrName, String detailAddr, String x, String y, ChamMonimapRegion region) {
+        this.chamMonimapCardUseAddrName = addrName;
+        this.chamMonimapCardUseDetailAddr = detailAddr;
+        if (x != null && y != null) {
+            this.chamMonimapCardUseXValue = x;
+            this.chamMonimapCardUseYValue = y;
+        }
+        if (region != null) {
+            this.chamMonimapRegion = region;
+        }
+    }
 }

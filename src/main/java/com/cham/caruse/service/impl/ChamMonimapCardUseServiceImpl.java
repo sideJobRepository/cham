@@ -9,8 +9,15 @@ import com.cham.caruse.dto.*;
 import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.repository.dto.CardUseSummaryDto;
+import com.cham.caruse.CardUseDefaults;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.dto.request.CardUseConditionRequest;
+import com.cham.dto.request.CardUseUploadDeleteKeyRequest;
+import com.cham.dto.request.CardUseUploadPublicRequest;
+import com.cham.dto.request.CleanupAddrRequest;
+import com.cham.dto.request.CleanupNameRequest;
+import com.cham.page.PageResponse;
+import org.springframework.data.domain.Pageable;
 import com.cham.dto.response.*;
 import com.cham.region.entity.ChamMonimapRegion;
 import com.cham.region.repository.ChamMonimapRegionRepository;
@@ -29,6 +36,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +44,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -423,11 +432,11 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 
                 String addrName   = PoiUtil.getString(row, ExcelColumns.ADDR_NAME);
                 if (!StringUtils.hasText(addrName)) {
-                    addrName = "경조사비";
+                    addrName = CardUseDefaults.ADDR_NAME;
                 }
                 String addrDetail = safeTrim(PoiUtil.getString(row, ExcelColumns.ADDR_DETAIL));
                 if(!StringUtils.hasText(addrDetail)) {
-                    addrDetail = "도산로370번길 22-1";
+                    addrDetail = CardUseDefaults.DETAIL_ADDR;
                 }
                 String purpose    = PoiUtil.getString(row, ExcelColumns.PURPOSE);
                 String personnel  = PoiUtil.parsePersonnel(row.getCell(ExcelColumns.PERSONNEL));
@@ -479,8 +488,242 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
         cardUseRepository.deleteByCardUseDelkey(deleteKey);
         return new ApiResponse(200 , true,"삭제 되었습니다.");
     }
-    
-    
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CardUseUploadResponse> selectCardUseUploads() {
+        List<CardUseUploadResponse> uploads = cardUseRepository.findCardUseUploads();
+
+        // 명단은 업로드마다 따로 조회하지 않고 전체를 한 번에 받아 삭제키로 묶는다.
+        // 업로드 수만큼 쿼리가 늘어나는 것을 피하려는 것이다.
+        Map<String, List<CardUseUploadMemberResponse>> membersByDeleteKey =
+                cardUseRepository.findCardUseUploadMembers().stream()
+                        .collect(Collectors.groupingBy(
+                                CardUseUploadMemberResponse::getDeleteKey,
+                                LinkedHashMap::new,
+                                Collectors.toList()));
+
+        uploads.forEach(upload ->
+                upload.setMembers(membersByDeleteKey.getOrDefault(upload.getDeleteKey(), List.of())));
+
+        return uploads;
+    }
+
+    @Override
+    public ApiResponse modifyCardUseUploadPublic(CardUseUploadPublicRequest request) {
+        String deleteKey = request.getDeleteKey();
+        boolean isPublic = Boolean.TRUE.equals(request.getIsPublic());
+
+        if (!cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey)) {
+            throw new ExcelException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
+        }
+
+        long affected = cardUseRepository.updatePublicByDelkey(deleteKey, isPublic);
+
+        return new ApiResponse(200, true,
+                (isPublic ? "공개" : "비공개") + "로 전환했습니다. (" + affected + "건)");
+    }
+
+    @Override
+    public ApiResponse modifyCardUseUploadDeleteKey(CardUseUploadDeleteKeyRequest request) {
+        String deleteKey = request.getDeleteKey();
+        String newDeleteKey = request.getNewDeleteKey().trim();
+
+        if (!StringUtils.hasText(newDeleteKey)) {
+            throw new ExcelException("새 삭제키가 비어 있습니다.", 400);
+        }
+        if (!cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey)) {
+            throw new ExcelException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
+        }
+        if (newDeleteKey.equals(deleteKey)) {
+            throw new ExcelException("이전과 같은 삭제키입니다.", 400);
+        }
+        // 이미 쓰는 이름으로 바꾸면 서로 다른 업로드 두 건이 한 덩어리로 합쳐진다.
+        // 그때부터는 삭제도 공개 전환도 둘을 갈라서 할 수 없으니 막는다.
+        if (cardUseRepository.existsByChamMonimapCardUseDelkey(newDeleteKey)) {
+            throw new ExcelException("이미 존재하는 삭제키입니다.", 400);
+        }
+
+        long affected = cardUseRepository.updateDelkey(deleteKey, newDeleteKey);
+
+        return new ApiResponse(200, true,
+                "삭제키를 '" + newDeleteKey + "' 로 변경했습니다. (" + affected + "건)");
+    }
+
+    // 업로드가 읽는 열 순서(ExcelColumns)를 그대로 따른다. 받은 파일을 고쳐서 다시 올릴 수 있어야 한다.
+    private static final String[] EXPORT_HEADERS = {
+            "기관/직책", "지역", "사용자", "이름", "집행일자", "시간", "사용장소명",
+            "상세주소", "집행목적", "대상인원", "금액", "결제방법", "비고", "삭제키"
+    };
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportCardUseUpload(String deleteKey) {
+        List<ChamMonimapCardUse> uses = cardUseRepository.findByDelkeyForExport(deleteKey);
+        if (uses.isEmpty()) {
+            throw new ExcelException("존재하지 않는 삭제키 입니다. (대소문자 를 구분해 주세요)", 400);
+        }
+
+        // 행이 많아질 수 있어 SXSSF 로 쓴다. 100행만 메모리에 두고 나머지는 디스크로 흘린다.
+        // 디스크로 흘린 임시파일은 close() 가 같이 지운다(POI 5.4 부터 dispose 는 없어졌다).
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("업무추진비");
+
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < EXPORT_HEADERS.length; i++) {
+                header.createCell(i).setCellValue(EXPORT_HEADERS[i]);
+            }
+
+            int rowNum = 1;
+            for (ChamMonimapCardUse use : uses) {
+                Row row = sheet.createRow(rowNum++);
+
+                ChamMonimapCardUseAddr addr = use.getCardUseAddr();
+                ChamMonimapCardOwnerPosition position = use.getChamMonimapCardOwnerPosition();
+
+                setText(row, ExcelColumns.OWNER_POSITION,
+                        position == null ? null : position.getChamMonimapCardOwnerPositionName());
+                setText(row, ExcelColumns.REGION, use.getChamMonimapCardUseRegion());
+                setText(row, ExcelColumns.USER_SELL, use.getChamMonimapCardUseUser());
+                setText(row, ExcelColumns.NAME_SELL, use.getChamMonimapCardUseName());
+
+                // 날짜·시간은 문자열로 쓴다. 업로드 쪽 파서가 이 형식을 그대로 읽는다.
+                setText(row, ExcelColumns.DATE,
+                        use.getChamMonimapCardUseDate() == null ? null
+                                : use.getChamMonimapCardUseDate().toString());
+                setText(row, ExcelColumns.TIME,
+                        use.getChamMonimapCardUseTime() == null ? null
+                                : use.getChamMonimapCardUseTime().toString());
+
+                setText(row, ExcelColumns.ADDR_NAME,
+                        addr == null ? null : addr.getChamMonimapCardUseAddrName());
+                setText(row, ExcelColumns.ADDR_DETAIL,
+                        addr == null ? null : addr.getChamMonimapCardUseDetailAddr());
+                setText(row, ExcelColumns.PURPOSE, use.getChamMonimapCardUsePurpose());
+                setText(row, ExcelColumns.PERSONNEL, use.getChamMonimapCardUsePersonnel());
+
+                if (use.getChamMonimapCardUseAmount() == null) {
+                    setText(row, ExcelColumns.AMOUNT, null);
+                } else {
+                    row.createCell(ExcelColumns.AMOUNT).setCellValue(use.getChamMonimapCardUseAmount());
+                }
+
+                setText(row, ExcelColumns.METHOD, use.getChamMonimapCardUseMethod());
+                setText(row, ExcelColumns.REMARK, use.getChamMonimapCardUseRemark());
+                setText(row, ExcelColumns.DELKEY, use.getChamMonimapCardUseDelkey());
+            }
+
+            workbook.write(out);
+            return out.toByteArray();
+
+        } catch (IOException e) {
+            throw new ExcelException("엑셀을 만드는 중 오류가 발생했습니다.", 400);
+        }
+    }
+
+    // 빈 값도 빈 문자열로 채운다. 칸을 아예 비워두면 다시 올릴 때 null 이 되어 터지는 자리가 있다.
+    private void setText(Row row, int column, String value) {
+        row.createCell(column).setCellValue(value == null ? "" : value);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<CleanupAddrResponse> selectCleanupAddrs(String keyword, boolean onlyIssues, Pageable pageable) {
+        return PageResponse.from(cardUseRepository.findCleanupAddrs(safeTrim(keyword), onlyIssues, pageable));
+    }
+
+    @Override
+    public ApiResponse modifyCleanupAddr(CleanupAddrRequest request) {
+        String addrName = safeTrim(request.getAddrName());
+        String detailAddr = safeTrim(request.getDetailAddr());
+
+        ChamMonimapCardUseAddr addr = cardUseAddrRepository.findById(request.getAddrId())
+                .orElseThrow(() -> new ExcelException("존재하지 않는 장소입니다.", 400));
+
+        boolean addrChanged = !detailAddr.equals(safeTrim(addr.getChamMonimapCardUseDetailAddr()));
+
+        String x = null;
+        String y = null;
+        ChamMonimapRegion region = null;
+
+        // 주소가 그대로면 좌표를 다시 찾지 않는다. 카카오 호출을 아끼는 것도 있지만,
+        // 가게 이름만 고치려던 것이 핀 위치까지 움직이면 곤란하다.
+        if (addrChanged) {
+            KakaoAddressResponse.Document document = searchAddrDocument(detailAddr);
+            if (document != null) {
+                x = document.getX();
+                y = document.getY();
+                region = Optional.ofNullable(document.getAddress())
+                        .map(a -> saveRegionByName(
+                                a.getRegion_1depth_name() + " "
+                                        + a.getRegion_2depth_name() + " "
+                                        + a.getRegion_3depth_name()))
+                        .orElse(null);
+            }
+        }
+
+        addr.modifyAddr(addrName, detailAddr, x, y, region);
+
+        if (!addrChanged) {
+            return new ApiResponse(200, true, "장소를 수정했습니다.");
+        }
+        if (x == null) {
+            return new ApiResponse(200, true,
+                    "장소를 수정했습니다. 다만 새 주소로 좌표를 찾지 못해 이전 위치를 그대로 둡니다.");
+        }
+        return new ApiResponse(200, true, "장소를 수정하고 좌표를 다시 찾았습니다.");
+    }
+
+    // 업로드 때 쓰는 카카오 주소검색과 같은 API 다. 여기서는 첫 결과만 본다.
+    private KakaoAddressResponse.Document searchAddrDocument(String detailAddr) {
+        KakaoAddressResponse body = RestClient.create().get()
+                .uri(uriBuilder -> uriBuilder.scheme("https")
+                        .host("dapi.kakao.com")
+                        .path("/v2/local/search/address")
+                        .queryParam("query", detailAddr)
+                        .build())
+                .header("Authorization", "KakaoAK " + kakaoClientId)
+                .retrieve()
+                .toEntity(KakaoAddressResponse.class)
+                .getBody();
+
+        return Optional.ofNullable(body)
+                .map(KakaoAddressResponse::getDocuments)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0))
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<CleanupNameResponse> selectCleanupNames(String keyword, boolean onlyIssues, Pageable pageable) {
+        return PageResponse.from(cardUseRepository.findCleanupNames(safeTrim(keyword), onlyIssues, pageable));
+    }
+
+    @Override
+    public ApiResponse modifyCleanupName(CleanupNameRequest request) {
+        String oldName = request.getOldName();
+        String newName = safeTrim(request.getNewName());
+
+        if (!StringUtils.hasText(newName)) {
+            throw new ExcelException("새 이름이 비어 있습니다.", 400);
+        }
+        if (newName.equals(oldName)) {
+            throw new ExcelException("이전과 같은 이름입니다.", 400);
+        }
+
+        long affected = cardUseRepository.updateCardUseName(oldName, newName);
+        if (affected == 0) {
+            throw new ExcelException("해당 이름으로 된 자료가 없습니다.", 400);
+        }
+
+        return new ApiResponse(200, true,
+                "'" + newName + "' 로 변경했습니다. (" + affected + "건)");
+    }
+
+
     /** 직책/기관명 → ID 캐시 조회 후 없으면 생성 */
     private Long getOrCreatePositionId(String name, Map<String, Long> cache) {
         return cache.computeIfAbsent(name, key -> {
