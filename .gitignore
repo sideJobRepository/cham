@@ -1,41 +1,90 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
+### IntelliJ IDEA (루트) ###
 .idea
 *.iws
 *.iml
 *.ipr
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+
+### VS Code (루트) ###
+.vscode/
+
+### 환경변수 - 시크릿, 커밋 금지 (백엔드 .env 는 복사해서 쓴다) ###
+.env
+
+### DB 데이터 ###
+/mysql_data
+/mysql_data/mysql.sock
+
+# =========================
+# cham-api (Spring Boot / Gradle)
+# =========================
+/cham-api/HELP.md
+/cham-api/.gradle
+/cham-api/build/
+!/cham-api/gradle/wrapper/gradle-wrapper.jar
+!/cham-api/**/src/main/**/build/
+!/cham-api/**/src/test/**/build/
+
+### STS ###
+/cham-api/.apt_generated
+/cham-api/.classpath
+/cham-api/.factorypath
+/cham-api/.project
+/cham-api/.settings
+/cham-api/.springBeans
+/cham-api/.sts4-cache
+/cham-api/bin/
+!/cham-api/**/src/main/**/bin/
+!/cham-api/**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+/cham-api/.idea
+/cham-api/out/
+!/cham-api/**/src/main/**/out/
+!/cham-api/**/src/test/**/out/
 
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+/cham-api/nbproject/private/
+/cham-api/nbbuild/
+/cham-api/dist/
+/cham-api/nbdist/
+/cham-api/.nb-gradle/
 
-### VS Code ###
-.vscode/
-/mysql_data/mysql.sock
-/mysql_data
-# 백엔드 환경변수. .env 을 복사해서 쓴다
-.env
+# =========================
+# cham-front (Vite)
+# =========================
+/cham-front/logs
+/cham-front/*.log
+/cham-front/npm-debug.log*
+/cham-front/yarn-debug.log*
+/cham-front/yarn-error.log*
+/cham-front/pnpm-debug.log*
+/cham-front/lerna-debug.log*
+/cham-front/node_modules/
+/cham-front/dist/
+/cham-front/dist-ssr/
+/cham-front/*.local
+/cham-front/.vscode/*
+!/cham-front/.vscode/extensions.json
+/cham-front/.idea
+/cham-front/.DS_Store
+
+# =========================
+# cham-next-front (Next.js)
+# =========================
+/cham-next-front/node_modules/
+/cham-next-front/.pnp
+/cham-next-front/.pnp.*
+/cham-next-front/coverage/
+/cham-next-front/.next/
+/cham-next-front/out/
+/cham-next-front/build/
+/cham-next-front/*.pem
+/cham-next-front/npm-debug.log*
+/cham-next-front/yarn-debug.log*
+/cham-next-front/yarn-error.log*
+/cham-next-front/.pnpm-debug.log*
+/cham-next-front/.vercel
+/cham-next-front/*.tsbuildinfo
+/cham-next-front/next-env.d.ts
+/cham-next-front/.DS_Store
