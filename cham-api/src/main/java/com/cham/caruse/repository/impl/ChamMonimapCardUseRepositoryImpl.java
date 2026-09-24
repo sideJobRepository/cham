@@ -406,14 +406,15 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
     }
     
     @Override
-    public Map<String, String> findLatestNameByUser(String region) {
+    public Map<String, String> findLatestNameByUser(String region, java.time.LocalDate since) {
         // 최근 행부터 읽어 사용자마다 처음 나온 이름만 남긴다. 한 지역 몇백~몇천 줄이라 그대로 읽어도 된다
         List<Tuple> rows = queryFactory
                 .select(chamMonimapCardUse.chamMonimapCardUseUser, chamMonimapCardUse.chamMonimapCardUseName)
                 .from(chamMonimapCardUse)
                 .where(chamMonimapCardUse.chamMonimapCardUseRegion.eq(region),
                         chamMonimapCardUse.chamMonimapCardUseUser.isNotNull(),
-                        chamMonimapCardUse.chamMonimapCardUseName.isNotNull())
+                        chamMonimapCardUse.chamMonimapCardUseName.isNotNull(),
+                        chamMonimapCardUse.chamMonimapCardUseDate.goe(since))
                 .orderBy(chamMonimapCardUse.chamMonimapCardUseDate.desc(),
                         chamMonimapCardUse.chamMonimapCardUseId.desc())
                 .fetch();

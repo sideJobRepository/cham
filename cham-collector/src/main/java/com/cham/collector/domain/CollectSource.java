@@ -14,8 +14,20 @@ public record CollectSource(
         String pageParam,
         String extraParam,
         Set<String> allowExt,
+        String attachInclude,   // 받을 첨부 파일명 정규식. null 이면 전부
+        String attachExclude,   // 뺄 첨부 파일명 정규식. null 이면 없음
         boolean enabled
 ) {
+
+    /** 확장자와 파일명 규칙을 모두 통과하는 첨부인지 (대전시: 시장·부시장만, '정무' 는 뺀다) */
+    public boolean wants(String fileName, String ext) {
+        if (!allowExt.contains(ext)) return false;
+        String n = fileName == null ? "" : fileName;
+        if (attachInclude != null && !attachInclude.isBlank()
+                && !java.util.regex.Pattern.compile(attachInclude).matcher(n).find()) return false;
+        return attachExclude == null || attachExclude.isBlank()
+                || !java.util.regex.Pattern.compile(attachExclude).matcher(n).find();
+    }
 
     public String detailUrlOf(String postKey) {
         return detailUrl == null ? null : detailUrl.replace("{postKey}", postKey);

@@ -34,6 +34,8 @@ CREATE TABLE CHAM.CHAM_MONIMAP_COLLECT_SOURCE
     `CHAM_MONIMAP_COLLECT_SOURCE_DEFAULT_NAME`  VARCHAR(100)     NULL        COMMENT '자치연대 예산감시 수집 출처 기본 이름 (엑셀 3열 이름)',
     `CHAM_MONIMAP_COLLECT_SOURCE_FILE_FORMAT`   VARCHAR(20)      NOT NULL    COMMENT '자치연대 예산감시 수집 출처 원본 형식 (XLSX/PDF/XLSX_PDF/NONE)',
     `CHAM_MONIMAP_COLLECT_SOURCE_ALLOW_EXT`     VARCHAR(100)     NOT NULL    DEFAULT 'xlsx,xls' COMMENT '자치연대 예산감시 수집 출처 수집 허용 확장자',
+    `CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE` VARCHAR(500)   NULL        COMMENT '자치연대 예산감시 수집 출처 받을 첨부 파일명 정규식 (NULL=전부)',
+    `CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE` VARCHAR(500)   NULL        COMMENT '자치연대 예산감시 수집 출처 뺄 첨부 파일명 정규식 (NULL=없음)',
     `CHAM_MONIMAP_COLLECT_SOURCE_ENABLED`       TINYINT(1)       NOT NULL    DEFAULT 0 COMMENT '자치연대 예산감시 수집 출처 사용 여부',
     `CHAM_MONIMAP_COLLECT_SOURCE_SORT`          INT              NOT NULL    DEFAULT 0 COMMENT '자치연대 예산감시 수집 출처 정렬 순서',
     `CHAM_MONIMAP_COLLECT_SOURCE_LAST_SUCCESS`  DATETIME         NULL        COMMENT '자치연대 예산감시 수집 출처 마지막 성공 일시',
@@ -118,6 +120,7 @@ ALTER TABLE CHAM.CHAM_MONIMAP_COLLECT_FILE
 
 
 -- ─────────────────────────────────────────────────────────────
+-- 대전시장은 첨부 중 시장·부시장 파일만 받는다(요약표 '사용내역공개', '정무…' 는 뺀다). 시드 뒤 UPDATE 참고.
 -- 출처 12곳 시드. 서구의회(게시판 비어 있음)를 뺀 11곳을 ENABLED=1. PDF 4곳(대전시·대전시의회·유성구청장·대덕구청장)은
 -- 원본 보관과 PDF 미리보기만 된다(반영은 엑셀만).
 --
@@ -145,7 +148,7 @@ VALUES
     ('DAEJEON_MAYOR', '대전광역시장·부시장', 'CUSTOM_DAEJEON',
      'https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardView.do?boardSeq=1186&menuSeq=4804',
      'https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardArticleView.do?menuSeq=4804&boardSeq=1186&articleSeq={postKey}&subPageIndex=1',
-     '1186', 'subPageIndex', NULL, '광역지자체', '대전', '시장', '이장우', 'PDF', 'pdf', 1, 10,
+     '1186', 'subPageIndex', NULL, '광역지자체', '대전', '시장', '허태정', 'PDF', 'pdf', 1, 10,
      '원래 3단. 목록을 시장·부시장 항목(boardSeq=1186)으로 잡아 2단으로 쓴다. 첨부 fileDownLoad(경로) → /{경로}', NOW(), NOW()),
     ('DAEJEON_COUNCIL', '대전시의회', 'COUNCIL_A',
      'https://council.daejeon.go.kr/svc/inf/OperatingExpenseList.do',
@@ -201,3 +204,8 @@ VALUES
      'https://council.daedeok.go.kr/kr/costBBSview.do?uid={postKey}', NULL,
      'page', NULL, '기초의회', '대전 대덕구', NULL, NULL, 'XLSX', 'xlsx,xls', 1, 120,
      '의회B 계열', NOW(), NOW());
+
+-- 대전시: 한 달치에 PDF 가 여럿(0. 사용내역공개 / 1. 시장 / 2. 행정부시장 / 3. 정무…) 붙는다. 시장·부시장만 받는다
+UPDATE CHAM.CHAM_MONIMAP_COLLECT_SOURCE
+SET CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE = '시장', CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE = '정무'
+WHERE CHAM_MONIMAP_COLLECT_SOURCE_CODE = 'DAEJEON_MAYOR';

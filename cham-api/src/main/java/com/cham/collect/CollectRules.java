@@ -1,5 +1,6 @@
 package com.cham.collect;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 
 /**
@@ -9,6 +10,10 @@ public final class CollectRules {
 
     // 자동수집은 2026년 7월분부터. 그 전 달은 월 표에서도 흐리게 두고 요청을 받지 않는다
     public static final YearMonth START = YearMonth.of(2026, 7);
+
+    // 민선 9기·지방의회 새 임기 시작(2026-06 지방선거). 이름 채우기는 이날 이후 자료에서만 찾는다.
+    // 이전 임기 자료로 채우면 새 임기 자료에 전 의장·전 구청장 이름이 붙는다
+    public static final LocalDate TERM_START = LocalDate.of(2026, 7, 1);
 
     public static boolean isCollectable(int year, int month) {
         return !YearMonth.of(year, month).isBefore(START) && !YearMonth.of(year, month).isAfter(YearMonth.now());

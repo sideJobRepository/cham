@@ -204,7 +204,7 @@ class AdapterFixtureTest {
     }
 
     private static CollectSource source(String code, EngineType engine, String listUrl, String detailUrl, String boardId) {
-        return new CollectSource(1L, code, code, engine, listUrl, detailUrl, boardId, "page", null, Set.of("xlsx", "xls", "pdf"), true);
+        return new CollectSource(1L, code, code, engine, listUrl, detailUrl, boardId, "page", null, Set.of("xlsx", "xls", "pdf"), null, null, true);
     }
 
     private static Document doc(String path, String baseUri) throws IOException {

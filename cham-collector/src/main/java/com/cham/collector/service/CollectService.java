@@ -127,11 +127,11 @@ public class CollectService {
         }
 
         List<AttachmentRef> wanted = attachments.stream()
-                .filter(a -> source.allowExt().contains(extOf(a.displayName())))
+                .filter(a -> source.wants(a.displayName(), extOf(a.displayName())))
                 .toList();
         if (wanted.isEmpty()) {
             result.log("받을 첨부 없음 [" + post.title() + "]"
-                    + (attachments.isEmpty() ? "" : " (첨부 " + attachments.size() + "개는 허용 형식 아님)"));
+                    + (attachments.isEmpty() ? "" : " (첨부 " + attachments.size() + "개는 형식·파일명 규칙에 안 맞음)"));
             return;
         }
 

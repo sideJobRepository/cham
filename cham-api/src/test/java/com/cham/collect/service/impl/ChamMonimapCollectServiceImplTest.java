@@ -3,6 +3,7 @@ package com.cham.collect.service.impl;
 import com.cham.advice.exception.ExcelException;
 import com.cham.caruse.CardUseInsertOptions;
 import com.cham.caruse.CardUseRow;
+import com.cham.caruse.KakaoPlaceFinder;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.collect.dto.CollectImportRequest;
@@ -53,6 +54,7 @@ class ChamMonimapCollectServiceImplTest {
     @Mock ChamMonimapCardUseRepository cardUseRepository;
     @Mock ChamMonimapCardUseService cardUseService;
     @Mock S3FileUtils s3FileUtils;
+    @Mock KakaoPlaceFinder placeFinder;
 
     @InjectMocks ChamMonimapCollectServiceImpl service;
 
@@ -61,7 +63,34 @@ class ChamMonimapCollectServiceImplTest {
     @BeforeEach
     void setUp() {
         council = source(1L, "중구의회", "기초의회", "대전 중구", null);
-        when(cardUseRepository.findLatestNameByUser("대전 중구")).thenReturn(Map.of("의장", "오은규"));
+        when(cardUseRepository.findLatestNameByUser(eq("대전 중구"), any())).thenReturn(Map.of("의장", "오은규"));
+        when(placeFinder.find(any(), any()))
+                .thenReturn(new KakaoPlaceFinder.Result(KakaoPlaceFinder.Status.NOT_FOUND, null, null, 0));
+    }
+
+    @Test
+    void 장소명만_있으면_카카오로_주소를_찾고_못찾으면_비워둔다() throws Exception {
+        when(fileRepository.findWithSource(10L))
+                .thenReturn(Optional.of(file(10L, council, CollectFileStatus.COLLECTED)));
+        when(s3FileUtils.getBytes("k")).thenReturn(placeOnlyXlsx());
+        when(placeFinder.find("대전", "이디야 탄방점"))
+                .thenReturn(new KakaoPlaceFinder.Result(KakaoPlaceFinder.Status.FOUND,
+                        "이디야커피 대전탄방동점", "대전 서구 문정로40번길 64", 1));
+        when(placeFinder.find("대전", "워낭명가"))
+                .thenReturn(new KakaoPlaceFinder.Result(KakaoPlaceFinder.Status.AMBIGUOUS, null, null, 3));
+
+        CollectPreviewResponse preview = service.preview(10L, 50, null);
+
+        assertThat(preview.rows().get(0).addrDetail()).isEqualTo("대전 서구 문정로40번길 64");
+        assertThat(preview.rows().get(0).warnings()).anyMatch(w -> w.startsWith(ChamMonimapCollectServiceImpl.WARN_ADDR_FOUND))
+                .doesNotContain("주소 없음");
+        // 후보가 여럿이거나 못 찾으면 비워 둔다(자리값을 보여주지 않는다)
+        assertThat(preview.rows().get(1).addrDetail()).isNull();
+        assertThat(preview.rows().get(1).warnings()).anyMatch(w -> w.startsWith(ChamMonimapCollectServiceImpl.WARN_ADDR_AMBIGUOUS));
+        assertThat(preview.rows().get(2).addrDetail()).isNull();
+        assertThat(preview.rows().get(2).addrName()).isNull();
+        // 장소가 없는 줄(경조사)은 카카오에 묻지 않는다
+        verify(placeFinder, never()).find(any(), isNull());
     }
 
     @Test
@@ -254,6 +283,18 @@ class ChamMonimapCollectServiceImplTest {
             row(s, 0, "연번", "사용일시", "사용자", "사용장소(가맹점명)", "가맹점 주소", "사용목적", "대상인원(명)", "사용금액(원)", "사용방법");
             row(s, 1, "1", firstDate, "의장", "스시무희", "대전 중구 중앙로112번길 24", "간담회", "4", "120000", "카드");
             row(s, 2, "2", "2026-08-05 19:00", "국장", "칼국수집", "대전 중구 대종로 1", "격려", "10", "55000", "카드");
+            wb.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    private static byte[] placeOnlyXlsx() throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet s = wb.createSheet("Sheet1");
+            row(s, 0, "연번", "일시", "사용자", "장소", "집행목적", "대상인원", "금액(원)", "결제방법");
+            row(s, 1, "1", "2026-07-01 12:17", "의장", "이디야 탄방점", "관계자 차담회", "2", "6400", "신용카드");
+            row(s, 2, "2", "2026-07-06 12:07", "의장", "워낭명가", "간담회", "4", "58500", "신용카드");
+            row(s, 3, "3", "2026-07-07 10:00", "의장", "", "직원 부의금", "1", "50000", "현금");
             wb.write(out);
             return out.toByteArray();
         }

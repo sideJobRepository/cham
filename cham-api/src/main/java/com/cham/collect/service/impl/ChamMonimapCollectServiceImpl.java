@@ -4,6 +4,7 @@ import com.cham.advice.exception.ExcelException;
 import com.cham.caruse.CardUseDefaults;
 import com.cham.caruse.CardUseInsertOptions;
 import com.cham.caruse.CardUseRow;
+import com.cham.caruse.KakaoPlaceFinder;
 import com.cham.caruse.UploadFormExcel;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
@@ -54,6 +55,7 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
     private final ChamMonimapCardUseRepository cardUseRepository;
     private final ChamMonimapCardUseService cardUseService;
     private final S3FileUtils s3FileUtils;
+    private final KakaoPlaceFinder placeFinder;
 
     private final HeaderMappedSheetParser parser = new HeaderMappedSheetParser();
 
@@ -125,7 +127,7 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
 
         ParseResult parsed = parse(file);
         NameFill filled = fillNames(parsed.rows(), source, defaultName);
-        List<ParsedRow> rows = filled.rows();
+        List<ParsedRow> rows = fillAddresses(filled.rows(), source);
 
         String suggestedKey = file.getChamMonimapCollectFileDelkey() != null
                 ? file.getChamMonimapCollectFileDelkey()
@@ -163,9 +165,10 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         ChamMonimapCollectSource source = file.getCollectSource();
 
         ParseResult parsed = parse(file);
-        List<ParsedRow> rows = fillNames(parsed.rows(), source, request == null ? null : request.defaultName()).rows();
+        List<ParsedRow> rows = fillAddresses(
+                fillNames(parsed.rows(), source, request == null ? null : request.defaultName()).rows(), source);
         if (rows.isEmpty()) {
-            throw new ExcelException("반영할 줄이 없습니다. " + String.join(" ", parsed.fileWarnings()), 400);
+            throw new ExcelException(HeaderMappedSheetParser.NO_TABLE, 400);
         }
         List<String> blocking = rows.stream()
                 .filter(ParsedRow::blocking)
@@ -245,9 +248,9 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         ChamMonimapCollectSource source = file.getCollectSource();
 
         ParseResult parsed = parse(file);
-        List<ParsedRow> rows = fillNames(parsed.rows(), source, defaultName).rows();
+        List<ParsedRow> rows = fillAddresses(fillNames(parsed.rows(), source, defaultName).rows(), source);
         if (rows.isEmpty()) {
-            throw new ExcelException("옮길 줄이 없습니다. " + String.join(" ", parsed.fileWarnings()), 400);
+            throw new ExcelException(HeaderMappedSheetParser.NO_TABLE, 400);
         }
 
         // 이미 반영한 파일이면 그때 삭제키를 그대로 둔다. 다시 올리려면 공개관리에서 먼저 지워야 한다
@@ -330,17 +333,45 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         // PDF 는 표를 뽑아 시트로 바꾼 뒤 엑셀과 같은 파서로 읽는다
         try (Workbook workbook = pdf ? PdfTableWorkbook.from(bytes)
                 : WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
-            ParseResult result = parser.parse(workbook, defaults);
-            if (pdf && result.rows().isEmpty()) {
-                List<String> warnings = new ArrayList<>(result.fileWarnings());
-                warnings.add("PDF 에서 내역 표를 찾지 못했습니다. 합계표·안내문만 있는 파일일 수 있습니다. PDF 보기로 확인하세요.");
-                return new ParseResult(result.rows(), result.sheets(), warnings);
-            }
-            return result;
+            return parser.parse(workbook, defaults);
         } catch (IOException | RuntimeException e) {
             if (e instanceof ExcelException ee) throw ee;
             throw new ExcelException((pdf ? "PDF" : "엑셀") + "을 열 수 없습니다: " + e.getMessage(), 400);
         }
+    }
+
+    public static final String WARN_ADDR_FOUND = "주소 자동 찾음";
+    public static final String WARN_ADDR_AMBIGUOUS = "주소 후보가 여러 곳이라 비워 둠";
+
+    /**
+     * 장소명만 있고 주소가 빈 줄은 카카오 장소 검색으로 도로명주소를 채운다('이디야 탄방점').
+     * 찾으면 '주소 자동 찾음: 카카오 가게 이름' 경고를 달아 미리보기에서 확인하게 하고,
+     * 후보가 여럿이거나 못 찾으면 비워 둔다.
+     */
+    private List<ParsedRow> fillAddresses(List<ParsedRow> rows, ChamMonimapCollectSource source) {
+        List<ParsedRow> result = new ArrayList<>(rows.size());
+        for (ParsedRow r : rows) {
+            CardUseRow c = r.row();
+            if (!isBlank(c.addrDetail()) || !KakaoPlaceFinder.isSearchable(c.addrName())) {
+                result.add(r);
+                continue;
+            }
+            KakaoPlaceFinder.Result found = placeFinder.find(
+                    KakaoPlaceFinder.areaOf(source.getChamMonimapCollectSourceRegion(), r.district()), c.addrName());
+            List<String> warnings = new ArrayList<>(r.warnings());
+            String addrDetail = null;
+            if (found.status() == KakaoPlaceFinder.Status.FOUND) {
+                addrDetail = found.address();
+                warnings.remove(HeaderMappedSheetParser.WARN_NO_ADDR);
+                warnings.add(WARN_ADDR_FOUND + ": " + found.placeName());
+            } else if (found.status() == KakaoPlaceFinder.Status.AMBIGUOUS) {
+                warnings.add(WARN_ADDR_AMBIGUOUS + "(" + found.candidates() + "곳)");
+            }
+            result.add(new ParsedRow(new CardUseRow(c.ownerPosition(), c.region(), c.user(), c.name(), c.date(), c.time(),
+                    c.addrName(), addrDetail, c.purpose(), c.personnel(), c.amount(), c.method(), c.remark(),
+                    c.sourceRowNum(), c.sheetName()), warnings, r.blocking(), r.district()));
+        }
+        return result;
     }
 
     /** 이름을 채운 줄과, 그중 기존 자료에서 못 찾아 기본 이름(공무원)을 넣은 줄 수 */
@@ -349,14 +380,14 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
 
     /**
      * 이름이 빈 줄을 채운다. 원본에 사람 이름이 없는 의회 자료가 대상이다.
-     * 1) 같은 지역에서 같은 사용자(직함)가 가장 최근에 쓴 이름 ('의장' → '오은규')
+     * 1) 같은 지역에서 같은 사용자(직함)가 새 임기(CollectRules.TERM_START) 이후 가장 최근에 쓴 이름
      * 2) 화면에서 적은 이름
      * 3) 그래도 없으면 '공무원' (CardUseDefaults.NAME)
      */
     private NameFill fillNames(List<ParsedRow> rows, ChamMonimapCollectSource source, String requestName) {
         if (rows.stream().noneMatch(r -> isBlank(r.row().name()))) return new NameFill(rows, 0);
 
-        Map<String, String> latest = cardUseRepository.findLatestNameByUser(source.getChamMonimapCollectSourceRegion());
+        Map<String, String> latest = cardUseRepository.findLatestNameByUser(source.getChamMonimapCollectSourceRegion(), CollectRules.TERM_START);
         String fallback = isBlank(requestName) ? CardUseDefaults.NAME : requestName.trim();
 
         long defaulted = 0;
@@ -375,7 +406,7 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
             CardUseRow c = r.row();
             result.add(new ParsedRow(new CardUseRow(c.ownerPosition(), c.region(), c.user(), name, c.date(), c.time(),
                     c.addrName(), c.addrDetail(), c.purpose(), c.personnel(), c.amount(), c.method(), c.remark(),
-                    c.sourceRowNum(), c.sheetName()), r.warnings(), r.blocking()));
+                    c.sourceRowNum(), c.sheetName()), r.warnings(), r.blocking(), r.district()));
         }
         return new NameFill(result, defaulted);
     }
@@ -394,9 +425,9 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         CardUseRow c = r.row();
         return new CollectPreviewResponse.Row(c.sheetName(), c.sourceRowNum(), c.ownerPosition(), c.region(),
                 c.user(), c.name(), c.date(), c.time(),
-                // 저장할 때 들어갈 자리값을 그대로 보여준다. 경고에 '→ 자리값' 이 같이 붙어 있다
-                isBlank(c.addrName()) ? CardUseDefaults.ADDR_NAME : c.addrName(),
-                isBlank(c.addrDetail()) ? CardUseDefaults.DETAIL_ADDR : c.addrDetail(),
+                // 못 찾은 장소·주소는 비워서 보여준다(반영할 때만 안에서 자리값이 들어간다)
+                c.addrName(),
+                c.addrDetail(),
                 c.purpose(), c.personnel(), c.amount(), c.method(), c.remark(), r.warnings(), r.blocking());
     }
 

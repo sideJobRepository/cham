@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
-import { FaSyncAlt, FaFileExcel, FaFilePdf, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaSyncAlt, FaFileExcel, FaFilePdf, FaExternalLinkAlt, FaTimes } from 'react-icons/fa';
 import { AiOutlineDownload } from 'react-icons/ai';
 import { useSetRecoilState } from 'recoil';
 import { loadingState } from '@/recoil/appState.js';
@@ -140,7 +140,11 @@ export default function AdminCollectTab({ onImported }) {
       setFiles(list);
       // 검수할 파일이 하나뿐이면 바로 미리보기를 연다 (PDF 는 뷰어로)
       const reviewable = list.filter(f => f.status !== 'DUPLICATE');
-      if (reviewable.length === 1) openPreview(reviewable[0]);
+      if (reviewable.length === 1) {
+        openPreview(reviewable[0]);
+        // PDF 는 뽑힌 표와 원본을 나란히 놓고 본다
+        if (isPdf(reviewable[0])) openPdf(reviewable[0]);
+      }
     } catch (e) {
       console.error(e);
       toast.error(errorMessage(e, '파일 목록을 불러오지 못했습니다.'));
@@ -184,6 +188,25 @@ export default function AdminCollectTab({ onImported }) {
     closePreview();
     fetchFiles(cell);
   };
+
+  const closeModal = () => {
+    setSelected(null);
+    setFiles([]);
+    closePreview();
+  };
+
+  // 모달이 열려 있으면 Esc 로 닫는다
+  useEffect(() => {
+    if (!selected) return undefined;
+    const onKey = e => e.key === 'Escape' && closeModal();
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [selected]);
 
   // ── 수집 요청 ──
 
@@ -551,10 +574,16 @@ export default function AdminCollectTab({ onImported }) {
       </TableScrollBox>
 
       {selected && (
-        <Panel>
-          <PanelTitle>
-            {selected.name} · {year}년 {selected.month}월분
-          </PanelTitle>
+        <ModalBackdrop onClick={closeModal}>
+          <ModalDialog onClick={e => e.stopPropagation()}>
+            <ModalHeader>
+              <strong>
+                {selected.name} · {year}년 {selected.month}월분
+              </strong>
+              <FaTimes onClick={closeModal} title="닫기 (Esc)" />
+            </ModalHeader>
+            <ModalBody>
+        <Section>
 
           {filesLoaded && files.length === 0 && (
             <EmptyBox>
@@ -688,11 +717,12 @@ export default function AdminCollectTab({ onImported }) {
                 을 요청할 수 있습니다. 같은 파일은 다시 받지 않습니다.
               </MutedLine>
             )}
-        </Panel>
-      )}
+        </Section>
 
+        {/* 표 미리보기와 PDF 원본이 둘 다 열리면 좌우로 나란히 놓아 대조한다 */}
+        <Viewers $split={!!(pdfView && preview && previewFile)}>
       {pdfView && (
-        <Panel ref={pdfRef}>
+        <Section ref={pdfRef} className="pdf">
           <PanelTitle>
             PDF 미리보기 · {pdfView.file.originName}
             <Chip $color={FILE_STATUS[pdfView.file.status]?.color}>
@@ -720,11 +750,11 @@ export default function AdminCollectTab({ onImported }) {
               </SmallButton>
             )}
           </ButtonRow>
-        </Panel>
+        </Section>
       )}
 
       {preview && previewFile && (
-        <Panel ref={previewRef}>
+        <Section ref={previewRef} className="table">
           <PanelTitle>
             미리보기 · {previewFile.originName}
             <Chip $color={FILE_STATUS[previewFile.status]?.color}>
@@ -889,7 +919,12 @@ export default function AdminCollectTab({ onImported }) {
               </SmallButton>
             )}
           </ButtonRow>
-        </Panel>
+        </Section>
+      )}
+        </Viewers>
+            </ModalBody>
+          </ModalDialog>
+        </ModalBackdrop>
       )}
 
       <Panel>
@@ -1320,9 +1355,85 @@ const LinkButton = styled.button`
   }
 `;
 
+// 월 표 칸을 누르면 뜨는 모달. 확인창(z-index 9999) 아래, 상단 헤더(1000) 위
+const ModalBackdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalDialog = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: min(1600px, 96vw);
+  height: 92vh;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: ${({ theme }) => theme.sizes.medium};
+
+  svg {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    color: ${({ theme }) => theme.colors.liteGray};
+  }
+`;
+
+const ModalBody = styled.div`
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const Section = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+`;
+
+const Viewers = styled.div`
+  display: grid;
+  grid-template-columns: ${({ $split }) => ($split ? 'minmax(0, 1.3fr) minmax(0, 1fr)' : 'minmax(0, 1fr)')};
+  gap: 16px;
+  align-items: start;
+
+  .table {
+    order: 1;
+  }
+
+  .pdf {
+    order: 2;
+    position: sticky;
+    top: 0;
+  }
+
+  @media (max-width: 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+`;
+
 const PdfFrame = styled.iframe`
   width: 100%;
-  height: 80vh;
+  height: 72vh;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 4px;
 `;

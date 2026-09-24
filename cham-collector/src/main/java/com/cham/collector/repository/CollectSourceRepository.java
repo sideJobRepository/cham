@@ -21,7 +21,8 @@ public class CollectSourceRepository {
             SELECT CHAM_MONIMAP_COLLECT_SOURCE_ID, CHAM_MONIMAP_COLLECT_SOURCE_CODE, CHAM_MONIMAP_COLLECT_SOURCE_NAME,
                    CHAM_MONIMAP_COLLECT_SOURCE_ENGINE, CHAM_MONIMAP_COLLECT_SOURCE_LIST_URL, CHAM_MONIMAP_COLLECT_SOURCE_DETAIL_URL,
                    CHAM_MONIMAP_COLLECT_SOURCE_BOARD_ID, CHAM_MONIMAP_COLLECT_SOURCE_PAGE_PARAM, CHAM_MONIMAP_COLLECT_SOURCE_EXTRA_PARAM,
-                   CHAM_MONIMAP_COLLECT_SOURCE_ALLOW_EXT, CHAM_MONIMAP_COLLECT_SOURCE_ENABLED
+                   CHAM_MONIMAP_COLLECT_SOURCE_ALLOW_EXT, CHAM_MONIMAP_COLLECT_SOURCE_ENABLED,
+                   CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE, CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE
             FROM CHAM_MONIMAP_COLLECT_SOURCE
             """;
 
@@ -38,6 +39,8 @@ public class CollectSourceRepository {
             Arrays.stream(rs.getString(10).split(","))
                     .map(String::trim).map(String::toLowerCase).filter(s -> !s.isEmpty())
                     .collect(Collectors.toSet()),
+            rs.getString(12),
+            rs.getString(13),
             rs.getBoolean(11));
 
     private final JdbcTemplate jdbc;

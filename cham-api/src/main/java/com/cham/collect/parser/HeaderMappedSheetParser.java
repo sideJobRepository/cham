@@ -22,6 +22,10 @@ import java.util.*;
 public class HeaderMappedSheetParser {
 
     public static final String WARN_DATE = "날짜를 읽지 못함";
+    public static final String WARN_NO_PLACE = "장소 없음";
+    public static final String WARN_NO_ADDR = "주소 없음";
+    // 헤더를 못 찾은 파일. 예산 합계표·안내문처럼 건별 사용내역이 없는 파일이 대부분이다
+    public static final String NO_TABLE = "사용내역 표가 없는 파일입니다(예산 합계표·안내문 등). '반영 안 함'으로 표시하세요.";
 
     public record ParseResult(List<ParsedRow> rows, List<SheetInfo> sheets, List<String> fileWarnings) {
         public long blockingCount() {
@@ -41,8 +45,14 @@ public class HeaderMappedSheetParser {
                             List<String> unmapped, int rowCount) {
     }
 
-    /** blocking 이면 이 파일은 반영할 수 없다 (날짜 없는 줄) */
-    public record ParsedRow(CardUseRow row, List<String> warnings, boolean blocking) {
+    /**
+     * @param blocking 이면 이 파일은 반영할 수 없다 (날짜 없는 줄)
+     * @param district 원본의 '구별' 칸(서구). 주소가 없을 때 장소 검색 범위로 쓴다
+     */
+    public record ParsedRow(CardUseRow row, List<String> warnings, boolean blocking, String district) {
+        public ParsedRow(CardUseRow row, List<String> warnings, boolean blocking) {
+            this(row, warnings, blocking, null);
+        }
     }
 
     public ParseResult parse(Workbook workbook, SourceDefaults defaults) {
@@ -69,14 +79,14 @@ public class HeaderMappedSheetParser {
                 // 시트 이름을 이미 사용자(직함)로 썼으면(동구의회 의장/부의장) 비고에 또 넣지 않는다
                 if (usedSheets > 1 && !p.userFromSheetName && isBlank(r.row().remark())
                         && !CollectHeaderRules.isGenericSheetName(p.info.name())) {
-                    r = new ParsedRow(withRemark(r.row(), p.info.name()), r.warnings(), r.blocking());
+                    r = new ParsedRow(withRemark(r.row(), p.info.name()), r.warnings(), r.blocking(), r.district());
                 }
                 rows.add(r);
             }
         }
 
         if (usedSheets == 0) {
-            fileWarnings.add("헤더를 찾은 시트가 없습니다. 사전(CollectHeaderRules)에 없는 헤더일 수 있습니다.");
+            fileWarnings.add(NO_TABLE);
         } else if (rows.isEmpty()) {
             fileWarnings.add("헤더는 찾았지만 읽을 줄이 없습니다.");
         }
@@ -229,9 +239,9 @@ public class HeaderMappedSheetParser {
             warnings.add(String.format("대상 월(%d-%02d)과 다른 날짜", year, defaults.targetMonth()));
         }
         if (time == null) warnings.add("시간 없음");
-        if (isBlank(addrName)) warnings.add("장소 없음 → 자리값");
+        if (isBlank(addrName)) warnings.add(WARN_NO_PLACE);
         else if (CleanupRules.isAddrNameSuspicious(addrName)) warnings.add("장소명 확인 필요");
-        if (isBlank(addrDetail)) warnings.add("주소 없음 → 자리값");
+        if (isBlank(addrDetail)) warnings.add(WARN_NO_ADDR);
         if (amount == null || amount == 0) warnings.add("금액 없음");
 
         CardUseRow cardUseRow = new CardUseRow(
@@ -250,7 +260,7 @@ public class HeaderMappedSheetParser {
                 str(sheet, row, columns, CollectField.REMARK, merged),
                 row.getRowNum() + 1,
                 sheet.getSheetName());
-        return new ParsedRow(cardUseRow, warnings, blocking);
+        return new ParsedRow(cardUseRow, warnings, blocking, str(sheet, row, columns, CollectField.DISTRICT, merged));
     }
 
     // ── 도우미 ────────────────────────────────────────────────

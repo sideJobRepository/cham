@@ -55,7 +55,7 @@ class HeaderMappedSheetParserTest {
             assertThat(first.method()).isEqualTo("카드");
             assertThat(first.addrName()).isNull();
             assertThat(first.remark()).isEqualTo("기관운영");
-            assertThat(result.rows().get(0).warnings()).contains("장소 없음 → 자리값", "주소 없음 → 자리값");
+            assertThat(result.rows().get(0).warnings()).contains("장소 없음", "주소 없음");
 
             CardUseRow second = result.rows().get(1).row();
             assertThat(second.date()).isEqualTo(LocalDate.of(2026, 8, 14));

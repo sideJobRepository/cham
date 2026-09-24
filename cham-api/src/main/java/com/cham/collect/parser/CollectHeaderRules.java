@@ -34,6 +34,7 @@ public final class CollectHeaderRules {
         // 비목(기관운영/시책추진 구분)도 비고로 받는다. 둘 다 있으면 왼쪽 열이 이긴다
         m.put(CollectField.REMARK, List.of("비고", "비목"));
         m.put(CollectField.POSITION, List.of("직위", "직책", "직급"));
+        m.put(CollectField.DISTRICT, List.of("구별", "자치구", "소재구", "구군"));
         SYNONYMS = Collections.unmodifiableMap(m);
     }
 

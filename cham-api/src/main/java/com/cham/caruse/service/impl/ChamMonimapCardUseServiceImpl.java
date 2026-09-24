@@ -12,6 +12,7 @@ import com.cham.caruse.repository.dto.CardUseSummaryDto;
 import com.cham.caruse.CardUseDefaults;
 import com.cham.caruse.CardUseInsertOptions;
 import com.cham.caruse.CardUseRow;
+import com.cham.caruse.KakaoPlaceFinder;
 import com.cham.caruse.UploadFormExcel;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.dto.request.CardUseConditionRequest;
@@ -77,6 +78,8 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     private final ChamMonimapRegionRepository regionRepository;
     
     private final ChamMonimapThemeRepository themeRepository;
+    
+    private final KakaoPlaceFinder placeFinder;
     
     @Value("${kakao.clientId}")
     private String kakaoClientId;
@@ -491,6 +494,11 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
                 addrName = CardUseDefaults.ADDR_NAME;
             }
             String addrDetail = safeTrim(row.addrDetail());
+            // 장소명만 있고 주소가 없으면 카카오 장소 검색으로 찾아 본다 ('이디야 탄방점' → 도로명주소)
+            if (!StringUtils.hasText(addrDetail) && KakaoPlaceFinder.isSearchable(row.addrName())) {
+                KakaoPlaceFinder.Result found = placeFinder.find(KakaoPlaceFinder.areaOf(row.region(), null), row.addrName());
+                if (found.status() == KakaoPlaceFinder.Status.FOUND) addrDetail = found.address();
+            }
             if (!StringUtils.hasText(addrDetail)) {
                 addrDetail = CardUseDefaults.DETAIL_ADDR;
             }

@@ -15,5 +15,6 @@ public enum CollectField {
     AMOUNT,
     METHOD,
     REMARK,
-    POSITION    // 파일 안의 '직위/직책'. 분류로 쓰지 않고 사용자가 비었을 때 사용자로 쓴다
+    POSITION,   // 파일 안의 '직위/직책'. 분류로 쓰지 않고 사용자가 비었을 때 사용자로 쓴다
+    DISTRICT    // '구별'(서구/유성구). 저장하지 않고 주소를 못 받은 줄의 장소 검색 범위로만 쓴다
 }

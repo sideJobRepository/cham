@@ -50,6 +50,6 @@ public interface ChamMonimapCardUseQueryRepository {
     long updateCardUseName(String oldName, String newName);
 
     // 수집 반영: 한 지역에서 사용자(직함)별로 가장 최근에 쓴 이름. 의회 원본에는 사람 이름이 없어서
-    // '의장' → '오은규' 처럼 기존 자료로 채운다.
-    Map<String, String> findLatestNameByUser(String region);
+    // '의장' → '오은규' 처럼 기존 자료로 채운다. since 이후 사용일자 자료만 본다(임기가 바뀌면 사람이 바뀐다)
+    Map<String, String> findLatestNameByUser(String region, java.time.LocalDate since);
 }
