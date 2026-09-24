@@ -72,6 +72,7 @@ export default function AdminCollectTab({ onImported }) {
   const [filesLoaded, setFilesLoaded] = useState(false);
 
   const [preview, setPreview] = useState(null);
+  const [pdfView, setPdfView] = useState(null); // { file, url }
   const [previewFile, setPreviewFile] = useState(null);
   const [deleteKey, setDeleteKey] = useState('');
   const [defaultName, setDefaultName] = useState('');
@@ -133,8 +134,8 @@ export default function AdminCollectTab({ onImported }) {
       });
       const list = data?.content ?? [];
       setFiles(list);
-      // 검수할 엑셀이 하나뿐이면 바로 미리보기를 연다
-      const reviewable = list.filter(f => f.status !== 'DUPLICATE' && isExcel(f));
+      // 검수할 파일이 하나뿐이면 바로 미리보기를 연다 (PDF 는 뷰어로)
+      const reviewable = list.filter(f => f.status !== 'DUPLICATE');
       if (reviewable.length === 1) openPreview(reviewable[0]);
     } catch (e) {
       console.error(e);
@@ -233,10 +234,44 @@ export default function AdminCollectTab({ onImported }) {
     setPreviewFile(null);
     setDeleteKey('');
     setDefaultName('');
+    closePdf();
+  };
+
+  // PDF 는 표로 읽지 못해 원본을 그대로 띄운다. S3 원본을 관리자 API 로 받아 브라우저 PDF 뷰어에 넣는다
+  const closePdf = () => {
+    setPdfView(prev => {
+      if (prev?.url) window.URL.revokeObjectURL(prev.url);
+      return null;
+    });
+  };
+
+  const openPdf = async file => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/cham/admin/collect/files/${file.fileId}/view`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      setPreview(null);
+      setPreviewFile(null);
+      setPdfView(prev => {
+        if (prev?.url) window.URL.revokeObjectURL(prev.url);
+        return { file, url };
+      });
+      setTimeout(() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    } catch (e) {
+      console.error(e);
+      toast.error('PDF 를 열지 못했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openPreview = async (file, nameOverride) => {
+    if (!isExcel(file)) {
+      openPdf(file);
+      return;
+    }
     setLoading(true);
+    closePdf();
     try {
       const params = { limit: 50 };
       if (nameOverride?.trim()) params.defaultName = nameOverride.trim();
@@ -333,7 +368,7 @@ export default function AdminCollectTab({ onImported }) {
         try {
           const { data } = await api.put(`/cham/admin/collect/files/${file.fileId}/${action}`);
           toast.success(data?.message ?? '처리했습니다.');
-          if (previewFile?.fileId === file.fileId) closePreview();
+          if (previewFile?.fileId === file.fileId || pdfView?.file?.fileId === file.fileId) closePreview();
           await reloadAfterChange();
         } catch (e) {
           toast.error(errorMessage(e, '처리에 실패했습니다.'));
@@ -562,7 +597,7 @@ export default function AdminCollectTab({ onImported }) {
                       <Td className="left">
                         {isExcel(file) ? <FaFileExcel color="#1A7D55" /> : <FaFilePdf color="#D33A32" />}{' '}
                         {file.originName}
-                        {!isExcel(file) && <Muted> (원본만 받을 수 있습니다)</Muted>}
+                        {!isExcel(file) && <Muted> (PDF · 미리보기로 원본 확인)</Muted>}
                       </Td>
                       <Td className="left">
                         {file.detailUrl ? (
@@ -584,7 +619,7 @@ export default function AdminCollectTab({ onImported }) {
                       <Td>{file.deleteKey ?? '-'}</Td>
                       <Td>
                         <ButtonRow>
-                          {file.status !== 'DUPLICATE' && isExcel(file) && (
+                          {file.status !== 'DUPLICATE' && (
                             <SmallButton type="button" $color="#093A6E" onClick={() => openPreview(file)}>
                               미리보기
                             </SmallButton>
@@ -649,6 +684,41 @@ export default function AdminCollectTab({ onImported }) {
                 을 요청할 수 있습니다. 같은 파일은 다시 받지 않습니다.
               </MutedLine>
             )}
+        </Panel>
+      )}
+
+      {pdfView && (
+        <Panel ref={previewRef}>
+          <PanelTitle>
+            PDF 미리보기 · {pdfView.file.originName}
+            <Chip $color={FILE_STATUS[pdfView.file.status]?.color}>
+              {FILE_STATUS[pdfView.file.status]?.label}
+            </Chip>
+          </PanelTitle>
+          <Notice>
+            PDF 는 표를 자동으로 읽지 못해 반영 버튼이 없습니다. 내용을 확인해 업로드 양식으로 정리해 올린 뒤
+            '반영 안 함'으로 표시해 두세요.
+          </Notice>
+          <PdfFrame src={pdfView.url} title={pdfView.file.originName} />
+          <ButtonRow className="end">
+            <SmallButton type="button" $color="#66696D" onClick={closePdf}>
+              닫기
+            </SmallButton>
+            <SmallButton type="button" $color="#093A6E" onClick={() => downloadFile(pdfView.file)}>
+              원본 받기
+            </SmallButton>
+            {['COLLECTED', 'FAILED'].includes(pdfView.file.status) && (
+              <SmallButton
+                type="button"
+                $color="#66696D"
+                title={IGNORE_HELP}
+                disabled={pending}
+                onClick={() => changeStatus(pdfView.file, 'ignore')}
+              >
+                반영 안 함
+              </SmallButton>
+            )}
+          </ButtonRow>
         </Panel>
       )}
 
@@ -1236,6 +1306,13 @@ const LinkButton = styled.button`
     opacity: 0.5;
     cursor: not-allowed;
   }
+`;
+
+const PdfFrame = styled.iframe`
+  width: 100%;
+  height: 80vh;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
 `;
 
 const PaginationBox = styled.div`

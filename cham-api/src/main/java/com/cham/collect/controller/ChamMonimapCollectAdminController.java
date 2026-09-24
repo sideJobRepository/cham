@@ -81,6 +81,24 @@ public class ChamMonimapCollectAdminController {
         return attachment(collectService.download(fileId));
     }
 
+    /**
+     * PDF 미리보기. 수집기가 S3 에 올려 둔 원본을 그대로 내려주되, 브라우저가 PDF 뷰어로 열도록 inline 으로 준다.
+     * 화면은 이걸 blob 으로 받아 iframe 에 띄운다(관리자 토큰이 필요해 S3 주소를 바로 쓰지 않는다)
+     */
+    @GetMapping("/files/{fileId}/view")
+    public ResponseEntity<byte[]> view(@PathVariable Long fileId) {
+        ChamMonimapCollectService.DownloadFile file = collectService.download(fileId);
+        boolean pdf = file.fileName() != null && file.fileName().toLowerCase().endsWith(".pdf");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(ContentDisposition.inline()
+                .filename(file.fileName(), StandardCharsets.UTF_8)
+                .build());
+        headers.setContentType(pdf ? MediaType.APPLICATION_PDF : MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentLength(file.body().length);
+        return new ResponseEntity<>(file.body(), headers, HttpStatus.OK);
+    }
+
     /** 원본을 수동 업로드 양식(14열)으로 바꿔 내려준다 */
     @GetMapping("/files/{fileId}/upload-form")
     public ResponseEntity<byte[]> uploadForm(@PathVariable Long fileId,

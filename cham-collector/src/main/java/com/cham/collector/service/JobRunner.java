@@ -94,7 +94,9 @@ public class JobRunner {
 
     private CollectPlan plan(CollectJob job) {
         if (job.scheduled()) {
-            return new CollectPlan(props.scheduledPageLimit(), props.minYearMonth(), null, true, false);
+            // 직전 달 자료가 있어도 목록 1페이지는 본다. 대전시의회처럼 한 달에 게시물이 여러 건(위원회별)
+            // 나눠 올라오는 곳이 있어서다. 이미 받은 게시물은 상세도 안 열어서 기관당 하루 요청 1번이다
+            return new CollectPlan(props.scheduledPageLimit(), props.minYearMonth(), null, false, false);
         }
         if (job.target() != null) {
             return new CollectPlan(props.targetPageLimit(), props.minYearMonth(), job.target(), false, true);

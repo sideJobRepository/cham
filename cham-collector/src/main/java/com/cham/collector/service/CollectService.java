@@ -27,7 +27,7 @@ import java.util.Optional;
  * 기관 하나 수집: 목록 → 상세 → 첨부 다운로드 → S3 보관 → COLLECT_FILE 기록.
  *
  * 이미 받은 것은 다시 받지 않는다.
- *   - 정기 실행에서 직전 달 자료가 있으면 그 기관은 목록도 열지 않는다
+ *   - 정기 실행은 목록 1페이지만 본다
  *   - 이미 기록된 게시물은 상세를 열지 않는다 (수동 실행은 연다)
  *   - 같은 첨부(게시물+첨부키)는 받지 않는다
  *   - 내용이 같은 파일(해시)은 DUPLICATE 로만 적고 S3 에 다시 올리지 않는다
@@ -82,12 +82,14 @@ public class CollectService {
             }
 
             boolean anyAtOrAfterFloor = false;
+            boolean passedFloor = false;
             for (PostRef post : posts) {
                 result.postsSeen++;
                 Optional<YearMonth> period = PeriodParser.parse(post.title(), null, post.postDate());
 
                 if (period.isPresent()) {
                     if (!period.get().isBefore(floor)) anyAtOrAfterFloor = true;
+                    else passedFloor = true;
                     if (period.get().isBefore(plan.minPeriod())) continue;
                     if (plan.target() != null && !period.get().equals(plan.target())) continue;
                 } else if (plan.target() != null) {
@@ -102,9 +104,9 @@ public class CollectService {
                 collectPost(adapter, source, post, period.orElse(null), jobId, result);
             }
 
-            // 달을 골라 요청했으면 그 달을 찾은 페이지에서 멈춘다.
-            // 한 페이지 전체가 기준 달보다 앞선 글이면 뒤 페이지는 더 옛날이라 볼 필요가 없다
-            if (targetFound || !anyAtOrAfterFloor) break;
+            // 목록은 최신순이다. 기준 달(지정한 달, 없으면 시작 달)보다 옛날 글이 나온 페이지에서 멈춘다.
+            // 그 달을 찾았다고 바로 멈추지 않는다: 대전시의회처럼 한 달치가 두 페이지에 걸치는 곳이 있다
+            if (passedFloor || !anyAtOrAfterFloor) break;
         }
 
         if (plan.target() != null && !targetFound) {

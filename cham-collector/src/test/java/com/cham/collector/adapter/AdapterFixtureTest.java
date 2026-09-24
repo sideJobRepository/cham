@@ -22,8 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AdapterFixtureTest {
 
-    private static final Set<String> XLS = Set.of("xlsx", "xls");
-
     @Test
     void 동구의회() throws IOException {
         CollectSource s = source("DONGGU_COUNCIL", EngineType.COUNCIL_B,
@@ -166,8 +164,47 @@ class AdapterFixtureTest {
         assertThat(files.get(0).displayName()).isEqualTo("(26.8월분) 업무추진비 집행내역(홈페이지)_구청장.pdf");
     }
 
+    @Test
+    void 대전시_시장부시장_PDF_여러개() throws IOException {
+        CollectSource s = source("DAEJEON_MAYOR", EngineType.CUSTOM_DAEJEON,
+                "https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardView.do?boardSeq=1186&menuSeq=4804",
+                "https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardArticleView.do?menuSeq=4804&boardSeq=1186&articleSeq={postKey}&subPageIndex=1",
+                "1186");
+        DaejeonAdapter adapter = new DaejeonAdapter(null);
+
+        List<PostRef> posts = adapter.parseList(s, doc("DAEJEON_MAYOR/list.html", s.listUrl()));
+        assertThat(posts.get(0).postKey()).isEqualTo("14831");
+        assertThat(posts.get(0).title()).isEqualTo("2026년 8월중 업무추진비 사용내역 공개");
+        assertThat(posts.get(1).title()).isEqualTo("2026년 7월중 업무추진비 사용내역 공개");
+
+        List<AttachmentRef> files = adapter.parseAttachments(s, posts.get(0), doc("DAEJEON_MAYOR/detail.html", posts.get(0).detailUrl()));
+        // 같은 파일 링크가 두 번(이름·버튼) 나오지만 하나로 친다
+        assertThat(files).hasSizeGreaterThanOrEqualTo(3);
+        assertThat(files.get(0).displayName()).isEqualTo("0. 26. 8월 사용내역공개.pdf");
+        assertThat(files.get(0).url()).isEqualTo("https://www.daejeon.go.kr/FileUpload/DRH/202609/20260911105727250.pdf");
+        assertThat(files.get(0).attachKey()).isEqualTo("FileUpload/DRH/202609/20260911105727250.pdf");
+    }
+
+    @Test
+    void 대전시의회_위원회별_게시물() throws IOException {
+        CollectSource s = source("DAEJEON_COUNCIL", EngineType.COUNCIL_A,
+                "https://council.daejeon.go.kr/svc/inf/OperatingExpenseList.do",
+                "https://council.daejeon.go.kr/svc/inf/OperatingExpenseView.do?bbsSn={postKey}", null);
+        CouncilAAdapter adapter = new CouncilAAdapter(null);
+
+        List<PostRef> posts = adapter.parseList(s, doc("DAEJEON_COUNCIL/list.html", s.listUrl()));
+        assertThat(posts.get(0).postKey()).isEqualTo("63268");
+        assertThat(posts.get(0).title()).isEqualTo("2026년 8월 업무추진비 집행내역(복지환경위원회)");
+        assertThat(posts.get(0).detailUrl()).isEqualTo("https://council.daejeon.go.kr/svc/inf/OperatingExpenseView.do?bbsSn=63268");
+
+        List<AttachmentRef> files = adapter.parseAttachments(s, posts.get(0), doc("DAEJEON_COUNCIL/detail.html", posts.get(0).detailUrl()));
+        assertThat(files).extracting(AttachmentRef::displayName).containsExactly(
+                "8월 의정운영공통경비 집행내역.pdf", "8월 의회운영업무추진비 집행내역.pdf", "8월 시책업무추진비 집행내역.pdf");
+        assertThat(files.get(0).url()).isEqualTo("https://council.daejeon.go.kr/bbs/FileDownLoadProc.do?flSn=136517");
+    }
+
     private static CollectSource source(String code, EngineType engine, String listUrl, String detailUrl, String boardId) {
-        return new CollectSource(1L, code, code, engine, listUrl, detailUrl, boardId, "page", null, XLS, true);
+        return new CollectSource(1L, code, code, engine, listUrl, detailUrl, boardId, "page", null, Set.of("xlsx", "xls", "pdf"), true);
     }
 
     private static Document doc(String path, String baseUri) throws IOException {

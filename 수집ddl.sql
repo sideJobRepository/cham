@@ -11,7 +11,8 @@
 -- 수집 규칙
 --   - 대상은 2026년 7월분부터. 그 전 달 게시물은 받지 않는다 (collector.min-period)
 --   - 매일 한 번 돈다. 기관이 언제 올릴지 모르기 때문이다
---   - 정기 실행은 그 기관의 직전 달 자료가 이미 있으면 목록도 열지 않고 넘어간다
+--   - 정기 실행은 기관마다 목록 1페이지만 본다. 이미 받은 게시물은 상세도 열지 않는다
+--     (대전시의회는 한 달에 위원회별로 게시물이 여러 건이라 '그 달 있으면 건너뜀' 을 쓰지 않는다)
 --   - 달을 지정한 작업은 그 달 게시물만 받는다. 목록을 몇 페이지 더 넘겨 찾는다
 
 
@@ -117,7 +118,8 @@ ALTER TABLE CHAM.CHAM_MONIMAP_COLLECT_FILE
 
 
 -- ─────────────────────────────────────────────────────────────
--- 출처 12곳 시드. 어댑터가 있는 9곳을 ENABLED=1. 유성구청장·대덕구청장은 PDF 라 원본 보관만 된다(반영은 엑셀만).
+-- 출처 12곳 시드. 서구의회(게시판 비어 있음)를 뺀 11곳을 ENABLED=1. PDF 4곳(대전시·대전시의회·유성구청장·대덕구청장)은
+-- 원본 보관과 PDF 미리보기만 된다(반영은 엑셀만).
 --
 -- !! 넣기 전에 운영 DB 에서 두 가지를 확인할 것 !!
 --   1) POSITION_NAME 이 CHAM_MONIMAP_CARD_OWNER_POSITION_NAME 에 실제로 있는 값인지.
@@ -141,14 +143,15 @@ INSERT INTO CHAM.CHAM_MONIMAP_COLLECT_SOURCE
      CHAM_MONIMAP_COLLECT_SOURCE_SORT, CHAM_MONIMAP_COLLECT_SOURCE_NOTE, REGIST_DATE, MODIFY_DATE)
 VALUES
     ('DAEJEON_MAYOR', '대전광역시장·부시장', 'CUSTOM_DAEJEON',
-     'https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardList.do?menuSeq=4804&searchCondition2=C08&searchCondition3=D0806',
+     'https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardView.do?boardSeq=1186&menuSeq=4804',
      'https://www.daejeon.go.kr/drh/open/drhDataOpen/drhDataOpenBoardArticleView.do?menuSeq=4804&boardSeq=1186&articleSeq={postKey}&subPageIndex=1',
-     '1186', 'pageIndex', NULL, '광역지자체', '대전', '시장', '이장우', 'PDF', 'pdf', 0, 10,
-     '3단 구조. 첨부가 javascript:fileDownLoad(...). PDF 표 추출 필요', NOW(), NOW()),
+     '1186', 'subPageIndex', NULL, '광역지자체', '대전', '시장', '이장우', 'PDF', 'pdf', 1, 10,
+     '원래 3단. 목록을 시장·부시장 항목(boardSeq=1186)으로 잡아 2단으로 쓴다. 첨부 fileDownLoad(경로) → /{경로}', NOW(), NOW()),
     ('DAEJEON_COUNCIL', '대전시의회', 'COUNCIL_A',
-     'https://council.daejeon.go.kr/svc/inf/OperatingExpenseList.do', NULL, NULL,
-     'pageNo', NULL, '광역의회', '대전', NULL, NULL, 'PDF', 'pdf', 0, 20,
-     'CSRFToken 히든필드 사용. PDF', NOW(), NOW()),
+     'https://council.daejeon.go.kr/svc/inf/OperatingExpenseList.do',
+     'https://council.daejeon.go.kr/svc/inf/OperatingExpenseView.do?bbsSn={postKey}', NULL,
+     'pageNo', NULL, '광역의회', '대전', NULL, NULL, 'PDF', 'pdf', 1, 20,
+     '목록은 GET ?pageNo= 로 열림. 한 달에 위원회별로 여러 건. 첨부 /bbs/FileDownLoadProc.do?flSn=', NOW(), NOW()),
     ('DONGGU_MAYOR', '동구청장', 'CUSTOM_DONGGU',
      'https://www.donggu.go.kr/dg/kor/article/secretBusiness',
      'https://www.donggu.go.kr/dg/kor/article/secretBusiness/{postKey}', NULL,
@@ -167,7 +170,7 @@ VALUES
     ('SEOGU_COUNCIL', '서구의회', 'COUNCIL_A',
      'https://www.seogucouncil.daejeon.kr/svc/cdr/OperatingExpenseList.do', NULL, NULL,
      'pageNo', NULL, '기초의회', '대전 서구', NULL, NULL, 'NONE', 'xlsx,xls', 0, 60,
-     '게시판 비어있음. 사람이 확인하거나 의회에 문의 필요', NOW(), NOW()),
+     '게시판 비어있음(2026-09-24 재확인). 사람이 확인하거나 의회에 문의 필요', NOW(), NOW()),
     ('JUNGGU_MAYOR', '중구청장', 'EGOV_BBS',
      'https://www.djjunggu.go.kr/bbs/BBSMSTR_000000000103/list.do',
      'https://www.djjunggu.go.kr/bbs/BBSMSTR_000000000103/view.do?nttId={postKey}', 'BBSMSTR_000000000103',
