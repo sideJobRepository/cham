@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.12'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 웹 서버는 띄우지 않는다. DB 는 JdbcTemplate 로 몇 개 쿼리만 쓴다
+    // (엔티티는 cham-api 가 가지고 있고, 공통 모듈이 없어 복사하면 어긋난다)
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // HTML 파싱 전용. 요청은 JDK HttpClient 로 한다 (PoliteHttpClient)
+    implementation 'org.jsoup:jsoup:1.18.3'
+
+    // S3. cham-api 와 같은 설정 키(spring.cloud.aws.*)를 쓴다
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.0.0")
+
+    // .env 파일을 환경변수로 로드 (작업 디렉터리 기준)
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// 실행 jar 하나만 만든다 (CI 가 *SNAPSHOT.jar 로 집는다)
+jar {
+    enabled = false
+}

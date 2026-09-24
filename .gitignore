@@ -51,6 +51,16 @@ out/
 /cham-api/.nb-gradle/
 
 # =========================
+# cham-collector (Spring Boot / Gradle, 웹 서버 없음)
+# =========================
+/cham-collector/.gradle
+/cham-collector/build/
+/cham-collector/logs/
+/cham-collector/bin/
+/cham-collector/out/
+!/cham-collector/gradle/wrapper/gradle-wrapper.jar
+
+# =========================
 # cham-front (Vite)
 # =========================
 /cham-front/logs
@@ -88,3 +98,6 @@ out/
 /cham-next-front/*.tsbuildinfo
 /cham-next-front/next-env.d.ts
 /cham-next-front/.DS_Store
+
+### 이 저장소 전용 ###
+CLAUDE.md

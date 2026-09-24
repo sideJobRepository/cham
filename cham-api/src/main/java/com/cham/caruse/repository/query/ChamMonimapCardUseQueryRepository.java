@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ChamMonimapCardUseQueryRepository {
 
@@ -47,4 +48,8 @@ public interface ChamMonimapCardUseQueryRepository {
 
     // 자료정리: 같은 표기를 쓰는 행의 이름을 한 번에 바꾼다.
     long updateCardUseName(String oldName, String newName);
+
+    // 수집 반영: 한 지역에서 사용자(직함)별로 가장 최근에 쓴 이름. 의회 원본에는 사람 이름이 없어서
+    // '의장' → '오은규' 처럼 기존 자료로 채운다.
+    Map<String, String> findLatestNameByUser(String region);
 }

@@ -1,0 +1,396 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+* 수정화면 또는 상세회면 처리 함수
+******************************************************** */
+function fn_search_detail(nttId, link) {
+	document.searchForm.nttId.value = nttId;
+	document.searchForm.action = link;
+	document.searchForm.submit();
+}
+
+/* ********************************************************
+ * 클립보드복사
+ ******************************************************** */
+function copyToClipboard(data) {
+	var IE= false;
+
+	var agent = navigator.userAgent.toLowerCase();
+	if ( (navigator.appName == 'Netscape' && agent.indexOf('trident') != -1) || (agent.indexOf("msie") != -1)) {
+		IE = true;
+	}else{
+		IE = false;
+	}
+
+	if (IE) {
+		if(confirm("이 글의 URL 주소를 클립보드에 복사하시겠습니까?"))
+			window.clipboardData.setData("Text", data);
+	} else {
+		temp = prompt("이 글의 URL 주소입니다. Ctrl+C를 눌러 클립보드로 복사하세요.", data);
+	}
+}
+
+/* ********************************************************
+ * 등록회면 처리 함수
+ ******************************************************** */
+function fn_search_regist() {
+	document.searchForm.action = "/bbs/BBSMSTR_000000000571/write.do";
+	document.searchForm.submit();
+}
+
+/* ********************************************************
+* 다운로드 처리 함수
+******************************************************** */
+function fn_egov_downFile(atchFileId, fileSn){
+	window.open("/cmm/fms/FileDown.do?atchFileId="+atchFileId+"&fileSn="+fileSn+"");
+}
+
+$(function () {
+	$(".btn-update").on('click', function(){
+		Common.Dialog.confirm({
+			content: '수정하시겠습니까?'
+			,ok: function(){
+				//
+			   fn_search_detail(document.searchForm.nttId.value,"/bbs/BBSMSTR_000000000571/modify.do");return false;
+			}
+		});
+	});
+
+	/* 등록 */
+	$(".btn-create").on('click', function(){
+		Common.Dialog.confirm({
+			content: '등록하시겠습니까?'
+			,ok: function(){
+				fn_search_regist();return false;
+			}
+		});
+	});
+
+	/* 목록 */
+	$(".btn-list").on('click', function(){
+		fn_search_list();
+	});
+
+	/* 삭제 */
+	$(".btn-delete").on('click', function(){
+		Common.Dialog.confirm({
+			content: '삭제하시겠습니까?'
+			,ok: function(){
+				//
+				fn_search_cancel(document.searchForm.nttId.value);return false;
+			}
+		});
+	});
+});
+</script>
+
+
+
+
+<!-- 프로그램 및 게시판 시작 -->
+<div class="program--contents">
+	<div class="ui bbs--view">
+		<div class="ui bbs--view--header">
+			<h2 class="ui bbs--view--tit">2026년 8월중 구청장 업무추진비 집행내역</h2>
+			<div class="ui bbs--view--info">
+				
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+						
+							<span><i class="ir bbs-icon bbs-icon-deptName">부서명</i>운영지원과&nbsp;</span>
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+						
+							<span><i class="ir bbs-icon bbs-icon-writer">작성자</i>김소영&nbsp;</span>
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+							<span><i class="ir bbs-icon bbs-icon-hit">조회수</i>46</span>
+						
+						
+						
+						
+						
+						
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+							<span><i class="ir bbs-icon bbs-icon-regDate">등록일</i>2026-09-10</span>
+						
+						
+						
+						
+						
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+						
+					
+				
+					
+					
+					
+					
+					
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+						
+					
+				
+				
+			</div>
+		</div>
+
+		 <div class="ui bbs--view--cont" data-text-content="true">
+			<div class="ui bbs--detail--cont">
+				
+
+
+
+
+				<div class="ui bbs--view--content">
+					
+
+					
+
+					
+						
+							<p>2026년 8월중 구청장 업무추진비 집행내역&nbsp;</p>
+						
+						
+					
+				</div>
+			</div>
+		</div>
+
+		
+			<div class="ui bbs--view--file">
+					
+	
+	
+	
+	
+	
+
+	
+
+	
+	
+
+	
+	
+	
+
+	
+
+		
+
+			
+			
+
+			
+
+				
+
+				
+
+				
+
+				
+
+				
+
+				
+				    <div class="bbs-file__download ">
+					<a class="btn btn-file  btn-on-ico" href="javascript:fn_egov_downFile('FILE_000000045088Tb3','0')"><i class="ir ir-bbs ir-file left ir-acrobat"></i>2026년 8월중 구청장 업무추진비 집행내역.pdf&nbsp;[197.4&nbsp;KB] <i class="sr-only">다운로드</i></a>
+					<a class="btn btn-file btn-preview" href="/synapsoft/FileViewer.do?atchFileId=FILE_000000045088Tb3&fileSn=0" target="_blank" title="새창으로 열립니다."><i class="ir ir-bbs ir-file left ir-preview"></i>미리보기</a>
+				    </div>
+				
+
+				
+
+				
+
+				
+
+			
+
+		
+
+			
+			
+
+			
+
+				
+
+				
+
+				
+
+				
+
+				
+				    <div class="bbs-file__download  ">
+					<a class="btn btn-file  btn-on-ico" href="javascript:fn_egov_downFile('FILE_000000045088Tb3','1')"><i class="ir ir-bbs ir-file left ir-xls"></i>2026년 8월중 구청장 업무추진비 집행내역.xlsx&nbsp;[16.5&nbsp;KB] <i class="sr-only">다운로드</i></a>
+					<a class="btn btn-file btn-preview" href="/synapsoft/FileViewer.do?atchFileId=FILE_000000045088Tb3&fileSn=1" target="_blank" title="새창으로 열립니다."><i class="ir ir-bbs ir-file left ir-preview"></i>미리보기</a>
+				    </div>
+				
+
+				
+
+				
+
+				
+
+				
+
+			
+
+		
+
+	
+
+			</div>
+		
+
+		
+			
+			
+				
+					
+				
+				
+			
+
+			
+
+  
+
+
+ 
+
+
+	<div class="kogl--mask">
+		<h3 class="kogl-title"><em>공공저작물 자유이용 허락 표시</em></h3>
+		<div class="inner">
+			<div class="mark--area mark">
+				<img src="/pcms/common/images/ir/img_opentype04.png" alt="공공누리 4유형 출처표시 + 상업적 이용금지 + 변경금지">
+				<!-- 1~4유형 이미지 img_opentype01~04.png -->
+			</div>
+			<div class="kogl--text">
+				<a href="http://www.kogl.or.kr/info/licenseType4.do" target="_blank" title="새창열림"><span>저작권 보호분야 <i>2026년 8월중 구청장 업무추진비 집행내역</i> 저작물은 공공누리 출처표시 조건에 따라 <b>공공누리 4유형</b> <em> 출처표시 + 상업적 이용금지 + 변경금지</em>이용할 수 있습니다.</span></a>
+			</div>
+		</div>
+	</div>
+
+		
+</body></html>

@@ -12,6 +12,7 @@ import com.cham.caruse.repository.dto.CardUseSummaryDto;
 import com.cham.caruse.repository.query.ChamMonimapCardUseQueryRepository;
 import com.cham.dto.request.CardUseConditionRequest;
 import com.cham.region.entity.QChamMonimapRegion;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -26,7 +27,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.cham.cardowner.entity.QChamMonimapCardOwnerPosition.*;
 import static com.cham.carduseaddr.entity.QChamMonimapCardUseAddr.chamMonimapCardUseAddr;
@@ -402,6 +405,30 @@ public class ChamMonimapCardUseRepositoryImpl implements ChamMonimapCardUseQuery
         return null;
     }
     
+    @Override
+    public Map<String, String> findLatestNameByUser(String region) {
+        // 최근 행부터 읽어 사용자마다 처음 나온 이름만 남긴다. 한 지역 몇백~몇천 줄이라 그대로 읽어도 된다
+        List<Tuple> rows = queryFactory
+                .select(chamMonimapCardUse.chamMonimapCardUseUser, chamMonimapCardUse.chamMonimapCardUseName)
+                .from(chamMonimapCardUse)
+                .where(chamMonimapCardUse.chamMonimapCardUseRegion.eq(region),
+                        chamMonimapCardUse.chamMonimapCardUseUser.isNotNull(),
+                        chamMonimapCardUse.chamMonimapCardUseName.isNotNull())
+                .orderBy(chamMonimapCardUse.chamMonimapCardUseDate.desc(),
+                        chamMonimapCardUse.chamMonimapCardUseId.desc())
+                .fetch();
+
+        Map<String, String> result = new LinkedHashMap<>();
+        for (Tuple row : rows) {
+            String user = row.get(chamMonimapCardUse.chamMonimapCardUseUser).trim();
+            String name = row.get(chamMonimapCardUse.chamMonimapCardUseName).trim();
+            if (!user.isEmpty() && !name.isEmpty()) {
+                result.putIfAbsent(user, name);
+            }
+        }
+        return result;
+    }
+
     private BooleanExpression cardUseDetailAddrLike(String cardUsesDetail) {
         if (StringUtils.hasText(cardUsesDetail)) {
             return chamMonimapCardUse.cardUseAddr.chamMonimapCardUseDetailAddr.like("%" + cardUsesDetail + "%");

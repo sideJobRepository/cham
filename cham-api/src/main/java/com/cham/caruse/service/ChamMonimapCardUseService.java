@@ -1,5 +1,7 @@
 package com.cham.caruse.service;
 
+import com.cham.caruse.CardUseInsertOptions;
+import com.cham.caruse.CardUseRow;
 import com.cham.caruse.dto.CardUseAggregateResponse;
 import com.cham.caruse.dto.CardUseUploadResponse;
 import com.cham.caruse.dto.CleanupAddrResponse;
@@ -26,6 +28,13 @@ public interface ChamMonimapCardUseService {
     
     
     ApiResponse insertCardUse(MultipartFile multipartFile);
+
+    /**
+     * 파싱이 끝난 줄을 저장한다. 수동 업로드와 수집 반영이 같이 쓴다.
+     * 자리값(CardUseDefaults) 채우기, 직위 찾기, 주소 좌표 찾기가 여기서 일어난다.
+     * @return 저장한 줄 수
+     */
+    int insertRows(List<CardUseRow> rows, String deleteKey, CardUseInsertOptions options);
 
     ApiResponse deleteExcel(String deleteKey);
 

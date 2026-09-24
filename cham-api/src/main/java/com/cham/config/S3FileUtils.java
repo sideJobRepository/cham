@@ -1,5 +1,6 @@
 package com.cham.config;
 
+import com.cham.advice.exception.ExcelException;
 import com.cham.file.UploadResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
@@ -71,6 +74,19 @@ public class S3FileUtils {
         }
     }
     
+    /** 키로 원본을 통째로 읽는다. 수집기가 올린 원본 엑셀(collect/...)을 미리보기·반영할 때 쓴다 */
+    public byte[] getBytes(String key) {
+        try {
+            return s3Client.getObjectAsBytes(GetObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build())
+                    .asByteArray();
+        } catch (NoSuchKeyException e) {
+            throw new ExcelException("원본 파일을 찾을 수 없습니다. (" + key + ")", 400);
+        }
+    }
+
     public void deleteFile(String fileUrl) {
         String key = getFileNameFromUrl(fileUrl);
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()

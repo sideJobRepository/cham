@@ -10,6 +10,8 @@ import com.cham.caruse.entity.ChamMonimapCardUse;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.repository.dto.CardUseSummaryDto;
 import com.cham.caruse.CardUseDefaults;
+import com.cham.caruse.CardUseInsertOptions;
+import com.cham.caruse.CardUseRow;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.dto.request.CardUseConditionRequest;
 import com.cham.dto.request.CardUseUploadDeleteKeyRequest;
@@ -380,20 +382,12 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
     
     @Override
     public ApiResponse insertCardUse(MultipartFile multipartFile) {
-        Map<String, Long> positionIdByName = cardOwnerPositionRepository.findByCardOwnerPositionDtos().stream()
-                .collect(Collectors.toMap(CardOwnerPositionDto::getCardOwnerPositionName,
-                        CardOwnerPositionDto::getCardOwnerPositionId, (a, b) -> a, LinkedHashMap::new));
-        
-        Map<String, CardUseAddrDto> addrByDetail = cardUseAddrRepository.findByCardUseAddrDtos().stream()
-                .collect(Collectors.toMap(dto -> safeTrim(dto.getCardUseDetailAddr()),
-                        Function.identity(), (a, b) -> a, LinkedHashMap::new));
-        
         // 1) 엑셀 열기
         try (InputStream is = multipartFile.getInputStream();
              Workbook workbook = WorkbookFactory.create(is)) {
-            
+
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             // 2) 파일 레벨 삭제키 중복 체크 (시트의 2행 14열 = row1 col13)
             String deleteKey = PoiUtil.getString(sheet.getRow(1), ExcelColumns.DELKEY);
             if (deleteKey == null || deleteKey.isBlank()) {
@@ -402,83 +396,138 @@ public class ChamMonimapCardUseServiceImpl implements ChamMonimapCardUseService 
             if (cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey)) {
                 throw new ExcelException("이미 존재하는 삭제키입니다.", 400);
             }
-            
-            // 3) 본문 파싱 → 엔티티 리스트로 모아 배치 저장
-            List<ChamMonimapCardUse> toInsert = new ArrayList<>();
-            
-            for (Row row : sheet) {
-                int r = row.getRowNum();
-                if (r == 0) {
-                    continue;// 헤더 스킵
-                }
-                
-                if (PoiUtil.isRowEmpty(row)) continue; // 빈행 스킵
-                
-                // (a) 기본 필드 파싱 (널 안전)
-                String ownerPositionName = PoiUtil.getString(row, ExcelColumns.OWNER_POSITION);
-                if (!StringUtils.hasText(ownerPositionName)) {
-                    // 필수값 미기재 시 스킵/예외 중 택1. 여기선 예외.
-                    throw new ExcelException("직책/기관명이 비어 있습니다. row=" + (r + 1), 400);
-                }
-                
-                Long positionId = getOrCreatePositionId(ownerPositionName, positionIdByName);
-                ChamMonimapCardOwnerPosition ownerPositionRef = new ChamMonimapCardOwnerPosition(positionId);
-                
-                String region = PoiUtil.getString(row, ExcelColumns.REGION);
-                String userSell = PoiUtil.getString(row, ExcelColumns.USER_SELL);
-                String nameSell = PoiUtil.getString(row, ExcelColumns.NAME_SELL);
-                LocalDate useDate = PoiUtil.getLocalDateFromCell(row.getCell(ExcelColumns.DATE));
-                LocalTime useTime = PoiUtil.getLocalTimeFromCell(row.getCell(ExcelColumns.TIME));
-                
-                String addrName   = PoiUtil.getString(row, ExcelColumns.ADDR_NAME);
-                if (!StringUtils.hasText(addrName)) {
-                    addrName = CardUseDefaults.ADDR_NAME;
-                }
-                String addrDetail = safeTrim(PoiUtil.getString(row, ExcelColumns.ADDR_DETAIL));
-                if(!StringUtils.hasText(addrDetail)) {
-                    addrDetail = CardUseDefaults.DETAIL_ADDR;
-                }
-                String purpose    = PoiUtil.getString(row, ExcelColumns.PURPOSE);
-                String personnel  = PoiUtil.parsePersonnel(row.getCell(ExcelColumns.PERSONNEL));
-                if (!StringUtils.hasText(personnel)) {
-                    personnel = "1";
-                }
-                Double amount     = PoiUtil.getNumeric(row, ExcelColumns.AMOUNT); // 숫자/문자 혼용 안정화
-                String method     = PoiUtil.getString(row, ExcelColumns.METHOD);
-                String remark     = PoiUtil.getString(row, ExcelColumns.REMARK);
-                
-                // (b) 주소 upsert (상세주소 기준으로 동일)
-                ChamMonimapCardUseAddr addrRef = getOrCreateAddr(addrName, addrDetail, addrByDetail);
-                
-                // (c) 행 단위 delKey: 파일레벨 deleteKey 고정 사용
-                ChamMonimapCardUse entity = new ChamMonimapCardUse(
-                        ownerPositionRef,
-                        addrRef,
-                        userSell,
-                        nameSell,
-                        useDate,
-                        useTime,
-                        purpose,
-                        personnel,
-                        amount != null ? amount : 0.0,
-                        method,
-                        remark,
-                        deleteKey,
-                        region
-                );
-                toInsert.add(entity);
-            }
-            // 4) 저장
-            if (!toInsert.isEmpty()) {
-                cardUseRepository.saveAll(toInsert);
+
+            // 3) 본문 파싱 → 저장
+            List<CardUseRow> rows = parsePositional(sheet);
+            if (!rows.isEmpty()) {
+                insertRows(rows, deleteKey, CardUseInsertOptions.MANUAL_UPLOAD);
             }
             return new ApiResponse(200, true, "성공");
-            
+
         } catch (IOException e) {
             throw new RuntimeException("엑셀 읽기 실패: " + e.getMessage(), e);
         }
     }
-    
+
+    /** 수동 업로드 양식(ExcelColumns 위치 고정)을 읽는다. 첫 줄은 헤더라 건너뛴다. */
+    private List<CardUseRow> parsePositional(Sheet sheet) {
+        List<CardUseRow> rows = new ArrayList<>();
+
+        for (Row row : sheet) {
+            int r = row.getRowNum();
+            if (r == 0) {
+                continue;// 헤더 스킵
+            }
+
+            if (PoiUtil.isRowEmpty(row)) continue; // 빈행 스킵
+
+            String ownerPositionName = PoiUtil.getString(row, ExcelColumns.OWNER_POSITION);
+            if (!StringUtils.hasText(ownerPositionName)) {
+                // 필수값 미기재 시 스킵/예외 중 택1. 여기선 예외.
+                throw new ExcelException("직책/기관명이 비어 있습니다. row=" + (r + 1), 400);
+            }
+
+            rows.add(new CardUseRow(
+                    ownerPositionName,
+                    PoiUtil.getString(row, ExcelColumns.REGION),
+                    PoiUtil.getString(row, ExcelColumns.USER_SELL),
+                    PoiUtil.getString(row, ExcelColumns.NAME_SELL),
+                    PoiUtil.getLocalDateFromCell(row.getCell(ExcelColumns.DATE)),
+                    PoiUtil.getLocalTimeFromCell(row.getCell(ExcelColumns.TIME)),
+                    PoiUtil.getString(row, ExcelColumns.ADDR_NAME),
+                    PoiUtil.getString(row, ExcelColumns.ADDR_DETAIL),
+                    PoiUtil.getString(row, ExcelColumns.PURPOSE),
+                    PoiUtil.parsePersonnel(row.getCell(ExcelColumns.PERSONNEL)),
+                    PoiUtil.getNumeric(row, ExcelColumns.AMOUNT), // 숫자/문자 혼용 안정화
+                    PoiUtil.getString(row, ExcelColumns.METHOD),
+                    PoiUtil.getString(row, ExcelColumns.REMARK),
+                    r + 1,
+                    sheet.getSheetName()
+            ));
+        }
+        return rows;
+    }
+
+    @Override
+    public int insertRows(List<CardUseRow> rows, String deleteKey, CardUseInsertOptions options) {
+        if (rows == null || rows.isEmpty()) {
+            throw new ExcelException("반영할 행이 없습니다.", 400);
+        }
+        if (!StringUtils.hasText(deleteKey)) {
+            throw new ExcelException("삭제키가 비어 있습니다.", 400);
+        }
+        if (cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey)) {
+            throw new ExcelException("이미 존재하는 삭제키입니다.", 400);
+        }
+
+        Map<String, Long> positionIdByName = cardOwnerPositionRepository.findByCardOwnerPositionDtos().stream()
+                .collect(Collectors.toMap(CardOwnerPositionDto::getCardOwnerPositionName,
+                        CardOwnerPositionDto::getCardOwnerPositionId, (a, b) -> a, LinkedHashMap::new));
+
+        Map<String, CardUseAddrDto> addrByDetail = cardUseAddrRepository.findByCardUseAddrDtos().stream()
+                .collect(Collectors.toMap(dto -> safeTrim(dto.getCardUseDetailAddr()),
+                        Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
+        // 이번 저장 안에서 같은 상세주소는 카카오를 다시 부르지 않는다.
+        // 단체장 자료는 장소가 없어 모든 줄이 같은 자리값 주소라, 이게 없으면 줄 수만큼 호출이 나간다.
+        Map<String, ChamMonimapCardUseAddr> addrThisRun = new HashMap<>();
+
+        List<ChamMonimapCardUse> toInsert = new ArrayList<>();
+
+        for (CardUseRow row : rows) {
+            String ownerPositionName = safeTrim(row.ownerPosition());
+            if (!StringUtils.hasText(ownerPositionName)) {
+                throw new ExcelException("직책/기관명이 비어 있습니다. row=" + row.sourceRowNum(), 400);
+            }
+            Long positionId = options.allowCreatePosition()
+                    ? getOrCreatePositionId(ownerPositionName, positionIdByName)
+                    : Optional.ofNullable(positionIdByName.get(ownerPositionName))
+                            .orElseThrow(() -> new ExcelException(
+                                    "등록되지 않은 직책입니다: '" + ownerPositionName + "' (등록된 직책: "
+                                            + String.join(", ", positionIdByName.keySet()) + ")", 400));
+            ChamMonimapCardOwnerPosition ownerPositionRef = new ChamMonimapCardOwnerPosition(positionId);
+
+            String addrName = row.addrName();
+            if (!StringUtils.hasText(addrName)) {
+                addrName = CardUseDefaults.ADDR_NAME;
+            }
+            String addrDetail = safeTrim(row.addrDetail());
+            if (!StringUtils.hasText(addrDetail)) {
+                addrDetail = CardUseDefaults.DETAIL_ADDR;
+            }
+            String personnel = row.personnel();
+            if (!StringUtils.hasText(personnel)) {
+                personnel = "1";
+            }
+
+            // 주소 upsert (상세주소 기준으로 동일)
+            final String name = addrName;
+            ChamMonimapCardUseAddr addrRef = addrThisRun.computeIfAbsent(addrDetail,
+                    detail -> getOrCreateAddr(name, detail, addrByDetail));
+
+            // 행 단위 delKey: 파일레벨 deleteKey 고정 사용
+            toInsert.add(new ChamMonimapCardUse(
+                    ownerPositionRef,
+                    addrRef,
+                    row.user(),
+                    row.name(),
+                    row.date(),
+                    row.time(),
+                    row.purpose(),
+                    personnel,
+                    row.amount() != null ? row.amount() : 0.0,
+                    row.method(),
+                    row.remark(),
+                    deleteKey,
+                    row.region(),
+                    options.isPublic()
+            ));
+        }
+
+        cardUseRepository.saveAll(toInsert);
+        return toInsert.size();
+    }
+
     @Override
     public ApiResponse deleteExcel(String deleteKey) {
         boolean exists = cardUseRepository.existsByChamMonimapCardUseDelkey(deleteKey);

@@ -1,0 +1,1838 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 5단계 서브메뉴 -->
+
+
+ 
+
+
+
+
+
+
+
+<!-- 5단계 서브메뉴 -->
+
+<div class="program--contents">
+	
+			<div class="table-responsive mt_20">
+    <table class="table table-bordered text-center">
+        <caption>업무추진비 내역 – 공개내용, 공개주기 정보 제공</caption>
+        <colgroup>
+            <col style="width:70%">
+            <col style="width:30%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th scope="col">공개내용</th>
+                <th scope="col">공개주기</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>사용자, 사용일자(일시), 사용장소, 사용목적, 사용금액, 대상인원, 사용방법</td>
+                <td>매월</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+	<!--게시판 kind 탭구분 -->
+			 
+ 
+
+ 
+
+    
+    
+					
+	<!--게시판 kind  탭구분 -->
+	<!-- 검색 : start -->
+	<form id="searchForm" name="searchForm" action="/bbs/BBSMSTR_000000000103/list.do" method="post">
+	<input name="pageIndex" type="hidden" value="1" />
+
+	<input name="cmsNoStr" type="hidden" value="" />
+	<input name="nttId" type="hidden" value="">
+	
+
+		
+		
+
+
+		<fieldset>
+			<legend>게시물 검색</legend>
+
+
+			<div class="ui program--search">
+
+			 <div class="float-md-left">
+					<div class="ui program--count">
+					<span>총 게시물 <strong> 142</strong>
+
+					</span>, <span class="ui program--division-line">페이지 <strong>1</strong>
+						/ 15
+					</span>
+	</div>
+	</div>
+<div class="search_inner clearfix float-md-right">
+	<div class="fieldset">
+		<div class="search--select">
+			<!--게시판 kind SELECT구분 -->
+			 
+ 
+
+ 
+
+    
+    
+
+
+					
+					
+					
+					
+					
+					
+			<!--게시판 kind SELECT구분 -->
+			<!-- select추가시 -->
+			<span> <select class="form-control" name="searchCondition"
+				title="검색 조회조건 선택">
+					<option value="all"
+						>-전체-</option>
+
+					
+					
+						
+						
+						
+						
+						
+						
+						<option value="subject"
+							>제목</option>
+					
+						
+						
+						
+						
+						
+						
+						<option value="writer"
+							>작성자</option>
+					
+			</select>
+			</span>
+			<!-- select추가시 -->
+		</div>
+		<div class="search--text">
+			<span><input type="text" name="searchKeyword"
+				value="" maxlength="50"
+				title="검색어를 입력해 주세요" placeholder="검색어를 입력해 주세요"
+				class="form-control"></span>
+		</div>
+		<div class="search--btn">
+			<span class="btn--submit"><input type="submit" value="검색"
+				title="검색" onclick="javascript: fn_search_list();"></span>
+		</div>
+		<div class="program--page">
+			<!-- <label for="numPerPage">페이지당 게시물수</label> -->
+			<label>페이지당 게시물수</label>
+			<div class="search--select">
+				<span> <select class="form-control" name="pageUnit"
+					title="출력갯수 선택">
+						<option value="10"
+							selected="selected">10</option>
+						<option value="20"
+							>20</option>
+						<option value="30"
+							>30</option>
+						<option value="50"
+							>50</option>
+				</select>
+				</span>
+			</div>
+			<button type="button" title="적용"
+				onclick="javascript: document.searchForm.pageIndex.value=1;document.searchForm.submit();">적용</button>
+		</div>
+	</div>
+</div>
+</div>
+</fieldset>
+</form>
+<!-- list : start -->
+<div class="no-more-tables">
+	<table class="board_list table table-default" data-rwdb="yes">
+		<caption>단체장업무추진비  목록으로 번호, 제목, 작성자, 조회수, 등록일, 첨부파일로 정보를 제공하고 있습니다.
+		</caption>
+		<colgroup>
+			<col style="width: 7%;">
+			
+			
+				
+				
+				
+				
+				
+				
+				<col style="width: %;">
+
+			
+				
+				
+				
+				
+				
+				
+				<col style="width: 10%;">
+
+			
+				
+				
+				
+				
+				
+				
+				<col style="width: 10%;">
+
+			
+				
+				
+				
+				
+				
+				
+				<col style="width: 12%;">
+
+			
+				
+				
+				
+				
+				
+				
+				<col style="width: 10%;">
+
+			
+
+
+		</colgroup>
+		<thead class="thead-light">
+			<tr>
+				
+
+
+				<th scope="col" style="width: 10%;">번호</th>
+
+
+				
+				
+					
+					
+					
+					
+					
+					
+
+
+					<th scope="col" class="subject">제목</th>
+
+				
+					
+					
+					
+					
+					
+					
+
+
+					<th scope="col" class="writer">작성자</th>
+
+				
+					
+					
+					
+					
+					
+					
+
+
+					<th scope="col" class="hit">조회수</th>
+
+				
+					
+					
+					
+					
+					
+					
+
+
+					<th scope="col" class="regDate">등록일</th>
+
+				
+					
+					
+					
+					
+					
+					
+
+
+					<th scope="col" class="atchFileId">첨부파일</th>
+
+				
+
+
+
+
+			</tr>
+		</thead>
+		<tbody>
+
+
+
+			
+			
+
+			
+			
+
+			
+
+
+
+			
+
+			
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">142</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000228715Kx2aB4'); return false;">
+									구청장 업무추진비 사용내역(2026년 8월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">23</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-09-02</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000061910Qm2&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 8월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">141</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000227846Kj7sP8'); return false;">
+									구청장 업무추진비 사용내역(2026년 7월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">25</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-08-05</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000061055Ln5&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 7월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">140</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000227238Tv7pL2'); return false;">
+									구청장 업무추진비 사용내역(2026년 6월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">33</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-07-09</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000060401Ar8&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 6월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">139</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000226463Ge4kG9'); return false;">
+									구청장 업무추진비 사용내역(2026년 5월)_없음
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">20</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-06-05</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+										
+										&nbsp;
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">138</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000225670Wd7lX5'); return false;">
+									구청장 업무추진비 사용내역(2026년 4월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">39</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-05-08</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000059013Vb8&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 4월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">137</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000224589Xn2aG2'); return false;">
+									구청장 업무추진비 사용내역(2026년 3월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">1,665</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-04-02</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000057924Da2&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 3월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">136</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000223944Sk1qY7'); return false;">
+									구청장 업무추진비 사용내역(2026년 2월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">1,653</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-03-05</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000057288Wp3&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 2월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">135</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000223232Ye1hC7'); return false;">
+									구청장 업무추진비 사용내역(2026년 1월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">1,652</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-02-04</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000056534Rg8&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2026년 1월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">134</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000222610Oj0gG8'); return false;">
+									구청장 업무추진비 사용내역(2025년 12월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+								<td data-cell-header="조회수" class="hit">1,662</td>
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+								<td data-cell-header="등록일" class="regDate">2026-01-13</td>
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+								<td data-cell-header="첨부파일" class="atchFileId">
+										
+											
+												
+												
+												
+											
+
+
+
+
+
+
+
+ 
+ 
+
+	
+	
+      	
+					
+					<a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000055821Ob3&amp;fileSn=0" class="btn btn-file btn-not-ico">
+						<i class="ir ir-bbs ir-file left ir-xlsx">xlsx 파일 다운로드</i>
+						구청장 업무추진비 사용내역(2025년 12월).xlsx
+					</a>        
+        	
+	
+	
+
+ 
+										
+										
+										
+									</td>
+							
+							
+						
+
+
+					
+
+
+
+
+				</tr>
+				
+			
+				<tr>
+					
+					<td data-cell-header="번호"  class="hit">133</td>
+
+					
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+								<td data-cell-header="제목" class="subject">
+									<a href="#view" onclick="javascript: fn_search_detail('B000000221860Ei3tY2'); return false;">
+									구청장 업무추진비 사용내역(2025년 11월)
+									
+								</a>   </td>
+							
+							
+							
+							
+							
+							
+						
+
+
+					
+						
+						
+						
+						
+						
+						
+
+						
+
+
+						
+							
+							
+							
+							
+							
+							
+								<td data-cell-header="작성자" class="writer">행정지원과</td>
+							
+						
+
+
+					
+						
+						
+						
+</body></html>

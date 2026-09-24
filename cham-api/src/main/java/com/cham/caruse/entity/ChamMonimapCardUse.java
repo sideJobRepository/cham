@@ -87,7 +87,16 @@ public class ChamMonimapCardUse extends BaseData {
     public ChamMonimapCardUse(ChamMonimapCardOwnerPosition cardOwnerPosition, ChamMonimapCardUseAddr cardUserAddr, String userSellValue, String nameSellValue,
                               LocalDate dateValue, LocalTime timeValue, String purpose, String personnel,
                               double amount, String method, String remark, String delKeyValue, String regionValue) {
-        
+        this(cardOwnerPosition, cardUserAddr, userSellValue, nameSellValue, dateValue, timeValue, purpose, personnel,
+                amount, method, remark, delKeyValue, regionValue, Boolean.TRUE);
+    }
+
+    // 수집 반영은 비공개로 넣는다. 관리자가 공개관리에서 확인하고 켠다.
+    public ChamMonimapCardUse(ChamMonimapCardOwnerPosition cardOwnerPosition, ChamMonimapCardUseAddr cardUserAddr, String userSellValue, String nameSellValue,
+                              LocalDate dateValue, LocalTime timeValue, String purpose, String personnel,
+                              double amount, String method, String remark, String delKeyValue, String regionValue,
+                              Boolean isPublic) {
+
         this.chamMonimapCardOwnerPosition = cardOwnerPosition;
         this.cardUseAddr = cardUserAddr;
         this.chamMonimapCardUseName = nameSellValue;
@@ -101,8 +110,8 @@ public class ChamMonimapCardUse extends BaseData {
         this.chamMonimapCardUseRemark = remark;
         this.chamMonimapCardUseDelkey = delKeyValue;
         this.chamMonimapCardUseRegion = regionValue;
-        // 컬럼이 NOT NULL 이라 여기서 채워야 한다. 업로드 직후는 공개가 기본이다.
-        this.chamMonimapCardUsePublic = Boolean.TRUE;
+        // 컬럼이 NOT NULL 이라 여기서 채워야 한다.
+        this.chamMonimapCardUsePublic = isPublic == null ? Boolean.TRUE : isPublic;
     }
     
     public String getAmountPerPerson() {

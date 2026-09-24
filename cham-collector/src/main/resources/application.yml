@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: cham-collector
+  main:
+    # 웹 서버 없음. 스케줄러만 돈다
+    web-application-type: none
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:mysql://${DB_URL}:${DB_PORT}/CHAM?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 3
+  task:
+    scheduling:
+      # 정기 실행과 요청 확인이 동시에 돌지 않게 한 줄로 세운다
+      pool:
+        size: 1
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION}
+      s3:
+        bucket: ${AWS_BUCKET}
+
+collector:
+  # 매일 새벽 3시. 기관이 언제 올릴지 몰라 매일 본다
+  cron: "0 0 3 * * *"
+  # 관리자 '수집' 요청 확인 간격
+  poll-interval-ms: 60000
+  # 이 달부터 받는다. cham-api CollectRules.START 와 같아야 한다
+  min-period: "2026-08"
+  request-delay-ms: 1500
+  connect-timeout-ms: 10000
+  read-timeout-ms: 30000
+  retries: 2
+  max-file-bytes: 20971520
+  # 정기 / 달 지정 없는 수동 / 달 지정 수동 에서 볼 목록 페이지 수
+  scheduled-page-limit: 1
+  manual-page-limit: 2
+  target-page-limit: 5
+  # 누가 보내는지 밝힌다(뒤쪽 ChamMonimapCollector). 헤더라 ASCII 만 쓴다.
+  # 앞에 브라우저 문자열을 붙인 이유: 서구청 FileDown.do 가 브라우저 모양이 아닌 UA 에는 404 를 준다(2026-09-24 확인)
+  user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36 ChamMonimapCollector/1.0 (+https://cham-monimap.com; ${COLLECTOR_CONTACT:budget-watch})"
+  s3-prefix: collect
+  # 로컬에서 기관 하나만 한 번 돌리고 끝낼 때: --collector.run-once=JUNGGU_COUNCIL (선택: --collector.run-once-period=2026-08)
+  run-once: ""
+  run-once-period: ""
+
+logging:
+  file:
+    name: ./logs/cham-collector.log
+  level:
+    com.cham.collector: INFO

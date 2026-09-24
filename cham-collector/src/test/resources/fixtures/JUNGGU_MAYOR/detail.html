@@ -1,0 +1,342 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+	 	document.searchForm.nttId.value = nttId;
+	   	document.searchForm.action = link;
+	   	document.searchForm.submit();
+  }
+
+  /* ********************************************************
+   * 클립보드복사
+   ******************************************************** */
+
+function copyToClipboard(data) {
+	var IE= false;
+
+	var agent = navigator.userAgent.toLowerCase();
+	if ( (navigator.appName == 'Netscape' && agent.indexOf('trident') != -1) || (agent.indexOf("msie") != -1)) {
+		IE = true;
+	}else{
+	    IE = false;
+	}
+
+	if (IE) {
+		if(confirm("이 글의 URL 주소를 클립보드에 복사하시겠습니까?"))
+			window.clipboardData.setData("Text", data);
+	} else {
+		temp = prompt("이 글의 URL 주소입니다. Ctrl+C를 눌러 클립보드로 복사하세요", data);
+	}
+
+}
+
+
+  /* ********************************************************
+   * 등록회면 처리 함수
+   ******************************************************** */
+  function fn_search_regist() {
+ 	document.searchForm.action = "/bbs/BBSMSTR_000000000103/write.do";
+ 	document.searchForm.submit();
+  }
+
+  /* ********************************************************
+   * 다운로드 처리 함수
+   ******************************************************** */
+   function fn_egov_downFile(atchFileId, fileSn){
+	 window.open("/cmm/fms/FileDown.do?atchFileId="+atchFileId+"&fileSn="+fileSn+"");
+   }
+
+$(function () { 
+	
+	$(".btn-update").on('click', function(){
+		
+		Common.Dialog.confirm({
+	        content: '수정 하시겠습니까?'
+	        ,ok: function(){
+	            //console.log('확인 클릭');
+	           fn_search_detail(document.searchForm.nttId.value,"/bbs/BBSMSTR_000000000103/modify.do");return false;
+	        }
+	    });              
+	}); 
+	/* 목록 */   
+	$(".btn-create").on('click', function(){
+		Common.Dialog.confirm({
+	        content: '새글을 등록하시겠습니까?'
+	        ,ok: function(){
+	            fn_search_regist();return false;   
+	        }
+	    });              
+	}); 
+	/* 목록 */   
+	$(".btn-list").on('click', function(){
+	    fn_search_list();               
+	}); 
+	/* 삭제 */   
+	$(".btn-delete").on('click', function(){
+		Common.Dialog.confirm({
+	        content: '삭제하시겠습니까?'
+	        ,ok: function(){
+	            //console.log('확인 클릭');
+	            fn_search_cancel(document.searchForm.nttId.value);return false;
+	        }
+	    });                 
+	});
+}); 
+   
+   
+//-->
+</script>
+
+
+<!-- 5단계 서브메뉴 -->
+
+
+ 
+
+
+
+
+
+
+
+<!-- 5단계 서브메뉴 -->
+
+
+
+
+<!-- 프로그램 및 게시판 시작 -->
+<div class="program--contents">
+	<div class="ui bbs--view">
+		<div class="ui bbs--view--header">
+
+
+
+	
+	
+	
+	
+	
+	
+
+
+	
+
+							
+								
+									<h2 class="ui bbs--view--tit">
+										구청장 업무추진비 사용내역(2026년 8월)
+									
+
+											
+											
+											
+
+											
+
+											
+
+											
+
+								</h2>
+								
+
+								
+								
+								
+								
+								
+							
+
+	
+	
+	
+	
+	
+	
+
+
+	
+
+							
+								
+
+								
+								
+								
+								
+								
+									<span><i>작성자</i>행정지원과&nbsp;</span>
+								
+							
+
+	
+	
+	
+	
+	
+	
+
+
+	
+
+							
+								
+
+								
+								
+									<span class="inq_cnt"><i>조회수</i>23</span>
+
+								
+								
+								
+								
+							
+
+	
+	
+	
+	
+	
+	
+
+
+	
+
+							
+								
+
+								
+								
+								
+									<span class="date"><i>등록일</i>2026-09-02</span>
+								
+								
+								
+							
+
+	
+	
+	
+	
+	
+	
+
+
+	
+
+							
+								
+
+								
+								
+								
+								
+
+								
+								
+							
+
+	
+	
+	
+	
+	
+	
+
+
+	
+
+							
+								
+
+								
+
+
+								
+								
+								
+								
+								
+							
+
+
+
+
+		</div>
+
+
+
+
+							
+								<div class="ui bbs--view--file">
+									
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+
+
+
+	 
+	
+		
+		
+		
+		
+		
+			<a class="btn btn-file  btn-on-ico" href="javascript:fn_egov_downFile('FILE_000000061910Qm2','0')"><i class="ir ir-bbs ir-file left ir-excel">xlsx 파일 다운로드</i>구청장 업무추진비 사용내역(2026년 8월).xlsx&nbsp;[23.8&nbsp;KB]</a>
+			
+				<a class="btn btn-file" href="/synapsoft/FileViewer.do?atchFileId=FILE_000000061910Qm2&fileSn=0" target="_blank" title="새창으로 열립니다."><i class="ir ir-bbs ir-file left ir-view"></i>미리보기</a><br>
+			
+		
+		
+		
+		
+	
+	<br>
+
+
+
+
+
+								</div>
+							
+
+
+ 		<div class="ui bbs--view--cont" data-text-content="true">
+			<div class="ui bbs--detail--cont">
+
+				
+
+				<div class="ui bbs--view--content">
+
+					
+
+					
+
+					
+						
+							<p>구청장 업무추진비 사용내역(2026년 8월) 입니다.</p>
+						
+						
+					
+
+				</div>
+			</div>
+		</div>
+
+
+
+	</div>
+
+		<div class="box-footer">
+			<div class="pull-right">
+
+				
+</body></html>

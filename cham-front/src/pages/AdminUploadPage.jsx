@@ -11,6 +11,7 @@ import { useCardUseUploadListState } from '@/recoil/useAppState.js';
 import { showConfirmModal } from '@/components/ConfirmAlert.jsx';
 import api from '@/utils/axiosInstance.js';
 import AdminCleanupTab from '@/pages/AdminCleanupTab.jsx';
+import AdminCollectTab from '@/pages/AdminCollectTab.jsx';
 
 /**
  * 맛집지도 공개관리.
@@ -27,7 +28,7 @@ export default function AdminUploadPage() {
   const uploadListFetch = useFetchCardUseUploadList();
   const { uploadData, uploadLoading } = useCardUseUploadListState();
 
-  const [tab, setTab] = useState('upload'); // upload | cleanup
+  const [tab, setTab] = useState('upload'); // upload | cleanup | collect
   const [keyword, setKeyword] = useState('');
   // 전환 요청이 도는 동안 그 줄의 스위치를 잠근다. 연타로 요청이 겹치는 것을 막는다.
   const [pendingKey, setPendingKey] = useState(null);
@@ -220,9 +221,14 @@ export default function AdminUploadPage() {
         <Tab type="button" $on={tab === 'cleanup'} onClick={() => setTab('cleanup')}>
           자료정리
         </Tab>
+        <Tab type="button" $on={tab === 'collect'} onClick={() => setTab('collect')}>
+          수집관리
+        </Tab>
       </Tabs>
 
       {tab === 'cleanup' && <AdminCleanupTab />}
+
+      {tab === 'collect' && <AdminCollectTab onImported={uploadListFetch} />}
 
       {tab === 'upload' && (
         <>
