@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
-import { FaSyncAlt, FaFileExcel, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaSyncAlt, FaFileExcel, FaFilePdf, FaExternalLinkAlt } from 'react-icons/fa';
 import { AiOutlineDownload } from 'react-icons/ai';
 import { useSetRecoilState } from 'recoil';
 import { loadingState } from '@/recoil/appState.js';
@@ -15,7 +15,7 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const FILE_STATUS = {
   COLLECTED: { label: '검수대기', color: '#093A6E' },
   IMPORTED: { label: '반영됨', color: '#1A7D55' },
-  IGNORED: { label: '무시', color: '#66696D' },
+  IGNORED: { label: '반영 안 함', color: '#66696D' },
   FAILED: { label: '실패', color: '#FF5E57' },
   DUPLICATE: { label: '중복', color: '#A0A4A8' },
 };
@@ -28,6 +28,13 @@ const JOB_STATUS = {
 };
 
 const errorMessage = (e, fallback) => e.response?.data?.message ?? fallback;
+
+// 미리보기·반영·업로드 양식은 엑셀만 된다. PDF 는 원본만 받는다
+const isExcel = file => ['xlsx', 'xls'].includes((file?.ext ?? '').toLowerCase());
+
+const IGNORE_HELP =
+  '지도에 반영하지 않기로 표시합니다. 파일은 지워지지 않고 월 표에서 검수대기에서 빠집니다. ' +
+  '이미 수동으로 올린 달, 잘못 올라온 파일, 원본을 받아 직접 정리해 올린 PDF 등에 씁니다. 되돌리기로 다시 검수대기가 됩니다.';
 
 const formatDateTime = v => (v ? String(v).replace('T', ' ').slice(0, 16) : '-');
 
@@ -78,7 +85,7 @@ export default function AdminCollectTab({ onImported }) {
   const previewRef = useRef(null);
 
   const startYear = matrix?.startYear ?? 2026;
-  const startMonth = matrix?.startMonth ?? 8;
+  const startMonth = matrix?.startMonth ?? 7;
   const yearOptions = useMemo(() => {
     const list = [];
     for (let y = nowYear; y >= startYear; y--) list.push(y);
@@ -126,8 +133,8 @@ export default function AdminCollectTab({ onImported }) {
       });
       const list = data?.content ?? [];
       setFiles(list);
-      // 검수할 파일이 하나뿐이면 바로 미리보기를 연다
-      const reviewable = list.filter(f => f.status !== 'DUPLICATE');
+      // 검수할 엑셀이 하나뿐이면 바로 미리보기를 연다
+      const reviewable = list.filter(f => f.status !== 'DUPLICATE' && isExcel(f));
       if (reviewable.length === 1) openPreview(reviewable[0]);
     } catch (e) {
       console.error(e);
@@ -298,12 +305,18 @@ export default function AdminCollectTab({ onImported }) {
   };
 
   const changeStatus = (file, action) => {
-    const label = action === 'ignore' ? '무시' : '검수 대기로 되돌리기';
+    const label = action === 'ignore' ? '반영 안 함' : '검수 대기로 되돌리기';
     showConfirmModal({
       title: <>{label}</>,
       message: (
         <>
-          '{file.originName}' 을(를) {label} 합니다.
+          '{file.originName}' 을(를) {label}{action === 'ignore' ? '으로 표시' : ''} 합니다.
+          {action === 'ignore' && (
+            <>
+              <br />
+              파일은 지워지지 않고, 되돌리기로 다시 검수대기가 됩니다.
+            </>
+          )}
           {action === 'reset' && file.status === 'IMPORTED' && (
             <>
               <br />
@@ -331,22 +344,52 @@ export default function AdminCollectTab({ onImported }) {
     });
   };
 
+  const saveBlob = (data, fileName) => {
+    const url = window.URL.createObjectURL(new Blob([data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  // blob 응답은 오류 본문도 blob 이라 메시지를 꺼내려면 한 번 읽어야 한다
+  const blobError = async e => {
+    try {
+      return JSON.parse(await e.response?.data?.text())?.message;
+    } catch {
+      return null;
+    }
+  };
+
   const downloadFile = async file => {
     try {
       const res = await api.get(`/cham/admin/collect/files/${file.fileId}/download`, {
         responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.originName ?? `collect-${file.fileId}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      saveBlob(res.data, file.originName ?? `collect-${file.fileId}`);
     } catch (e) {
       console.error(e);
-      toast.error('원본을 내려받지 못했습니다.');
+      toast.error((await blobError(e)) ?? '원본을 내려받지 못했습니다.');
+    }
+  };
+
+  // 수동 업로드(관리자 → 추가) 양식 14열로 바꿔 받는다. 손본 뒤 그대로 올리면 된다
+  const downloadUploadForm = async (file, name) => {
+    try {
+      const params = {};
+      if (name?.trim()) params.defaultName = name.trim();
+      const res = await api.get(`/cham/admin/collect/files/${file.fileId}/upload-form`, {
+        params,
+        responseType: 'blob',
+      });
+      const base = file.deleteKey ?? preview?.suggestedDeleteKey ?? `collect-${file.fileId}`;
+      saveBlob(res.data, `${base} 업로드양식.xlsx`);
+    } catch (e) {
+      console.error(e);
+      toast.error((await blobError(e)) ?? '업로드 양식을 만들지 못했습니다.');
     }
   };
 
@@ -517,7 +560,9 @@ export default function AdminCollectTab({ onImported }) {
                   {files.map(file => (
                     <tr key={file.fileId}>
                       <Td className="left">
-                        <FaFileExcel color="#1A7D55" /> {file.originName}
+                        {isExcel(file) ? <FaFileExcel color="#1A7D55" /> : <FaFilePdf color="#D33A32" />}{' '}
+                        {file.originName}
+                        {!isExcel(file) && <Muted> (원본만 받을 수 있습니다)</Muted>}
                       </Td>
                       <Td className="left">
                         {file.detailUrl ? (
@@ -539,7 +584,7 @@ export default function AdminCollectTab({ onImported }) {
                       <Td>{file.deleteKey ?? '-'}</Td>
                       <Td>
                         <ButtonRow>
-                          {file.status !== 'DUPLICATE' && (
+                          {file.status !== 'DUPLICATE' && isExcel(file) && (
                             <SmallButton type="button" $color="#093A6E" onClick={() => openPreview(file)}>
                               미리보기
                             </SmallButton>
@@ -547,14 +592,24 @@ export default function AdminCollectTab({ onImported }) {
                           <IconButton type="button" title="원본 받기" onClick={() => downloadFile(file)}>
                             <AiOutlineDownload />
                           </IconButton>
+                          {file.status !== 'DUPLICATE' && isExcel(file) && (
+                            <IconButton
+                              type="button"
+                              title="업로드 양식으로 받기 (관리자 → 추가로 바로 올릴 수 있는 14열 엑셀)"
+                              onClick={() => downloadUploadForm(file)}
+                            >
+                              <FaFileExcel color="#1A7D55" />
+                            </IconButton>
+                          )}
                           {['COLLECTED', 'FAILED'].includes(file.status) && (
                             <SmallButton
                               type="button"
                               $color="#66696D"
+                              title={IGNORE_HELP}
                               disabled={pending}
                               onClick={() => changeStatus(file, 'ignore')}
                             >
-                              무시
+                              반영 안 함
                             </SmallButton>
                           )}
                           {['IGNORED', 'FAILED', 'IMPORTED'].includes(file.status) && (
@@ -612,7 +667,7 @@ export default function AdminCollectTab({ onImported }) {
             <span className={preview.blockingRows > 0 ? 'bad' : ''}>
               반영 불가 {preview.blockingRows}건
             </span>
-            <span className={preview.noNameRows > 0 ? 'warn' : ''}>이름 없음 {preview.noNameRows}건</span>
+            <span>이름 못 찾아 공무원 {preview.noNameRows}건</span>
           </Stats>
 
           {preview.fileWarnings?.map(w => (
@@ -633,35 +688,19 @@ export default function AdminCollectTab({ onImported }) {
             </Notice>
           )}
 
-          <SheetList>
-            {preview.sheets.map(sheet => (
-              <SheetItem key={sheet.name}>
-                <strong>{sheet.name}</strong>
-                {sheet.used ? (
-                  <>
-                    <Muted>
-                      {' '}
-                      · {sheet.headerRowNum}행 헤더 · {sheet.rowCount}건
-                    </Muted>
-                    <ChipRow>
-                      {Object.entries(sheet.mapping).map(([raw, field]) => (
-                        <MapChip key={raw}>
-                          {raw} → {field}
-                        </MapChip>
-                      ))}
-                      {sheet.unmapped.map(raw => (
-                        <MapChip key={raw} $off title="사전에 없는 헤더라 읽지 않았습니다">
-                          {raw}
-                        </MapChip>
-                      ))}
-                    </ChipRow>
-                  </>
-                ) : (
-                  <Muted> · 헤더를 찾지 못해 읽지 않았습니다</Muted>
-                )}
-              </SheetItem>
-            ))}
-          </SheetList>
+          {/* 헤더를 다 읽었으면 조용히 두고, 못 읽은 헤더·시트가 있을 때만 알린다 */}
+          {(() => {
+            const unmapped = [...new Set(preview.sheets.flatMap(s => (s.used ? s.unmapped : [])))];
+            const unused = preview.sheets.filter(s => !s.used).map(s => s.name);
+            if (unmapped.length === 0 && unused.length === 0) return null;
+            return (
+              <MutedLine>
+                {unmapped.length > 0 && <>읽지 않은 열: {unmapped.join(', ')}. </>}
+                {unused.length > 0 && <>헤더를 찾지 못한 시트: {unused.join(', ')}. </>}
+                필요한 열이면 알려 주세요.
+              </MutedLine>
+            );
+          })()}
 
           {previewFile.status === 'COLLECTED' && (
             <FormRow>
@@ -674,11 +713,11 @@ export default function AdminCollectTab({ onImported }) {
                 />
               </label>
               <label>
-                빈 이름 채우기
+                못 찾은 이름 (비우면 공무원)
                 <EditInput
                   value={defaultName}
                   onChange={e => setDefaultName(e.target.value)}
-                  placeholder="예: 공무원"
+                  placeholder="공무원"
                 />
               </label>
               <SmallButton
@@ -748,6 +787,14 @@ export default function AdminCollectTab({ onImported }) {
             </SmallButton>
             <SmallButton type="button" $color="#093A6E" onClick={() => downloadFile(previewFile)}>
               원본 받기
+            </SmallButton>
+            <SmallButton
+              type="button"
+              $color="#093A6E"
+              title="관리자 → 추가로 바로 올릴 수 있는 14열 엑셀. 손본 뒤 올리세요"
+              onClick={() => downloadUploadForm(previewFile, defaultName)}
+            >
+              업로드 양식 받기
             </SmallButton>
             {previewFile.status === 'COLLECTED' && (
               <SmallButton
@@ -1064,30 +1111,9 @@ const Notice = styled.p`
   }
 `;
 
-const SheetList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: ${({ theme }) => theme.sizes.medium};
-`;
 
-const SheetItem = styled.div``;
 
-const ChipRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 4px;
-`;
 
-const MapChip = styled.span`
-  padding: 2px 8px;
-  border: 1px solid ${({ $off, theme }) => ($off ? theme.colors.border : theme.colors.primary)};
-  border-radius: 10px;
-  color: ${({ $off, theme }) => ($off ? theme.colors.liteGray : theme.colors.primary)};
-  font-size: ${({ theme }) => theme.sizes.small};
-  text-decoration: ${({ $off }) => ($off ? 'line-through' : 'none')};
-`;
 
 const FormRow = styled.div`
   display: flex;

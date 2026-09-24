@@ -32,6 +32,9 @@ public interface ChamMonimapCollectService {
 
     DownloadFile download(Long fileId);
 
+    // 원본을 수동 업로드(/cham/upload) 양식 14열로 바꿔 준다. 손본 뒤 관리자 → 추가로 올리면 된다
+    DownloadFile uploadForm(Long fileId, String defaultName);
+
     PageResponse<CollectJobResponse> selectJobs(Pageable pageable);
 
     // '수집' 버튼. 수집기가 1분 안에 가져간다

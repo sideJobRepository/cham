@@ -4,6 +4,7 @@ import com.cham.advice.exception.ExcelException;
 import com.cham.caruse.CardUseDefaults;
 import com.cham.caruse.CardUseInsertOptions;
 import com.cham.caruse.CardUseRow;
+import com.cham.caruse.UploadFormExcel;
 import com.cham.caruse.repository.ChamMonimapCardUseRepository;
 import com.cham.caruse.service.ChamMonimapCardUseService;
 import com.cham.collect.CollectRules;
@@ -40,8 +41,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService {
-
-    public static final String WARN_NO_NAME = "이름 없음";
 
     // 월 표 한 칸에 파일이 여럿이면 관리자가 손댈 것을 먼저 보여준다
     private static final List<CollectFileStatus> CELL_PRIORITY = List.of(
@@ -124,7 +123,8 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         ChamMonimapCollectSource source = file.getCollectSource();
 
         ParseResult parsed = parse(file);
-        List<ParsedRow> rows = fillNames(parsed.rows(), source, defaultName);
+        NameFill filled = fillNames(parsed.rows(), source, defaultName);
+        List<ParsedRow> rows = filled.rows();
 
         String suggestedKey = file.getChamMonimapCollectFileDelkey() != null
                 ? file.getChamMonimapCollectFileDelkey()
@@ -144,7 +144,7 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
                 rows.size(),
                 rows.stream().filter(r -> !r.warnings().isEmpty()).count(),
                 rows.stream().filter(ParsedRow::blocking).count(),
-                rows.stream().filter(r -> isBlank(r.row().name())).count(),
+                filled.defaulted(),
                 parsed.sheets(),
                 parsed.fileWarnings(),
                 rows.stream().limit(Math.max(1, limit)).map(this::toPreviewRow).toList());
@@ -162,7 +162,7 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         ChamMonimapCollectSource source = file.getCollectSource();
 
         ParseResult parsed = parse(file);
-        List<ParsedRow> rows = fillNames(parsed.rows(), source, request == null ? null : request.defaultName());
+        List<ParsedRow> rows = fillNames(parsed.rows(), source, request == null ? null : request.defaultName()).rows();
         if (rows.isEmpty()) {
             throw new ExcelException("반영할 줄이 없습니다. " + String.join(" ", parsed.fileWarnings()), 400);
         }
@@ -238,6 +238,29 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
     }
 
     @Override
+    public DownloadFile uploadForm(Long fileId, String defaultName) {
+        ChamMonimapCollectFile file = fileRepository.findWithSource(fileId)
+                .orElseThrow(() -> new ExcelException("존재하지 않는 수집 파일입니다.", 400));
+        ChamMonimapCollectSource source = file.getCollectSource();
+
+        ParseResult parsed = parse(file);
+        List<ParsedRow> rows = fillNames(parsed.rows(), source, defaultName).rows();
+        if (rows.isEmpty()) {
+            throw new ExcelException("옮길 줄이 없습니다. " + String.join(" ", parsed.fileWarnings()), 400);
+        }
+
+        // 이미 반영한 파일이면 그때 삭제키를 그대로 둔다. 다시 올리려면 공개관리에서 먼저 지워야 한다
+        String deleteKey = file.getChamMonimapCollectFileDelkey() != null
+                ? file.getChamMonimapCollectFileDelkey()
+                : availableDeleteKey(CollectRules.deleteKey(source.getChamMonimapCollectSourceName(),
+                file.getChamMonimapCollectFileYear(), file.getChamMonimapCollectFileMonth()));
+
+        // 장소·주소가 비면 빈 칸으로 둔다. 올릴 때 자리값이 들어가고, 채워서 올리면 그 값이 들어간다
+        byte[] body = UploadFormExcel.write(rows.stream().map(ParsedRow::row).toList(), deleteKey);
+        return new DownloadFile(deleteKey + " 업로드양식.xlsx", body);
+    }
+
+    @Override
     public PageResponse<CollectJobResponse> selectJobs(Pageable pageable) {
         return PageResponse.from(jobRepository.findJobs(pageable));
     }
@@ -310,18 +333,23 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         }
     }
 
+    /** 이름을 채운 줄과, 그중 기존 자료에서 못 찾아 기본 이름(공무원)을 넣은 줄 수 */
+    private record NameFill(List<ParsedRow> rows, long defaulted) {
+    }
+
     /**
      * 이름이 빈 줄을 채운다. 원본에 사람 이름이 없는 의회 자료가 대상이다.
      * 1) 같은 지역에서 같은 사용자(직함)가 가장 최근에 쓴 이름 ('의장' → '오은규')
      * 2) 화면에서 적은 이름
-     * 못 채우면 '이름 없음' 경고만 붙이고 그대로 둔다
+     * 3) 그래도 없으면 '공무원' (CardUseDefaults.NAME)
      */
-    private List<ParsedRow> fillNames(List<ParsedRow> rows, ChamMonimapCollectSource source, String requestName) {
-        if (rows.stream().noneMatch(r -> isBlank(r.row().name()))) return rows;
+    private NameFill fillNames(List<ParsedRow> rows, ChamMonimapCollectSource source, String requestName) {
+        if (rows.stream().noneMatch(r -> isBlank(r.row().name()))) return new NameFill(rows, 0);
 
         Map<String, String> latest = cardUseRepository.findLatestNameByUser(source.getChamMonimapCollectSourceRegion());
-        String fallback = trim(requestName);
+        String fallback = isBlank(requestName) ? CardUseDefaults.NAME : requestName.trim();
 
+        long defaulted = 0;
         List<ParsedRow> result = new ArrayList<>(rows.size());
         for (ParsedRow r : rows) {
             if (!isBlank(r.row().name())) {
@@ -330,19 +358,16 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
             }
             String user = trim(r.row().user());
             String name = user == null ? null : latest.get(user);
-            if (isBlank(name)) name = fallback;
-
-            List<String> warnings = r.warnings();
             if (isBlank(name)) {
-                warnings = new ArrayList<>(warnings);
-                warnings.add(WARN_NO_NAME);
+                name = fallback;
+                defaulted++;
             }
             CardUseRow c = r.row();
             result.add(new ParsedRow(new CardUseRow(c.ownerPosition(), c.region(), c.user(), name, c.date(), c.time(),
                     c.addrName(), c.addrDetail(), c.purpose(), c.personnel(), c.amount(), c.method(), c.remark(),
-                    c.sourceRowNum(), c.sheetName()), warnings, r.blocking()));
+                    c.sourceRowNum(), c.sheetName()), r.warnings(), r.blocking()));
         }
-        return result;
+        return new NameFill(result, defaulted);
     }
 
     // 자동 삭제키가 이미 있으면 -2, -3 을 붙인다

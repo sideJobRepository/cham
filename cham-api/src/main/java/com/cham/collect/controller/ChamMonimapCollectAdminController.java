@@ -78,8 +78,18 @@ public class ChamMonimapCollectAdminController {
 
     @GetMapping("/files/{fileId}/download")
     public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
-        ChamMonimapCollectService.DownloadFile file = collectService.download(fileId);
+        return attachment(collectService.download(fileId));
+    }
 
+    /** 원본을 수동 업로드 양식(14열)으로 바꿔 내려준다 */
+    @GetMapping("/files/{fileId}/upload-form")
+    public ResponseEntity<byte[]> uploadForm(@PathVariable Long fileId,
+                                             @RequestParam(required = false) String defaultName) {
+        return attachment(collectService.uploadForm(fileId, defaultName));
+    }
+
+    // 한글 파일명이라 UTF-8 로 인코딩해 준다
+    private ResponseEntity<byte[]> attachment(ChamMonimapCollectService.DownloadFile file) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDisposition(ContentDisposition.attachment()
                 .filename(file.fileName(), StandardCharsets.UTF_8)

@@ -10,7 +10,7 @@ import java.util.List;
  * 반영 전 미리보기.
  *
  * @param blockingRows 날짜를 못 읽은 줄 수. 0 이 아니면 반영할 수 없다
- * @param noNameRows   이름을 못 채운 줄 수. 반영은 되지만 공개관리 명단에 빈 이름으로 보인다
+ * @param noNameRows   기존 자료에서 이름을 못 찾아 '공무원'(또는 화면에서 적은 이름)을 넣은 줄 수
  * @param rows         앞에서부터 limit 줄
  */
 public record CollectPreviewResponse(

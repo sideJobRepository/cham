@@ -41,14 +41,16 @@ public class StartupRunner implements ApplicationRunner {
             return;
         }
 
-        CollectSource source = sourceRepository.findByCode(props.runOnce().trim())
-                .orElseThrow(() -> new IllegalArgumentException("없는 기관 코드: " + props.runOnce()));
+        // ALL 이면 사용 중인 기관 전체
+        String code = props.runOnce().trim();
+        CollectSource source = code.equalsIgnoreCase("ALL") ? null : sourceRepository.findByCode(code)
+                .orElseThrow(() -> new IllegalArgumentException("없는 기관 코드: " + code));
         YearMonth target = props.runOncePeriod() == null || props.runOncePeriod().isBlank()
                 ? null : YearMonth.parse(props.runOncePeriod().trim());
 
-        CollectJob job = jobRepository.startNew("MANUAL", source.id(),
+        CollectJob job = jobRepository.startNew("MANUAL", source == null ? null : source.id(),
                 target == null ? null : target.getYear(), target == null ? null : target.getMonthValue());
-        log.info("한 번 실행: {} {} job={}", source.name(), target == null ? "" : target, job.id());
+        log.info("한 번 실행: {} {} job={}", source == null ? "전체" : source.name(), target == null ? "" : target, job.id());
         jobRunner.run(job);
         log.info("한 번 실행 끝. 결과는 수집관리 탭 수집 이력 job={} 에서 확인", job.id());
         System.exit(SpringApplication.exit(context, () -> 0));

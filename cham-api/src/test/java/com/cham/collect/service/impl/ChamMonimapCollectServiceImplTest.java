@@ -16,6 +16,7 @@ import com.cham.collect.enumeration.CollectJobStatus;
 import com.cham.collect.repository.ChamMonimapCollectFileRepository;
 import com.cham.collect.repository.ChamMonimapCollectJobRepository;
 import com.cham.collect.repository.ChamMonimapCollectSourceRepository;
+import com.cham.collect.service.ChamMonimapCollectService;
 import com.cham.config.S3FileUtils;
 import com.cham.dto.response.ApiResponse;
 import org.apache.poi.ss.usermodel.Row;
@@ -78,10 +79,10 @@ class ChamMonimapCollectServiceImplTest {
         verify(cardUseService).insertRows(rows.capture(), eq("수집-중구의회-2026-08-2"),
                 eq(CardUseInsertOptions.COLLECT_IMPORT));
         assertThat(rows.getValue()).hasSize(2);
-        // 의장은 기존 자료에서 이름을 찾고, 국장은 못 찾아 비어 있다
+        // 의장은 기존 자료에서 이름을 찾고, 국장은 못 찾아 '공무원'
         assertThat(rows.getValue().get(0).name()).isEqualTo("오은규");
         assertThat(rows.getValue().get(0).ownerPosition()).isEqualTo("기초의회");
-        assertThat(rows.getValue().get(1).name()).isNull();
+        assertThat(rows.getValue().get(1).name()).isEqualTo("공무원");
 
         assertThat(file.getChamMonimapCollectFileStatus()).isEqualTo(CollectFileStatus.IMPORTED);
         assertThat(file.getChamMonimapCollectFileDelkey()).isEqualTo("수집-중구의회-2026-08-2");
@@ -95,12 +96,12 @@ class ChamMonimapCollectServiceImplTest {
         when(fileRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(file));
         when(s3FileUtils.getBytes("k")).thenReturn(councilXlsx("2026-08-03 12:30"));
 
-        service.importFile(10L, new CollectImportRequest("내 삭제키", "공무원"), 7L);
+        service.importFile(10L, new CollectImportRequest("내 삭제키", "사무국장"), 7L);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<CardUseRow>> rows = ArgumentCaptor.forClass(List.class);
         verify(cardUseService).insertRows(rows.capture(), eq("내 삭제키"), any());
-        assertThat(rows.getValue().get(1).name()).isEqualTo("공무원");
+        assertThat(rows.getValue().get(1).name()).isEqualTo("사무국장");
     }
 
     @Test
@@ -150,7 +151,33 @@ class ChamMonimapCollectServiceImplTest {
         assertThat(preview.noNameRows()).isEqualTo(1);
         assertThat(preview.suggestedDeleteKey()).isEqualTo("수집-중구의회-2026-08");
         assertThat(preview.rows().get(0).name()).isEqualTo("오은규");
-        assertThat(preview.rows().get(1).warnings()).contains(ChamMonimapCollectServiceImpl.WARN_NO_NAME);
+        assertThat(preview.rows().get(1).name()).isEqualTo("공무원");
+        assertThat(preview.rows().get(1).warnings()).isEmpty();
+    }
+
+    @Test
+    void 업로드_양식으로_바꾸면_수동업로드가_그대로_읽는다() throws Exception {
+        when(fileRepository.findWithSource(10L))
+                .thenReturn(Optional.of(file(10L, council, CollectFileStatus.COLLECTED)));
+        when(s3FileUtils.getBytes("k")).thenReturn(councilXlsx("2026-08-03 12:30"));
+
+        ChamMonimapCollectService.DownloadFile form = service.uploadForm(10L, null);
+
+        assertThat(form.fileName()).isEqualTo("수집-중구의회-2026-08 업로드양식.xlsx");
+        try (org.apache.poi.ss.usermodel.Workbook wb =
+                     org.apache.poi.ss.usermodel.WorkbookFactory.create(new java.io.ByteArrayInputStream(form.body()))) {
+            Sheet sheet = wb.getSheetAt(0);
+            Row first = sheet.getRow(1);
+            // ExcelColumns 순서: 0 기관/직책 1 지역 2 사용자 3 이름 4 일자 5 시간 6 장소 7 주소 … 13 삭제키
+            assertThat(first.getCell(0).getStringCellValue()).isEqualTo("기초의회");
+            assertThat(first.getCell(2).getStringCellValue()).isEqualTo("의장");
+            assertThat(first.getCell(3).getStringCellValue()).isEqualTo("오은규");
+            assertThat(first.getCell(4).getStringCellValue()).isEqualTo("2026-08-03");
+            assertThat(first.getCell(5).getStringCellValue()).isEqualTo("12:30");
+            assertThat(first.getCell(6).getStringCellValue()).isEqualTo("스시무희");
+            assertThat(first.getCell(13).getStringCellValue()).isEqualTo("수집-중구의회-2026-08");
+            assertThat(sheet.getRow(2).getCell(3).getStringCellValue()).isEqualTo("공무원");
+        }
     }
 
     @Test
@@ -187,8 +214,8 @@ class ChamMonimapCollectServiceImplTest {
     void 수집_요청_검증() {
         assertThatThrownBy(() -> service.requestJob(new CollectJobRequest(null, 2026, null), 7L))
                 .hasMessageContaining("같이");
-        assertThatThrownBy(() -> service.requestJob(new CollectJobRequest(null, 2026, 7), 7L))
-                .hasMessageContaining("2026년 8월부터");
+        assertThatThrownBy(() -> service.requestJob(new CollectJobRequest(null, 2026, 6), 7L))
+                .hasMessageContaining("2026년 7월부터");
 
         when(jobRepository.existsActive()).thenReturn(true);
         assertThatThrownBy(() -> service.requestJob(new CollectJobRequest(null, null, null), 7L))

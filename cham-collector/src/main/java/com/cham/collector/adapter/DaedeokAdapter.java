@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * 대덕구청 자체 CMS. DPT02010401_cmmBoardList.do → DPT02010401_cmmBoardView.do?boardId=DPT_000022&ntatcSeq=N,
  * 첨부 /board/binary/DPT_000022/{번호}.{확장자}.
- * 2026년 8월분부터 PDF 만 올려서 지금은 꺼 두었다(xlsx 로 돌아오면 켠다).
+ * 2026년 8월분부터 PDF 만 올린다. PDF 도 원본 보관용으로 받는다(ALLOW_EXT 에 pdf).
  */
 @Component
 public class DaedeokAdapter extends AbstractBoardAdapter {

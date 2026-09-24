@@ -7,8 +7,8 @@ import java.time.YearMonth;
  */
 public final class CollectRules {
 
-    // 자동수집은 2026년 8월분부터. 그 전 달은 월 표에서도 흐리게 두고 요청을 받지 않는다
-    public static final YearMonth START = YearMonth.of(2026, 8);
+    // 자동수집은 2026년 7월분부터. 그 전 달은 월 표에서도 흐리게 두고 요청을 받지 않는다
+    public static final YearMonth START = YearMonth.of(2026, 7);
 
     public static boolean isCollectable(int year, int month) {
         return !YearMonth.of(year, month).isBefore(START) && !YearMonth.of(year, month).isAfter(YearMonth.now());

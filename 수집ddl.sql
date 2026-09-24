@@ -9,7 +9,7 @@
 --                    '지금 수집' 버튼으로 COLLECT_JOB 에 REQUESTED 행을 넣는다. 달을 고르면 TARGET_YEAR/MONTH 가 찬다.
 --
 -- 수집 규칙
---   - 대상은 2026년 8월분부터. 그 전 달 게시물은 받지 않는다 (collector.min-period)
+--   - 대상은 2026년 7월분부터. 그 전 달 게시물은 받지 않는다 (collector.min-period)
 --   - 매일 한 번 돈다. 기관이 언제 올릴지 모르기 때문이다
 --   - 정기 실행은 그 기관의 직전 달 자료가 이미 있으면 목록도 열지 않고 넘어간다
 --   - 달을 지정한 작업은 그 달 게시물만 받는다. 목록을 몇 페이지 더 넘겨 찾는다
@@ -117,7 +117,7 @@ ALTER TABLE CHAM.CHAM_MONIMAP_COLLECT_FILE
 
 
 -- ─────────────────────────────────────────────────────────────
--- 출처 12곳 시드. xlsx 를 올리는 7곳만 ENABLED=1 (대덕구청장은 2026년 8월분부터 PDF 라 뺐다).
+-- 출처 12곳 시드. 어댑터가 있는 9곳을 ENABLED=1. 유성구청장·대덕구청장은 PDF 라 원본 보관만 된다(반영은 엑셀만).
 --
 -- !! 넣기 전에 운영 DB 에서 두 가지를 확인할 것 !!
 --   1) POSITION_NAME 이 CHAM_MONIMAP_CARD_OWNER_POSITION_NAME 에 실제로 있는 값인지.
@@ -181,8 +181,8 @@ VALUES
     ('YUSEONG_MAYOR', '유성구청장', 'EGOV_BBS',
      'https://www.yuseong.go.kr/bbs/BBSMSTR_000000000111/list.do',
      'https://www.yuseong.go.kr/bbs/BBSMSTR_000000000111/view.do?nttId={postKey}', 'BBSMSTR_000000000111',
-     'pageIndex', NULL, '기초지자체', '대전 유성구', '구청장', '정용래', 'PDF', 'pdf', 0, 90,
-     'PDF 만 올림', NOW(), NOW()),
+     'pageIndex', NULL, '기초지자체', '대전 유성구', '구청장', '정용래', 'PDF', 'pdf', 1, 90,
+     'PDF 만 올림. 원본 보관용으로 받는다(반영은 사람이 정리해 수동 업로드)', NOW(), NOW()),
     ('YUSEONG_COUNCIL', '유성구의회', 'GNUBOARD',
      'https://yuseonggucouncil.go.kr/bbs/board.php?bo_table=0603',
      'https://yuseonggucouncil.go.kr/bbs/board.php?bo_table=0603&wr_id={postKey}', '0603',
@@ -191,8 +191,8 @@ VALUES
     ('DAEDEOK_MAYOR', '대덕구청장', 'CUSTOM_DAEDEOK',
      'https://www.daedeok.go.kr/dpt/dpt02/DPT02010401_cmmBoardList.do',
      'https://www.daedeok.go.kr/dpt/dpt02/DPT02010401_cmmBoardView.do?boardId=DPT_000022&ntatcSeq={postKey}', 'DPT_000022',
-     'pageIndex', NULL, '기초지자체', '대전 대덕구', '구청장', '최충규', 'PDF', 'xlsx,xls', 0, 110,
-     '2026년 8월분부터 PDF 만 올림(2026-09-24 확인). xlsx 로 돌아오면 ENABLED=1', NOW(), NOW()),
+     'pageIndex', NULL, '기초지자체', '대전 대덕구', '구청장', '최충규', 'PDF', 'xlsx,xls,pdf', 1, 110,
+     '2026년 8월분부터 PDF 만 올림(2026-09-24 확인). 원본 보관용으로 받는다', NOW(), NOW()),
     ('DAEDEOK_COUNCIL', '대덕구의회', 'COUNCIL_B',
      'https://council.daedeok.go.kr/kr/costBBS.do',
      'https://council.daedeok.go.kr/kr/costBBSview.do?uid={postKey}', NULL,

@@ -11,6 +11,8 @@ public final class CardUseDefaults {
 
     public static final String DETAIL_ADDR = "도산로370번길 22-1";
     public static final String ADDR_NAME = "경조사비";
+    // 이름(엑셀 3열)을 모를 때. 기존 자료도 직원 몫은 '공무원' 으로 적어 왔다
+    public static final String NAME = "공무원";
 
     private CardUseDefaults() {
     }
