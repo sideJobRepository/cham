@@ -29,8 +29,11 @@ const JOB_STATUS = {
 
 const errorMessage = (e, fallback) => e.response?.data?.message ?? fallback;
 
-// 미리보기·반영·업로드 양식은 엑셀만 된다. PDF 는 원본만 받는다
-const isExcel = file => ['xlsx', 'xls'].includes((file?.ext ?? '').toLowerCase());
+const extOf = file => (file?.ext ?? '').toLowerCase();
+const isExcel = file => ['xlsx', 'xls'].includes(extOf(file));
+const isPdf = file => extOf(file) === 'pdf';
+// 표 미리보기·반영·업로드 양식이 되는 형식. PDF 는 서버가 표를 뽑아 엑셀처럼 읽는다
+const canParse = file => isExcel(file) || isPdf(file);
 
 const IGNORE_HELP =
   '지도에 반영하지 않기로 표시합니다. 파일은 지워지지 않고 월 표에서 검수대기에서 빠집니다. ' +
@@ -84,6 +87,7 @@ export default function AdminCollectTab({ onImported }) {
   const [openedJobId, setOpenedJobId] = useState(null);
 
   const previewRef = useRef(null);
+  const pdfRef = useRef(null);
 
   const startYear = matrix?.startYear ?? 2026;
   const startMonth = matrix?.startMonth ?? 7;
@@ -250,13 +254,11 @@ export default function AdminCollectTab({ onImported }) {
     try {
       const res = await api.get(`/cham/admin/collect/files/${file.fileId}/view`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      setPreview(null);
-      setPreviewFile(null);
       setPdfView(prev => {
         if (prev?.url) window.URL.revokeObjectURL(prev.url);
         return { file, url };
       });
-      setTimeout(() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      setTimeout(() => pdfRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     } catch (e) {
       console.error(e);
       toast.error('PDF 를 열지 못했습니다.');
@@ -266,12 +268,9 @@ export default function AdminCollectTab({ onImported }) {
   };
 
   const openPreview = async (file, nameOverride) => {
-    if (!isExcel(file)) {
-      openPdf(file);
-      return;
-    }
+    if (!canParse(file)) return;
     setLoading(true);
-    closePdf();
+    if (pdfView?.file?.fileId !== file.fileId) closePdf();
     try {
       const params = { limit: 50 };
       if (nameOverride?.trim()) params.defaultName = nameOverride.trim();
@@ -597,7 +596,7 @@ export default function AdminCollectTab({ onImported }) {
                       <Td className="left">
                         {isExcel(file) ? <FaFileExcel color="#1A7D55" /> : <FaFilePdf color="#D33A32" />}{' '}
                         {file.originName}
-                        {!isExcel(file) && <Muted> (PDF · 미리보기로 원본 확인)</Muted>}
+
                       </Td>
                       <Td className="left">
                         {file.detailUrl ? (
@@ -619,15 +618,20 @@ export default function AdminCollectTab({ onImported }) {
                       <Td>{file.deleteKey ?? '-'}</Td>
                       <Td>
                         <ButtonRow>
-                          {file.status !== 'DUPLICATE' && (
+                          {file.status !== 'DUPLICATE' && canParse(file) && (
                             <SmallButton type="button" $color="#093A6E" onClick={() => openPreview(file)}>
                               미리보기
+                            </SmallButton>
+                          )}
+                          {isPdf(file) && (
+                            <SmallButton type="button" $color="#66696D" onClick={() => openPdf(file)}>
+                              PDF 보기
                             </SmallButton>
                           )}
                           <IconButton type="button" title="원본 받기" onClick={() => downloadFile(file)}>
                             <AiOutlineDownload />
                           </IconButton>
-                          {file.status !== 'DUPLICATE' && isExcel(file) && (
+                          {file.status !== 'DUPLICATE' && canParse(file) && (
                             <IconButton
                               type="button"
                               title="업로드 양식으로 받기 (관리자 → 추가로 바로 올릴 수 있는 14열 엑셀)"
@@ -688,17 +692,14 @@ export default function AdminCollectTab({ onImported }) {
       )}
 
       {pdfView && (
-        <Panel ref={previewRef}>
+        <Panel ref={pdfRef}>
           <PanelTitle>
             PDF 미리보기 · {pdfView.file.originName}
             <Chip $color={FILE_STATUS[pdfView.file.status]?.color}>
               {FILE_STATUS[pdfView.file.status]?.label}
             </Chip>
           </PanelTitle>
-          <Notice>
-            PDF 는 표를 자동으로 읽지 못해 반영 버튼이 없습니다. 내용을 확인해 업로드 양식으로 정리해 올린 뒤
-            '반영 안 함'으로 표시해 두세요.
-          </Notice>
+          <MutedLine>원본 대조용입니다. 표 미리보기에서 뽑힌 값이 원본과 맞는지 확인하세요.</MutedLine>
           <PdfFrame src={pdfView.url} title={pdfView.file.originName} />
           <ButtonRow className="end">
             <SmallButton type="button" $color="#66696D" onClick={closePdf}>
@@ -740,6 +741,12 @@ export default function AdminCollectTab({ onImported }) {
             <span>이름 못 찾아 공무원 {preview.noNameRows}건</span>
           </Stats>
 
+          {isPdf(previewFile) && (
+            <Notice>
+              PDF 에서 표를 뽑아 읽었습니다. 칸이 밀리거나 글자가 옆 칸에 겹친 줄이 있을 수 있으니
+              'PDF 원본 보기'로 대조한 뒤 반영하세요. 이상한 줄은 업로드 양식으로 받아 고쳐 올려도 됩니다.
+            </Notice>
+          )}
           {preview.fileWarnings?.map(w => (
             <Notice key={w} className="bad">
               {w}
@@ -855,6 +862,11 @@ export default function AdminCollectTab({ onImported }) {
             <SmallButton type="button" $color="#66696D" onClick={closePreview}>
               닫기
             </SmallButton>
+            {isPdf(previewFile) && (
+              <SmallButton type="button" $color="#66696D" onClick={() => openPdf(previewFile)}>
+                PDF 원본 보기
+              </SmallButton>
+            )}
             <SmallButton type="button" $color="#093A6E" onClick={() => downloadFile(previewFile)}>
               원본 받기
             </SmallButton>

@@ -29,8 +29,10 @@ public final class CollectHeaderRules {
         m.put(CollectField.PURPOSE, List.of("사용목적", "집행목적", "사용내역", "집행내역", "목적", "내역", "내용"));
         m.put(CollectField.PERSONNEL, List.of("대상인원", "집행대상인원", "인원", "대상자수"));
         m.put(CollectField.AMOUNT, List.of("사용금액", "집행금액", "금액", "사용액", "집행액"));
-        m.put(CollectField.METHOD, List.of("사용방법", "결제방법", "결제방식", "집행방법", "결제수단", "지출방법"));
-        m.put(CollectField.REMARK, List.of("비고"));
+        // 결재방법은 기관들이 흔히 쓰는 오타 표기다
+        m.put(CollectField.METHOD, List.of("사용방법", "결제방법", "결제방식", "결재방법", "결재방식", "집행방법", "결제수단", "지출방법"));
+        // 비목(기관운영/시책추진 구분)도 비고로 받는다. 둘 다 있으면 왼쪽 열이 이긴다
+        m.put(CollectField.REMARK, List.of("비고", "비목"));
         m.put(CollectField.POSITION, List.of("직위", "직책", "직급"));
         SYNONYMS = Collections.unmodifiableMap(m);
     }
@@ -83,6 +85,11 @@ public final class CollectHeaderRules {
     // 다만 'Sheet1', '업무추진비(구청장)_8월', '⊙' 처럼 직함이 아닌 이름이면 기관 기본 직함을 쓴다
     private static final Pattern GENERIC_SHEET = Pattern.compile("(?i)^sheet\\d*$|업무추진비|\\d+\\s*월|집행내역|사용내역");
     private static final Pattern HANGUL = Pattern.compile("[가-힣]");
+
+    /** 'Sheet1' 처럼 뜻 없는 시트 이름. 비고에 넣지 않는다 */
+    public static boolean isGenericSheetName(String sheetName) {
+        return sheetName == null || sheetName.trim().matches("(?i)^sheet\\d*$");
+    }
 
     public static boolean isRoleSheetName(String sheetName) {
         if (sheetName == null) return false;

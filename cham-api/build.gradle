@@ -35,6 +35,15 @@ dependencies {
 
     //아파치 poi
     implementation 'org.apache.poi:poi-ooxml:5.4.0'
+
+    // PDF 표 추출 (수집한 PDF 를 괘선 기준으로 칸을 나눠 시트로 바꾼다)
+    // slf4j-simple 은 logback 과 부딪혀서, 나머지는 암호화 PDF·이미지 용이라 뺀다 (commons-cli 는 추출 코드가 참조해서 둔다)
+    implementation('technology.tabula:tabula:1.0.5') {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+        exclude group: 'org.bouncycastle'
+        exclude group: 'com.github.jai-imageio'
+        exclude group: 'commons-logging'
+    }
     // 쿼리 dsl
     implementation "io.github.openfeign.querydsl:querydsl-jpa:6.11"
     annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:6.11:jpa"

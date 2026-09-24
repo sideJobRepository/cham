@@ -67,7 +67,8 @@ public class HeaderMappedSheetParser {
             for (ParsedRow r : p.rows) {
                 // 시트가 둘 이상이면(중구청 기관운영/시책추진) 어느 시트 줄인지 비고에 남긴다.
                 // 시트 이름을 이미 사용자(직함)로 썼으면(동구의회 의장/부의장) 비고에 또 넣지 않는다
-                if (usedSheets > 1 && !p.userFromSheetName && isBlank(r.row().remark())) {
+                if (usedSheets > 1 && !p.userFromSheetName && isBlank(r.row().remark())
+                        && !CollectHeaderRules.isGenericSheetName(p.info.name())) {
                     r = new ParsedRow(withRemark(r.row(), p.info.name()), r.warnings(), r.blocking());
                 }
                 rows.add(r);

@@ -16,6 +16,7 @@ import com.cham.collect.enumeration.CollectFileStatus;
 import com.cham.collect.parser.HeaderMappedSheetParser;
 import com.cham.collect.parser.HeaderMappedSheetParser.ParseResult;
 import com.cham.collect.parser.HeaderMappedSheetParser.ParsedRow;
+import com.cham.collect.parser.PdfTableWorkbook;
 import com.cham.collect.parser.SourceDefaults;
 import com.cham.collect.repository.ChamMonimapCollectFileRepository;
 import com.cham.collect.repository.ChamMonimapCollectJobRepository;
@@ -312,8 +313,9 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
 
     private ParseResult parse(ChamMonimapCollectFile file) {
         String ext = file.getChamMonimapCollectFileExt() == null ? "" : file.getChamMonimapCollectFileExt().toLowerCase();
-        if (!ext.equals("xlsx") && !ext.equals("xls")) {
-            throw new ExcelException("엑셀(xlsx/xls) 파일만 미리보기·반영할 수 있습니다. 이 파일: " + ext, 400);
+        boolean pdf = ext.equals("pdf");
+        if (!pdf && !ext.equals("xlsx") && !ext.equals("xls")) {
+            throw new ExcelException("엑셀(xlsx/xls)과 PDF 만 미리보기·반영할 수 있습니다. 이 파일: " + ext, 400);
         }
         ChamMonimapCollectSource source = file.getCollectSource();
         SourceDefaults defaults = new SourceDefaults(
@@ -325,11 +327,19 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
                 file.getChamMonimapCollectFileMonth());
 
         byte[] bytes = s3FileUtils.getBytes(file.getChamMonimapCollectFileS3Key());
-        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
-            return parser.parse(workbook, defaults);
+        // PDF 는 표를 뽑아 시트로 바꾼 뒤 엑셀과 같은 파서로 읽는다
+        try (Workbook workbook = pdf ? PdfTableWorkbook.from(bytes)
+                : WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+            ParseResult result = parser.parse(workbook, defaults);
+            if (pdf && result.rows().isEmpty()) {
+                List<String> warnings = new ArrayList<>(result.fileWarnings());
+                warnings.add("PDF 에서 내역 표를 찾지 못했습니다. 합계표·안내문만 있는 파일일 수 있습니다. PDF 보기로 확인하세요.");
+                return new ParseResult(result.rows(), result.sheets(), warnings);
+            }
+            return result;
         } catch (IOException | RuntimeException e) {
             if (e instanceof ExcelException ee) throw ee;
-            throw new ExcelException("엑셀을 열 수 없습니다: " + e.getMessage(), 400);
+            throw new ExcelException((pdf ? "PDF" : "엑셀") + "을 열 수 없습니다: " + e.getMessage(), 400);
         }
     }
 
