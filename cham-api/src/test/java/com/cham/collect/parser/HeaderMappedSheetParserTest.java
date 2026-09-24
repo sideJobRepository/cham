@@ -209,6 +209,19 @@ class HeaderMappedSheetParserTest {
     }
 
     @Test
+    void 게시물_제목에서_직함() {
+        // 2026-09-24 서구의회·대전시의회 실제 제목·파일명
+        assertThat(CollectHeaderRules.roleFromTitle("2026년 8월 부의장 업무추진비 집행내역")).isEqualTo("부의장");
+        assertThat(CollectHeaderRules.roleFromTitle("2026년 8월 업무추진비 집행내역(국민의힘 교섭단체)")).isEqualTo("국민의힘 교섭단체");
+        assertThat(CollectHeaderRules.roleFromTitle("업무추진비 공개(2026. 8. 도시건설위원장).xlsx")).isEqualTo("도시건설위원장");
+        assertThat(CollectHeaderRules.roleFromTitle("2026년 8월 예산결산특별위원장 업무추진비 집행내역")).isEqualTo("예산결산특별위원장");
+        assertThat(CollectHeaderRules.roleFromTitle("2026년 7월~8월 의회사무국 업무추진비 집행내역")).isEqualTo("의회사무국");
+        assertThat(CollectHeaderRules.roleFromTitle("2026년 8월 업무추진비 집행내역(복지환경위원회)")).isEqualTo("복지환경위원회");
+        assertThat(CollectHeaderRules.roleFromTitle("8월 의회운영업무추진비 집행내역(위원장).pdf")).isEqualTo("위원장");
+        assertThat(CollectHeaderRules.roleFromTitle("업무추진비(공개)-8월.xlsx")).isNull();
+    }
+
+    @Test
     void 직함으로_볼_시트이름() {
         assertThat(CollectHeaderRules.isRoleSheetName("부의장")).isTrue();
         assertThat(CollectHeaderRules.isRoleSheetName("시책(국장)")).isTrue();

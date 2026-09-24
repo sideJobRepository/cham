@@ -22,7 +22,8 @@ public class CollectSourceRepository {
                    CHAM_MONIMAP_COLLECT_SOURCE_ENGINE, CHAM_MONIMAP_COLLECT_SOURCE_LIST_URL, CHAM_MONIMAP_COLLECT_SOURCE_DETAIL_URL,
                    CHAM_MONIMAP_COLLECT_SOURCE_BOARD_ID, CHAM_MONIMAP_COLLECT_SOURCE_PAGE_PARAM, CHAM_MONIMAP_COLLECT_SOURCE_EXTRA_PARAM,
                    CHAM_MONIMAP_COLLECT_SOURCE_ALLOW_EXT, CHAM_MONIMAP_COLLECT_SOURCE_ENABLED,
-                   CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE, CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE
+                   CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE, CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE,
+                   CHAM_MONIMAP_COLLECT_SOURCE_POST_INCLUDE
             FROM CHAM_MONIMAP_COLLECT_SOURCE
             """;
 
@@ -41,6 +42,7 @@ public class CollectSourceRepository {
                     .collect(Collectors.toSet()),
             rs.getString(12),
             rs.getString(13),
+            rs.getString(14),
             rs.getBoolean(11));
 
     private final JdbcTemplate jdbc;

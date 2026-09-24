@@ -85,6 +85,8 @@ public class CollectService {
             boolean passedFloor = false;
             for (PostRef post : posts) {
                 result.postsSeen++;
+                // 다른 글이 섞인 게시판(서구의회)은 제목 규칙에 맞는 글만 본다
+                if (!source.wantsPost(post.title())) continue;
                 Optional<YearMonth> period = PeriodParser.parse(post.title(), null, post.postDate());
 
                 if (period.isPresent()) {

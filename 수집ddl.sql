@@ -22,7 +22,7 @@ CREATE TABLE CHAM.CHAM_MONIMAP_COLLECT_SOURCE
     `CHAM_MONIMAP_COLLECT_SOURCE_ID`            BIGINT           NOT NULL    AUTO_INCREMENT COMMENT '자치연대 예산감시 수집 출처 ID',
     `CHAM_MONIMAP_COLLECT_SOURCE_CODE`          VARCHAR(50)      NOT NULL    COMMENT '자치연대 예산감시 수집 출처 코드 (S3 경로용)',
     `CHAM_MONIMAP_COLLECT_SOURCE_NAME`          VARCHAR(100)     NOT NULL    COMMENT '자치연대 예산감시 수집 출처 기관명',
-    `CHAM_MONIMAP_COLLECT_SOURCE_ENGINE`        VARCHAR(30)      NOT NULL    COMMENT '자치연대 예산감시 수집 출처 게시판 엔진 (EGOV_BBS/COUNCIL_B/COUNCIL_A/GNUBOARD/CUSTOM_DONGGU/CUSTOM_DAEDEOK/CUSTOM_DAEJEON)',
+    `CHAM_MONIMAP_COLLECT_SOURCE_ENGINE`        VARCHAR(30)      NOT NULL    COMMENT '자치연대 예산감시 수집 출처 게시판 엔진 (EGOV_BBS/COUNCIL_B/COUNCIL_A/COUNCIL_CMN/GNUBOARD/CUSTOM_DONGGU/CUSTOM_DAEDEOK/CUSTOM_DAEJEON)',
     `CHAM_MONIMAP_COLLECT_SOURCE_LIST_URL`      VARCHAR(1000)    NOT NULL    COMMENT '자치연대 예산감시 수집 출처 목록 URL',
     `CHAM_MONIMAP_COLLECT_SOURCE_DETAIL_URL`    VARCHAR(1000)    NULL        COMMENT '자치연대 예산감시 수집 출처 상세 URL 템플릿 ({postKey} 치환)',
     `CHAM_MONIMAP_COLLECT_SOURCE_BOARD_ID`      VARCHAR(100)     NULL        COMMENT '자치연대 예산감시 수집 출처 게시판 ID',
@@ -36,6 +36,7 @@ CREATE TABLE CHAM.CHAM_MONIMAP_COLLECT_SOURCE
     `CHAM_MONIMAP_COLLECT_SOURCE_ALLOW_EXT`     VARCHAR(100)     NOT NULL    DEFAULT 'xlsx,xls' COMMENT '자치연대 예산감시 수집 출처 수집 허용 확장자',
     `CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE` VARCHAR(500)   NULL        COMMENT '자치연대 예산감시 수집 출처 받을 첨부 파일명 정규식 (NULL=전부)',
     `CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE` VARCHAR(500)   NULL        COMMENT '자치연대 예산감시 수집 출처 뺄 첨부 파일명 정규식 (NULL=없음)',
+    `CHAM_MONIMAP_COLLECT_SOURCE_POST_INCLUDE`  VARCHAR(500)     NULL        COMMENT '자치연대 예산감시 수집 출처 받을 게시물 제목 정규식 (NULL=전부)',
     `CHAM_MONIMAP_COLLECT_SOURCE_ENABLED`       TINYINT(1)       NOT NULL    DEFAULT 0 COMMENT '자치연대 예산감시 수집 출처 사용 여부',
     `CHAM_MONIMAP_COLLECT_SOURCE_SORT`          INT              NOT NULL    DEFAULT 0 COMMENT '자치연대 예산감시 수집 출처 정렬 순서',
     `CHAM_MONIMAP_COLLECT_SOURCE_LAST_SUCCESS`  DATETIME         NULL        COMMENT '자치연대 예산감시 수집 출처 마지막 성공 일시',
@@ -121,7 +122,7 @@ ALTER TABLE CHAM.CHAM_MONIMAP_COLLECT_FILE
 
 -- ─────────────────────────────────────────────────────────────
 -- 대전시장은 첨부 중 시장·부시장 파일만 받는다(요약표 '사용내역공개', '정무…' 는 뺀다). 시드 뒤 UPDATE 참고.
--- 출처 12곳 시드. 서구의회(게시판 비어 있음)를 뺀 11곳을 ENABLED=1. PDF 4곳(대전시·대전시의회·유성구청장·대덕구청장)은
+-- 출처 12곳 시드. 전부 ENABLED=1 (서구의회는 시드 뒤 UPDATE 로 게시판을 바꿔 켠다). PDF 4곳(대전시·대전시의회·유성구청장·대덕구청장)은
 -- 원본 보관과 PDF 미리보기만 된다(반영은 엑셀만).
 --
 -- !! 넣기 전에 운영 DB 에서 두 가지를 확인할 것 !!
@@ -209,3 +210,18 @@ VALUES
 UPDATE CHAM.CHAM_MONIMAP_COLLECT_SOURCE
 SET CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_INCLUDE = '시장', CHAM_MONIMAP_COLLECT_SOURCE_ATTACH_EXCLUDE = '정무'
 WHERE CHAM_MONIMAP_COLLECT_SOURCE_CODE = 'DAEJEON_MAYOR';
+
+-- 서구의회: '업무추진비' 메뉴(OperatingExpenseList.do)는 비어 있고 '의정활동 정보공개 > 의회운영' 에 올린다(2026-09-24 확인).
+-- 의정비·겸직 현황 같은 글이 섞여 있어 제목에 '업무추진비' 가 든 글만 받는다
+UPDATE CHAM.CHAM_MONIMAP_COLLECT_SOURCE
+SET CHAM_MONIMAP_COLLECT_SOURCE_ENGINE = 'COUNCIL_CMN',
+    CHAM_MONIMAP_COLLECT_SOURCE_LIST_URL = 'https://www.seogucouncil.daejeon.kr/svc/info/CouncilManagerList.do',
+    CHAM_MONIMAP_COLLECT_SOURCE_DETAIL_URL = 'https://www.seogucouncil.daejeon.kr/svc/info/CouncilManagerView.do?schBbsSn={postKey}&schKyCd=counciladmin',
+    CHAM_MONIMAP_COLLECT_SOURCE_PAGE_PARAM = 'schPageNo',
+    CHAM_MONIMAP_COLLECT_SOURCE_EXTRA_PARAM = 'schKyCd=counciladmin',
+    CHAM_MONIMAP_COLLECT_SOURCE_FILE_FORMAT = 'XLSX',
+    CHAM_MONIMAP_COLLECT_SOURCE_ALLOW_EXT = 'xlsx,xls',
+    CHAM_MONIMAP_COLLECT_SOURCE_POST_INCLUDE = '업무추진비',
+    CHAM_MONIMAP_COLLECT_SOURCE_ENABLED = 1,
+    CHAM_MONIMAP_COLLECT_SOURCE_NOTE = '업무추진비 메뉴는 비어 있고 의정활동 정보공개 > 의회운영(CouncilManagerList.do)에 올린다. 다른 글이 섞여 제목에 업무추진비 든 글만'
+WHERE CHAM_MONIMAP_COLLECT_SOURCE_CODE = 'SEOGU_COUNCIL';

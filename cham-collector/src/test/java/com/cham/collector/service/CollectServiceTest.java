@@ -34,7 +34,7 @@ class CollectServiceTest {
     private CollectService service;
 
     private final CollectSource source = new CollectSource(8L, "JUNGGU_COUNCIL", "중구의회", EngineType.COUNCIL_B,
-            "https://x/list", "https://x/view?uid={postKey}", null, "page", null, Set.of("xlsx", "xls"), null, null, true);
+            "https://x/list", "https://x/view?uid={postKey}", null, "page", null, Set.of("xlsx", "xls"), null, null, null, true);
 
     private final PostRef aug = new PostRef("A", "2026.8월 중구의회 업무추진비", null, "https://x/view?uid=A");
     private final PostRef jul = new PostRef("B", "2026.7월 중구의회 업무추진비", null, "https://x/view?uid=B");

@@ -14,6 +14,7 @@ import com.cham.collect.entity.ChamMonimapCollectFile;
 import com.cham.collect.entity.ChamMonimapCollectJob;
 import com.cham.collect.entity.ChamMonimapCollectSource;
 import com.cham.collect.enumeration.CollectFileStatus;
+import com.cham.collect.parser.CollectHeaderRules;
 import com.cham.collect.parser.HeaderMappedSheetParser;
 import com.cham.collect.parser.HeaderMappedSheetParser.ParseResult;
 import com.cham.collect.parser.HeaderMappedSheetParser.ParsedRow;
@@ -324,7 +325,7 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
         SourceDefaults defaults = new SourceDefaults(
                 source.getChamMonimapCollectSourcePositionName(),
                 source.getChamMonimapCollectSourceRegion(),
-                source.getChamMonimapCollectSourceDefaultUser(),
+                defaultUser(source, file),
                 source.getChamMonimapCollectSourceDefaultName(),
                 file.getChamMonimapCollectFileYear(),
                 file.getChamMonimapCollectFileMonth());
@@ -372,6 +373,13 @@ public class ChamMonimapCollectServiceImpl implements ChamMonimapCollectService 
                     c.sourceRowNum(), c.sheetName()), warnings, r.blocking(), r.district()));
         }
         return result;
+    }
+
+    // 사용자(직함) 기본값: 기관 설정(구청장) → 게시물 제목의 직함 → 파일명의 직함
+    private static String defaultUser(ChamMonimapCollectSource source, ChamMonimapCollectFile file) {
+        if (!isBlank(source.getChamMonimapCollectSourceDefaultUser())) return source.getChamMonimapCollectSourceDefaultUser();
+        String role = CollectHeaderRules.roleFromTitle(file.getChamMonimapCollectFilePostTitle());
+        return role != null ? role : CollectHeaderRules.roleFromTitle(file.getChamMonimapCollectFileOriginName());
     }
 
     /** 이름을 채운 줄과, 그중 기존 자료에서 못 찾아 기본 이름(공무원)을 넣은 줄 수 */

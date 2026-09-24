@@ -98,6 +98,33 @@ public final class CollectHeaderRules {
         return n.length() >= 2 && n.length() <= 20 && HANGUL.matcher(n).find() && !GENERIC_SHEET.matcher(n).find();
     }
 
+    // 직함으로 보는 끝말. 게시물 제목·파일명에서 직함을 뽑을 때 쓴다
+    private static final String ROLE_END = "(부의장|의장|위원장|위원회|교섭단체|사무국장|사무처장|사무국|사무처|담당관|전문위원|의정관)";
+    private static final Pattern PAREN = Pattern.compile("[(（]([^()（）]+)[)）]");
+    private static final Pattern ROLE_BEFORE_WORD = Pattern.compile("(\\S*" + ROLE_END + ")\\s*(의\\s*)?(의회운영)?업무추진비");
+    private static final Pattern ROLE_TAIL = Pattern.compile(".*" + ROLE_END + "$");
+
+    /**
+     * 게시물 제목·파일명의 직함. 서구의회·대전시의회는 파일 안에 사용자 칸 없이 제목에 직함을 적는다.
+     *   '2026년 8월 부의장 업무추진비 집행내역'           → 부의장
+     *   '2026년 8월 업무추진비 집행내역(국민의힘 교섭단체)' → 국민의힘 교섭단체
+     *   '업무추진비 공개(2026. 8. 도시건설위원장)'         → 도시건설위원장
+     * 못 찾으면 null
+     */
+    public static String roleFromTitle(String title) {
+        if (title == null) return null;
+        Matcher paren = PAREN.matcher(title);
+        while (paren.find()) {
+            String inner = paren.group(1)
+                    .replaceAll("\\d{2,4}\\s*[.년]\\s*\\d{1,2}\\s*[.월]?", " ")
+                    .replaceAll("['‘’]?\\d{2}\\.?\\s*\\d{1,2}\\s*월", " ")
+                    .replaceAll("\\s+", " ").trim();
+            if (ROLE_TAIL.matcher(inner).matches()) return inner;
+        }
+        Matcher before = ROLE_BEFORE_WORD.matcher(title);
+        return before.find() ? before.group(1) : null;
+    }
+
     // '금강휴게소 (충북 옥천군 동이면 금강로 596)' 처럼 장소명 뒤 괄호에 주소를 넣는 기관이 있다(중구청)
     private static final Pattern PLACE_WITH_ADDR = Pattern.compile("^(.+?)\\s*[(（]([^()（）]+)[)）]\\s*$");
     private static final Pattern ADDR_LIKE = Pattern.compile("[가-힣]+(시|군|구|동|읍|면|로|길)(\\s|\\d|$)");

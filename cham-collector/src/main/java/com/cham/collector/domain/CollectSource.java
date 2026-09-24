@@ -16,8 +16,14 @@ public record CollectSource(
         Set<String> allowExt,
         String attachInclude,   // 받을 첨부 파일명 정규식. null 이면 전부
         String attachExclude,   // 뺄 첨부 파일명 정규식. null 이면 없음
+        String postInclude,     // 받을 게시물 제목 정규식. null 이면 전부 (서구의회: 다른 글이 섞인 게시판)
         boolean enabled
 ) {
+
+    public boolean wantsPost(String title) {
+        return postInclude == null || postInclude.isBlank()
+                || java.util.regex.Pattern.compile(postInclude).matcher(title == null ? "" : title).find();
+    }
 
     /** 확장자와 파일명 규칙을 모두 통과하는 첨부인지 (대전시: 시장·부시장만, '정무' 는 뺀다) */
     public boolean wants(String fileName, String ext) {

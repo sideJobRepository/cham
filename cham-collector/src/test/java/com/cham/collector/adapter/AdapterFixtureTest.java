@@ -203,8 +203,32 @@ class AdapterFixtureTest {
         assertThat(files.get(0).url()).isEqualTo("https://council.daejeon.go.kr/bbs/FileDownLoadProc.do?flSn=136517");
     }
 
+    @Test
+    void 서구의회_의정활동정보공개_게시판() throws IOException {
+        CollectSource s = new CollectSource(1L, "SEOGU_COUNCIL", "서구의회", EngineType.COUNCIL_CMN,
+                "https://www.seogucouncil.daejeon.kr/svc/info/CouncilManagerList.do",
+                "https://www.seogucouncil.daejeon.kr/svc/info/CouncilManagerView.do?schBbsSn={postKey}&schKyCd=counciladmin",
+                null, "schPageNo", "schKyCd=counciladmin", Set.of("xlsx", "xls"), null, null, "업무추진비", true);
+        CouncilCmnAdapter adapter = new CouncilCmnAdapter(null);
+
+        List<PostRef> posts = adapter.parseList(s, doc("SEOGU_COUNCIL/list.html", s.listUrl()));
+        assertThat(posts.get(0).postKey()).isEqualTo("14724");
+        assertThat(posts.get(0).title()).isEqualTo("2026년 8월 부의장 업무추진비 집행내역");
+        assertThat(posts.get(0).detailUrl()).endsWith("CouncilManagerView.do?schBbsSn=14724&schKyCd=counciladmin");
+        assertThat(s.wantsPost(posts.get(0).title())).isTrue();
+        assertThat(s.wantsPost("2026년 의원별 겸직 현황")).isFalse();
+        assertThat(s.pageUrl(2)).isEqualTo(
+                "https://www.seogucouncil.daejeon.kr/svc/info/CouncilManagerList.do?schKyCd=counciladmin&schPageNo=2");
+
+        // 상세 아래에 붙은 목록의 링크는 첨부로 잡지 않는다
+        List<AttachmentRef> files = adapter.parseAttachments(s, posts.get(0), doc("SEOGU_COUNCIL/detail.html", posts.get(0).detailUrl()));
+        assertThat(files).hasSize(1);
+        assertThat(files.get(0).displayName()).isEqualTo("2026. 8월 업무추진비(부의장).xlsx");
+        assertThat(files.get(0).url()).isEqualTo("https://www.seogucouncil.daejeon.kr/bbs/FileDownLoadProc.do?schBbsSn=8416&schKyCd=counciladmin");
+    }
+
     private static CollectSource source(String code, EngineType engine, String listUrl, String detailUrl, String boardId) {
-        return new CollectSource(1L, code, code, engine, listUrl, detailUrl, boardId, "page", null, Set.of("xlsx", "xls", "pdf"), null, null, true);
+        return new CollectSource(1L, code, code, engine, listUrl, detailUrl, boardId, "page", null, Set.of("xlsx", "xls", "pdf"), null, null, null, true);
     }
 
     private static Document doc(String path, String baseUri) throws IOException {
